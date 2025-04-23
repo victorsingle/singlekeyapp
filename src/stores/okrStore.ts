@@ -306,7 +306,11 @@ generateFullOKRStructure: async (prompt: string) => {
            - Nenhum objetivo deve ficar sem vínculo
         
         🔷 GERE O CONTEÚDO SEMPRE EM PORTUGUÊS BRASILEIRO
-        
+
+        5. Se encontrar quantidades de Objetivos e KRs mencionados você DEVE respeitar:
+          - Exemplo 1: 2 Objetivos Estratégicos, 3 Táticos e 5 Operacionais
+          - Exemplo 2: 2 Objetivos Estratégicos com 2 KRs cada
+          - Exemplo 3: 3 Objetivos Táticos com 3 KRs cada 
         ---
         
         🎯 Objetivos Devem ser:

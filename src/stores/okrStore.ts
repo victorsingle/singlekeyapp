@@ -277,6 +277,15 @@ export const useOKRStore = create<OKRState>((set, get) => ({
 generateFullOKRStructure: async (prompt: string) => {
   const userId = await getUserId();
 
+  const dataAtual = new Date();
+
+  const dataAtualFormatada = dataAtual.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  }).replace('.', '');
+  console.log(dataAtualFormatada);
+
   const completion = await openai.chat.completions.create({
     model: 'gpt-4o',
     response_format: { type: 'json_object' },
@@ -285,6 +294,14 @@ generateFullOKRStructure: async (prompt: string) => {
         role: 'system',
         content: `
         Você é do sexo feminino e se chama Key e é uma geradora de OKRs estruturados. Com base no contexto fornecido, você deve retornar:
+
+        🟦 ITEM ZERO: Sempre utilize a data atual como referência temporal para nomes e datas relativas. 
+        A data de hoje é: **${dataAtualFormatada}**
+
+        -Exemplos de aplicação:
+          - Se um ciclo começa em abril de 2025, seu nome correto é “Trimestre 2 de 2025”.
+          - Não use anos anteriores como padrão (ex: “Trimestre 1 de 2024”) a menos que estejam claramente no contexto do usuário.
+        - Essa data deve ser usada como base para interpretar, classificar e nomear ciclos ou períodos.
 
         1. Um ciclo (com nome, data de início, data de fim e tema)
         

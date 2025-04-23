@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.readonly-style {
+    @apply opacity-50 cursor-not-allowed;
+}

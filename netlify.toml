@@ -1,0 +1,22 @@
+[functions]
+  directory = "src/functions"
+  node_bundler = "esbuild"
+
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = true
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[dev]
+  framework = "vite"
+  targetPort = 5173
+  autoLaunch = false
+  edge_functions = false

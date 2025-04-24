@@ -18,7 +18,7 @@ export function AuthTabs() {
             <Target className="h-8 w-8 text-blue-600 -ml-6" />
             <h1 className="text-2xl font-bold text-gray-900 ml-2">SingleKey</h1>
           </div>
-          <div className="bg-white py-8 px-6 shadow-xl rounded-lg">
+          <div className="bg-white px-6 shadow-xl rounded-lg">
             <PersonalForm />
           </div>
         </div>
@@ -28,13 +28,13 @@ export function AuthTabs() {
 
   if (fromLogin) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto w-full max-w-md">
-          <div className="flex items-center justify-center mb-6">
-            <Target className="h-8 w-8 text-blue-600 -ml-6" />
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-6 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto  max-w-md">
+          <div className="flex items-center justify-center bg-gray-50 mb-4">
+            <Target className="h-8 w-8 text-blue-600" />
             <h1 className="text-2xl font-bold text-gray-900 ml-2">SingleKey</h1>
           </div>
-          <div className="bg-white py-8 px-6 shadow-xl rounded-lg">
+          <div className="max-w-sm flex flex-col justify-center items-center bg-white py-4 px-6 shadow-xl rounded-lg">
             <CompanyForm />
           </div>
         </div>

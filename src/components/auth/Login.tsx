@@ -69,16 +69,16 @@ export function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md space-y-8">
+      <div className="w-full max-w-xs space-y-8">
         <div className="text-center">
           <div className="flex justify-center">
-            <Target className="h-20 w-20 text-blue-600 mx-auto" />
+            <Target className="h-12 w-12 text-blue-600 mx-auto" />
           </div>
-          <h2 className="mt-3 text-3xl font-extrabold text-gray-900">SingleKey</h2>
-          <p className="mt-2 text-sm text-gray-600">Planejamento Inteligente</p>
+          <h2 className="mt-0 text-2xl font-extrabold text-gray-900">SingleKey</h2>
+          <p className="mt-0 text-xs text-gray-600">Planejamento Inteligente</p>
         </div>
   
-        <div className="bg-white py-8 px-6 shadow-xl rounded-xl">
+        <div className="bg-white py-6 px-6 shadow-xl rounded-xl">
           <form onSubmit={handleSubmit} className="space-y-6">
             {errors.auth && (
               <div className="rounded-md bg-red-50 p-4">
@@ -87,7 +87,7 @@ export function Login() {
             )}
   
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-xs font-medium text-gray-700">
                 E-mail
               </label>
               <input
@@ -106,7 +106,7 @@ export function Login() {
             </div>
   
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-xs font-medium text-gray-700">
                 Senha
               </label>
               <div className="mt-1 relative">
@@ -147,12 +147,12 @@ export function Login() {
                   onChange={handleChange}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+                <label htmlFor="remember-me" className="ml-2 block text-xs text-gray-900">
                   Lembrar-me
                 </label>
               </div>
   
-              <div className="text-sm">
+              <div className="text-xs">
                 <Link
                   to="/reset-password"
                   className="font-medium text-blue-600 hover:text-blue-500"
@@ -173,17 +173,17 @@ export function Login() {
             </div>
           </form>
   
-          <div className="mt-6">
+          <div className="mt-2">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />
               </div>
-              <div className="relative flex justify-center text-sm">
+              <div className="relative flex justify-center text-xs">
                 <span className="px-2 bg-white text-gray-500">Novo por aqui?</span>
               </div>
             </div>
   
-            <div className="mt-6">
+            <div className="mt-2">
               <button
                 type="button"
                 onClick={() => navigate('/register?from=login')}

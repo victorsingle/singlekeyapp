@@ -1,26 +1,30 @@
-// /src/pages/api/send-invite.ts (caso esteja usando Next.js Pages Router)
-// Forçando o deploy
-import { NextApiRequest, NextApiResponse } from 'next';
+import { Handler } from '@netlify/functions';
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' });
+const handler: Handler = async (event) => {
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ message: 'Method not allowed' }),
+    };
   }
 
-  const { email, firstName, token } = req.body;
+  const { email, firstName, token } = JSON.parse(event.body || '{}');
 
   if (!email || !firstName || !token) {
-    return res.status(400).json({ message: 'Campos obrigatórios ausentes' });
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ message: 'Campos obrigatórios ausentes' }),
+    };
   }
 
-  const inviteLink = `${process.env.APP_URL}/convite?token=${token}`;
+  const inviteLink = `${process.env.VITE_APP_URL}/convite?token=${token}`;
 
   try {
     const data = await resend.emails.send({
-      from: 'SingleKey <onboarding@resend.dev>', // Precisa configurar domínio no Resend
+      from: 'SingleKey <onboarding@resend.dev>', // ou um domínio real se tiver
       to: email,
       subject: 'Você foi convidado para o SingleKey',
       html: `
@@ -34,9 +38,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       `,
     });
 
-    return res.status(200).json({ success: true, data });
-  } catch (err) {
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ success: true, data }),
+    };
+  } catch (err: any) {
     console.error('[❌ Email Error]', err);
-    return res.status(500).json({ message: 'Erro ao enviar e-mail de convite' });
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: 'Erro ao enviar e-mail de convite' }),
+    };
   }
-}
+};
+
+export { handler };

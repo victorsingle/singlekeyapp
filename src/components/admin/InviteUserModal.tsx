@@ -69,19 +69,21 @@ export function InviteUserModal({ isOpen, onClose, onUserInvited }: InviteUserMo
       });
 
       toast.success('Convite enviado por e-mail!');
-    } catch (emailError) {
-      console.error('[❌ Email Invite Error]', emailError);
-      toast.error('Usuário salvo, mas falha ao enviar e-mail.');
-    }
 
-    setEmail('');
-    setFirstName('');
-    setLastName('');
-    setRole('collaborator');
-    setLoading(false);
-    onClose();
-    onUserInvited?.();
-  };
+    
+  } catch (emailError) {
+    console.error('[❌ Email Invite Error]', emailError);
+    toast.error('Usuário salvo, mas falha ao enviar e-mail.');
+  }
+
+  setEmail('');
+  setFirstName('');
+  setLastName('');
+  setRole('collaborator');
+  setLoading(false);
+  onUserInvited?.();
+  onClose();
+};
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

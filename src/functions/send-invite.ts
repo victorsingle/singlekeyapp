@@ -4,7 +4,10 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const handler: Handler = async (event) => {
+  console.log('📩 [send-invite] Função chamada');
+
   if (event.httpMethod !== 'POST') {
+    console.warn('⚠️ Método não permitido:', event.httpMethod);
     return {
       statusCode: 405,
       body: JSON.stringify({ message: 'Method not allowed' }),
@@ -13,18 +16,30 @@ const handler: Handler = async (event) => {
 
   const { email, firstName, token } = JSON.parse(event.body || '{}');
 
+  console.log('📨 Dados recebidos:', { email, firstName, token });
+
   if (!email || !firstName || !token) {
+    console.error('❌ Campos obrigatórios ausentes');
     return {
       statusCode: 400,
       body: JSON.stringify({ message: 'Campos obrigatórios ausentes' }),
     };
   }
 
+  if (!process.env.RESEND_API_KEY) {
+    console.error('❌ RESEND_API_KEY ausente no ambiente');
+  }
+
+  if (!process.env.VITE_APP_URL) {
+    console.error('❌ VITE_APP_URL ausente no ambiente');
+  }
+
   const inviteLink = `${process.env.VITE_APP_URL}/convite?token=${token}`;
+  console.log('🔗 Link de convite gerado:', inviteLink);
 
   try {
     const data = await resend.emails.send({
-      from: 'SingleKey <onboarding@resend.dev>', // ou um domínio real se tiver
+      from: 'SingleKey <onboarding@resend.dev>',
       to: email,
       subject: 'Você foi convidado para o SingleKey',
       html: `
@@ -38,12 +53,14 @@ const handler: Handler = async (event) => {
       `,
     });
 
+    console.log('✅ E-mail enviado com sucesso:', data);
+
     return {
       statusCode: 200,
       body: JSON.stringify({ success: true, data }),
     };
   } catch (err: any) {
-    console.error('[❌ Email Error]', err);
+    console.error('❌ Erro ao enviar e-mail:', err);
     return {
       statusCode: 500,
       body: JSON.stringify({ message: 'Erro ao enviar e-mail de convite' }),

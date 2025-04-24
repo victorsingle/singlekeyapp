@@ -7,7 +7,8 @@ import { useOKRStore } from '../stores/okrStore';
 import { KeyResultRow } from './KeyResultRow';
 import { supabase } from '../lib/supabase';
 import { useNotificationStore } from '../stores/notificationStore';
-import { Modal } from './Modal'; // ajuste o caminho se necessário
+import { Modal } from './Modal';
+import { useNavigate } from 'react-router-dom';
 
 
 
@@ -60,11 +61,14 @@ export function OKRListTable({
   const [saving, setSaving] = useState<{ [key: string]: boolean }>({});
   const { createKeyResult, deleteKeyResult, deleteOKR } = useOKRStore();
   const { confirm, showModal } = useModalStore();
-
   const { notifications, markAsRead } = useNotificationStore();
   const checkinNotification = notifications.find(
     (n) => n.type === 'checkin_reminder' && !n.read
   );
+
+  const navigate = useNavigate();
+  const [showCheckinButton, setShowCheckinButton] = useState(false);
+
 
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;

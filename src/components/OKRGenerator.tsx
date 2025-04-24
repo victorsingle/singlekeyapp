@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Plus } from 'lucide-react';
+import { Sparkles, Target } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import clsx from 'clsx';
 import { useOKRStore } from '../stores/okrStore';
@@ -32,12 +32,24 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false }: OKRGe
     }
   };
 
+  // 💡 Controla animação do ícone com base em estado
+  const avatarAnimation = loading
+    ? 'animate-pulse'
+    : context.length === 0
+    ? 'animate-bounce'
+    : '';
+
   return isModal ? (
-    <section className="w-full max-w-3xl mx-auto bg-white m-5 mt-0">
-      <div className="p-2 mb-2 mt-0">
-        <p className="text-gray-600 text-sm leading-relaxed">
-          <b>KEY na área!!!</b> Me conta o que mudou ou quais são os novos desafios por aí. Com um bom contexto, consigo entender melhor suas prioridades e montar um novo ciclo sob medida pra te ajudar a alcançar tudo isso com mais clareza e foco.
+    <section className="w-full max-w-2xl mx-auto bg-white m-5 mt-0">
+      <div className="p-2 mb-1 -mt-2">
+      <div className="flex items-center justify-left gap-3 mb-0">
+        <div className={`${avatarAnimation} bg-blue-50 p-1 rounded-full shadow-inner`}>
+          <Target className="w-7 h-7 text-blue-600" />
+        </div>
+        <p className="text-gray-600 text-md leading-relaxed -mt-3">
+          Me conta o que mudou ou quais são os desafios para esse novo ciclo.
         </p>
+      </div>
       </div>
 
       <form onSubmit={handleGenerate} className="space-y-4">
@@ -74,9 +86,14 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false }: OKRGe
   ) : (
     <section className="w-full max-w-3xl mx-auto mt-0 p-0 rounded-xl text-center">
       <div className="p-5">
-        <h2 className="text-2xl font-bold text-gray-800 mb-5">Vamos construir OKRs?</h2>
+        <div className="flex justify-center items-center mb-2">
+          <div className={`${avatarAnimation} bg-blue-50 p-3 rounded-full shadow-inner`}>
+            <Target className="w-10 h-10 text-blue-600" />
+          </div>
+        </div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">Eu sou a KEY, sua copiloto de OKRs</h2>
         <p className="text-gray-600 text-sm leading-relaxed">
-          Olá, eu sou a <b>KEY!</b> Meu papel é te apoiar a transformar intenções em direção clara. Me conta seus desafios e vamos juntos estruturar OKRs que conectem suas metas ao que realmente importa.
+          Me diga qual é o seu desafio do próximo ciclo e eu cuido do resto.
         </p>
       </div>
 
@@ -116,7 +133,7 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false }: OKRGe
           onClick={onManualStart}
           className="w-full flex items-center border justify-center gap-2 py-3 px-6 rounded-xl text-blue-600 bg-white !mt-[10px] hover:bg-gray-100 transition"
         >
-          Criar Manualmente 
+          Criar Manualmente
         </button>
       </form>
     </section>

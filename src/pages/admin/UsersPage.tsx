@@ -29,6 +29,7 @@ export function UsersPage() {
         <InviteUserModal
           isOpen={isInviteModalOpen}
           onClose={() => setIsInviteModalOpen(false)}
+          onUserInvited={refetch}
         />
         <ModalContainer />
       </div>

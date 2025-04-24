@@ -79,49 +79,45 @@ export function UserTable({ users, loading, onInviteClick, onUserUpdated, setUse
     });
   };
 
-const handleDelete = (email: string) => {
-  showModal({
-    type: 'danger',
-    title: 'Excluir usuário',
-    message: 'Tem certeza que deseja excluir este usuário? Esta ação não poderá ser desfeita.',
-    onConfirm: async () => {
-      console.log('[DEBUG] Deletando usuário com e-mail:', email);
-      
-      // Excluindo da tabela 'invited_users' usando o campo 'email'
-      const { error: invitedError, data: invitedData } = await supabase.from('invited_users').delete().eq('email', email);
-
-      if (invitedError) {
-        toast.error('Erro ao excluir usuário da tabela de convidados');
-        console.error('[❌ Error removing from invited_users]', invitedError);
-      } else {
-        toast.success('Usuário removido com sucesso da tabela de convidados');
-        console.log('[DEBUG] Usuário excluído com sucesso da tabela de convidados:', invitedData);
-      }
-
-      // Verificando se o usuário ainda existe
-      const { data: checkDeletedUser } = await supabase.from('invited_users').select().eq('email', email);
-      if (checkDeletedUser?.length === 0) {
-        console.log('[DEBUG] Usuário removido da tabela invited_users');
-      } else {
-        console.log('[DEBUG] Usuário ainda existe na tabela invited_users');
-      }
-
-      // Atualiza a lista de usuários na UI
-      setUsers((prev) => {
-        const updatedUsers = prev.filter((user) => user.email !== email);
-        console.log('[DEBUG] Usuários após exclusão:', updatedUsers);
-        return updatedUsers;
-      });
-      onUserUpdated?.(); // Chama a função de atualização da lista de usuários (caso necessário)
-    },
-  });
-};
-
-
-
-
-
-
+  const handleDelete = (id: string) => {
+    showModal({
+      type: 'danger',
+      title: 'Excluir usuário',
+      message: 'Tem certeza que deseja excluir este usuário? Esta ação não poderá ser desfeita.',
+      onConfirm: async () => {
+        try {
+          console.log('[DEBUG] Tentando excluir usuário com e-mail:', id);
+  
+          const { error, data } = await supabase
+            .from('invited_users')
+            .delete()
+            .eq('id', id);
+  
+          if (error) {
+            toast.error('Erro ao excluir usuário');
+            console.error('[❌ Delete Error]', error);
+            return;
+          }
+  
+          toast.success('Usuário removido com sucesso');
+  
+          // Atualiza a lista local
+          setUsers((prevUsers) => {
+            const filtered = prevUsers.filter((user) => user.id !== id);
+            console.log('[DEBUG] Lista após exclusão:', filtered);
+            return filtered;
+          });
+  
+          // Garante nova leitura se necessário
+          onUserUpdated?.();
+        } catch (err) {
+          console.error('[❌ Handler Error]', err);
+          toast.error('Erro inesperado ao excluir');
+        }
+      },
+    });
+  };
+  
   return (
     <div className="bg-white rounded-lg shadow">
       <div className="p-6 border-b border-gray-200">
@@ -156,7 +152,14 @@ const handleDelete = (email: string) => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((user) => (
+            {users.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">
+                  Nenhum usuário foi convidado ainda.
+                </td>
+              </tr>
+            ) : (
+              users.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     {editingUserId === user.id ? (
@@ -222,8 +225,9 @@ const handleDelete = (email: string) => {
                     </button>
                   </td>
                 </tr>
-              ))}
-            </tbody>
+              ))
+            )}
+          </tbody>
           </table>
         </div>
       )}

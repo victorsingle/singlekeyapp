@@ -34,7 +34,9 @@ const handler: Handler = async (event) => {
     console.error('❌ SITE_URL ausente no ambiente');
   }
 
-  const inviteLink = `${process.env.SITE_URL}/convite?token=${token}`;
+  const baseUrl = process.env.VITE_APP_URL || 'https://singlekey.app';
+  const inviteLink = `${baseUrl}/convite?token=${token}`;
+
   console.log('🔗 Link de convite gerado:', inviteLink);
 
   try {

@@ -1,5 +1,5 @@
 import { Handler } from '@netlify/functions';
-import { supabaseAdmin } from '../../lib/supabaseAdmin';
+import { supabaseAdmin } from './supabaseAdmin';
 
 const handler: Handler = async (event) => {
   if (event.httpMethod !== 'POST') {

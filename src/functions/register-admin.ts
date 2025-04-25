@@ -61,9 +61,21 @@ const handler: Handler = async (event) => {
       role: 'admin',
       status: 'pending',
     });
-
+    
     if (insertError) {
-      console.error('[❌ Erro ao inserir na tabela users]', insertError);
+      console.error('[❌ Erro ao salvar no banco]', {
+        insertError,
+        payload: {
+          user_id: createdUser.user.id,
+          email,
+          company_name: companyName,
+          first_name: firstName,
+          last_name: lastName,
+          phone,
+          role: 'admin',
+          status: 'pending',
+        },
+      });
       return {
         statusCode: 400,
         body: JSON.stringify({ message: 'Erro ao salvar usuário no banco.' }),

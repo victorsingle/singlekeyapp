@@ -7,6 +7,12 @@
   command = "npm run build"
 
 [[redirects]]
+  from = "https://singlekey.app/*"
+  to = "https://www.singlekey.app/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200

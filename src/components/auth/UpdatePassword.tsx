@@ -65,19 +65,19 @@ export function UpdatePassword() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
+  
     if (password.length < 6) {
       setError('A senha deve ter pelo menos 6 caracteres');
       return;
     }
-
+  
     if (password !== confirmPassword) {
       setError('As senhas não coincidem');
       return;
     }
-
+  
     setLoading(true);
-
+  
     try {
       if (email) {
         const response = await fetch('/.netlify/functions/accept-invite', {
@@ -85,26 +85,31 @@ export function UpdatePassword() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token, password }),
         });
-    
-        const result = await response.json();
-    
+  
+        let result = {};
+        try {
+          result = await response.json();
+        } catch (error) {
+          console.warn('[⚠️ Resposta não era JSON]', error);
+        }
+  
         if (!response.ok) {
           toast.error(result.message || 'Erro ao aceitar convite.');
           setLoading(false);
           return;
         }
-    
+  
         setShowSuccessModal(true);
       } else {
         const { error: updateError } = await supabase.auth.updateUser({ password });
-    
+  
         if (updateError) {
           console.error('[❌ Erro ao atualizar senha]', updateError);
           toast.error('Erro ao atualizar a senha. Tente novamente.');
           setLoading(false);
           return;
         }
-    
+  
         setShowSuccessModal(true);
       }
     } catch (error) {
@@ -112,8 +117,9 @@ export function UpdatePassword() {
       toast.error('Erro inesperado. Tente novamente.');
     } finally {
       setLoading(false);
-    }    
+    }
   };
+  
 
   if (!sessionReady) {
     return (

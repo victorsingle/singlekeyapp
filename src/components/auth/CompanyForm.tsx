@@ -71,13 +71,12 @@ export function CompanyForm() {
       let result = {};
       try {
         result = await response.json();
-      } catch (jsonErr) {
-        console.warn('[⚠️ Resposta vazia ou malformada]', jsonErr);
+      } catch (error) {
+        console.warn('[⚠️ Resposta não era JSON]', error);
       }
   
       if (!response.ok) {
-        console.error('[❌ Erro na resposta do servidor]', result);
-        toast.error(result.message || 'Erro ao criar conta. Tente novamente.');
+        toast.error(result.message || 'Erro inesperado ao criar conta.');
         setIsLoading(false);
         return;
       }
@@ -94,8 +93,8 @@ export function CompanyForm() {
       });
   
     } catch (error) {
-      console.error('[❌ Erro inesperado no submit]', error);
-      toast.error('Erro inesperado ao tentar cadastrar. Tente novamente.');
+      console.error('[❌ Erro inesperado no cadastro]', error);
+      toast.error('Erro inesperado. Tente novamente.');
     } finally {
       setIsLoading(false);
     }

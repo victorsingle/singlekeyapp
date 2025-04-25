@@ -30,12 +30,18 @@ const handler: Handler = async (event) => {
     });
 
     if (createError || !createdUser.user) {
-      console.error('[❌ Erro ao criar usuário no Auth]', createError);
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ message: 'Erro ao criar usuário. Talvez já exista.' }),
-      };
-    }
+        console.error('[❌ Erro detalhado]', {
+          error: createError,
+          data: createdUser,
+        });
+      
+        return {
+          statusCode: 400,
+          body: JSON.stringify({
+            message: createError?.message || 'Erro ao criar usuário',
+          }),
+        };
+      }
 
     // 2. Insere o registro na tabela users
     const { error: insertError } = await supabaseAdmin.from('users').insert({

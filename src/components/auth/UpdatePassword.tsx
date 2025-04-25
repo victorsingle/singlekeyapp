@@ -3,7 +3,7 @@ import { Target } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { SuccessModal } from './SuccessModal';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 export function UpdatePassword() {
   const [password, setPassword] = useState('');
@@ -12,31 +12,58 @@ export function UpdatePassword() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
+  const [email, setEmail] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // 👇 Garante que a sessão via token na URL seja aplicada
-  useEffect(() => {
-    const hash = window.location.hash;
-    const query = new URLSearchParams(hash.substring(1));
-    const access_token = query.get('access_token');
-    const refresh_token = query.get('refresh_token');
+  const token = searchParams.get('token');
 
-    if (access_token && refresh_token) {
-      console.log('[🔐 Aplicando sessão com token da URL]');
-      supabase.auth.setSession({ access_token, refresh_token }).then(({ error }) => {
-        if (error) {
-          console.error('[❌ Erro ao aplicar sessão]', error);
-          toast.error('Erro ao validar o link de redefinição.');
+  useEffect(() => {
+    const initializeSessionOrFetchInvite = async () => {
+      const hash = window.location.hash;
+      const query = new URLSearchParams(hash.substring(1));
+      const access_token = query.get('access_token');
+      const refresh_token = query.get('refresh_token');
+
+      if (access_token && refresh_token) {
+        // 👇 Redefinição padrão via token (caso já esteja autenticado)
+        console.log('[🔐 Aplicando sessão com token da URL]');
+        supabase.auth.setSession({ access_token, refresh_token }).then(({ error }) => {
+          if (error) {
+            console.error('[❌ Erro ao aplicar sessão]', error);
+            toast.error('Erro ao validar o link de redefinição.');
+            navigate('/login');
+          } else {
+            setSessionReady(true);
+          }
+        });
+      } else if (token) {
+        // 👇 Fluxo de convite personalizado
+        console.log('[📨 Validando convite manual]');
+        const { data, error } = await supabase
+          .from('invited_users')
+          .select('email')
+          .eq('token', token)
+          .eq('status', 'pending')
+          .single();
+
+        if (error || !data) {
+          console.error('[❌ Token inválido ou convite expirado]', error);
+          toast.error('Convite inválido ou expirado.');
           navigate('/login');
-        } else {
-          setSessionReady(true);
+          return;
         }
-      });
-    } else {
-      console.warn('[⚠️ Nenhum token na URL]');
-      navigate('/login');
-    }
-  }, [navigate]);
+
+        setEmail(data.email);
+        setSessionReady(true);
+      } else {
+        console.warn('[⚠️ Nenhum token encontrado]');
+        navigate('/login');
+      }
+    };
+
+    initializeSessionOrFetchInvite();
+  }, [navigate, token]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,17 +81,47 @@ export function UpdatePassword() {
 
     setLoading(true);
 
-    const { error: updateError } = await supabase.auth.updateUser({ password });
+    try {
+      if (email) {
+        // 👉 Fluxo convite manual: criar novo auth.user
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+        });
 
-    setLoading(false);
+        if (signUpError || !signUpData.session) {
+          console.error('[❌ Erro ao criar usuário]', signUpError);
+          toast.error('Erro ao criar usuário. Talvez o convite já tenha sido usado.');
+          setLoading(false);
+          return;
+        }
 
-    if (updateError) {
-      console.error('[❌ Erro ao atualizar senha]', updateError);
-      toast.error('Erro ao atualizar a senha. Tente novamente.');
-      return;
+        // Atualiza status do convite
+        await supabase
+          .from('invited_users')
+          .update({ status: 'accepted' })
+          .eq('token', token);
+
+        setShowSuccessModal(true);
+      } else {
+        // 👉 Fluxo normal redefinição de senha
+        const { error: updateError } = await supabase.auth.updateUser({ password });
+
+        if (updateError) {
+          console.error('[❌ Erro ao atualizar senha]', updateError);
+          toast.error('Erro ao atualizar a senha. Tente novamente.');
+          setLoading(false);
+          return;
+        }
+
+        setShowSuccessModal(true);
+      }
+    } catch (error) {
+      console.error('[❌ Erro inesperado]', error);
+      toast.error('Erro inesperado. Tente novamente.');
+    } finally {
+      setLoading(false);
     }
-
-    setShowSuccessModal(true);
   };
 
   if (!sessionReady) {
@@ -89,7 +146,9 @@ export function UpdatePassword() {
         <div className="bg-white py-8 px-4 shadow-xl sm:rounded-lg sm:px-10">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">Nova Senha</label>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Nova Senha
+              </label>
               <input
                 id="password"
                 name="password"
@@ -102,7 +161,9 @@ export function UpdatePassword() {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">Confirmar Senha</label>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                Confirmar Senha
+              </label>
               <input
                 id="confirmPassword"
                 name="confirmPassword"
@@ -136,7 +197,7 @@ export function UpdatePassword() {
           navigate('/login');
         }}
         title="Senha atualizada"
-        message="Sua senha foi redefinida com sucesso. Você já pode fazer login com a nova senha."
+        message="Sua senha foi definida com sucesso. Você já pode fazer login."
       />
     </div>
   );

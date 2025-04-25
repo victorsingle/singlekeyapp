@@ -19,6 +19,7 @@ import { UpdatePassword } from './components/auth/UpdatePassword';
 import { UsersPage } from './pages/admin/UsersPage';
 import { TeamsPage } from './pages/admin/TeamsPage';
 import { TeamDetailPage } from './pages/admin/TeamDetailPage';
+import { AcceptInvitePage } from './components/auth/AcceptInvitePage';
 
 
 export function CycleDetailPageWrapper() {
@@ -290,6 +291,7 @@ useEffect(() => {
           <Route path="/register" element={<AuthTabs />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/update-password" element={<UpdatePassword />} />
+          <Route path="/convite" element={<AcceptInvitePage />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/" element={<CycleDashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />

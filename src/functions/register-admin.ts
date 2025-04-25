@@ -12,7 +12,18 @@ const handler: Handler = async (event) => {
     };
   }
 
-  const { email, password, companyName, firstName, lastName, phone } = JSON.parse(event.body || '{}');
+  let parsed;
+  try {
+    parsed = JSON.parse(event.body || '{}');
+  } catch (err) {
+    console.error('[❌ Erro ao fazer parse do JSON]', err);
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ message: 'Erro no formato do JSON recebido.' }),
+    };
+  }
+
+  const { email, password, companyName, firstName, lastName, phone } = parsed;
 
   if (!email || !password || !companyName || !firstName || !lastName) {
     return {
@@ -26,24 +37,20 @@ const handler: Handler = async (event) => {
     const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      email_confirm: false, // ⚡ deixa pendente até ele ativar
+      email_confirm: false,
     });
 
-    if (createError || !createdUser.user) {
-        console.error('[❌ Erro detalhado]', {
-          error: createError,
-          data: createdUser,
-        });
-      
-        return {
-          statusCode: 400,
-          body: JSON.stringify({
-            message: createError?.message || 'Erro ao criar usuário',
-          }),
-        };
-      }
+    if (createError || !createdUser?.user) {
+      console.error('[❌ Erro ao criar usuário no Supabase]', { createError, createdUser });
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message: createError?.message || 'Erro ao criar usuário no Supabase.',
+        }),
+      };
+    }
 
-    // 2. Insere o registro na tabela users
+    // 2. Insere o registro na tabela `users`
     const { error: insertError } = await supabaseAdmin.from('users').insert({
       user_id: createdUser.user.id,
       email,
@@ -51,22 +58,22 @@ const handler: Handler = async (event) => {
       first_name: firstName,
       last_name: lastName,
       phone,
-      role: 'admin', // 👈 marca como admin
-      status: 'pending', // opcional: pending até ativar
+      role: 'admin',
+      status: 'pending',
     });
 
     if (insertError) {
-      console.error('[❌ Erro ao salvar no banco]', insertError);
+      console.error('[❌ Erro ao inserir na tabela users]', insertError);
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: 'Erro ao registrar usuário.' }),
+        body: JSON.stringify({ message: 'Erro ao salvar usuário no banco.' }),
       };
     }
 
-    // 3. Gera um link de ativação manual (com o ID do user)
+    // 3. Gera o link de ativação manual
     const activationLink = `${process.env.FRONTEND_URL}/ativar?user_id=${createdUser.user.id}`;
 
-    // 4. (Opcional) Dispara e-mail pelo Resend
+    // 4. Dispara e-mail via Resend
     await resend.emails.send({
       from: 'SingleKey <no-reply@singlekey.app>',
       to: email,
@@ -83,11 +90,10 @@ const handler: Handler = async (event) => {
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Usuário criado e e-mail de ativação enviado.' }),
+      body: JSON.stringify({ message: 'Usuário criado com sucesso. E-mail de ativação enviado.' }),
     };
-
   } catch (error) {
-    console.error('[❌ Erro inesperado]', error);
+    console.error('[❌ Erro inesperado no cadastro]', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ message: 'Erro inesperado. Tente novamente.' }),

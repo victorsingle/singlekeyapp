@@ -39,7 +39,7 @@ const handler: Handler = async (event) => {
 
   try {
     const data = await resend.emails.send({
-      from: 'SingleKey <no-replay@maildrop.cc>',  // Corrigido aqui no-reply@singlekey.app
+      from: 'SingleKey <no-reply@singlekey.app>',  // Corrigido aqui no-reply@singlekey.app
       to: email,
       subject: 'Você foi convidado para o SingleKey',
       html: `

@@ -41,6 +41,7 @@ function App() {
     '/reset-password',
     '/update-password',
     '/auth/callback',
+    '/convite',
   ];
   const isPublicRoute =
     publicPaths.includes(location.pathname) ||

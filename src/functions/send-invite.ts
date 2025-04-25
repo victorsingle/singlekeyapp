@@ -39,7 +39,7 @@ const handler: Handler = async (event) => {
 
   try {
     const data = await resend.emails.send({
-      from: 'SingleKey <onboarding@resend.dev>',
+      from: 'SingleKey <onboarding@singlekey.singlejob.com.br>',
       to: email,
       subject: 'Você foi convidado para o SingleKey',
       html: `

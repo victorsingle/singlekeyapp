@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Target } from 'lucide-react';
+import { Eye, EyeOff, Target } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { SuccessModal } from './SuccessModal';
 import toast from 'react-hot-toast';
@@ -13,9 +13,11 @@ export function UpdatePassword() {
   const [loading, setLoading] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-
   const token = searchParams.get('token');
 
   useEffect(() => {
@@ -26,8 +28,6 @@ export function UpdatePassword() {
       const refresh_token = query.get('refresh_token');
 
       if (access_token && refresh_token) {
-        // 👇 Redefinição padrão via token (caso já esteja autenticado)
-        console.log('[🔐 Aplicando sessão com token da URL]');
         supabase.auth.setSession({ access_token, refresh_token }).then(({ error }) => {
           if (error) {
             console.error('[❌ Erro ao aplicar sessão]', error);
@@ -38,8 +38,6 @@ export function UpdatePassword() {
           }
         });
       } else if (token) {
-        // 👇 Fluxo de convite personalizado
-        console.log('[📨 Validando convite manual]');
         const { data, error } = await supabase
           .from('invited_users')
           .select('email')
@@ -57,7 +55,6 @@ export function UpdatePassword() {
         setEmail(data.email);
         setSessionReady(true);
       } else {
-        console.warn('[⚠️ Nenhum token encontrado]');
         navigate('/login');
       }
     };
@@ -83,11 +80,24 @@ export function UpdatePassword() {
 
     try {
       if (email) {
-        // 👉 Fluxo convite manual: criar novo auth.user
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
+        const response = await fetch('/.netlify/functions/accept-invite', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, password }),
         });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+          toast.error(result.message || 'Erro ao aceitar convite.');
+          setLoading(false);
+          return;
+        }
+        
+        setShowSuccessModal(true);
+        });
+
+        console.log('[🧪 signUpData]', signUpData, signUpError);
 
         if (signUpError || !signUpData.session) {
           console.error('[❌ Erro ao criar usuário]', signUpError);
@@ -96,7 +106,6 @@ export function UpdatePassword() {
           return;
         }
 
-        // Atualiza status do convite
         await supabase
           .from('invited_users')
           .update({ status: 'accepted' })
@@ -104,7 +113,6 @@ export function UpdatePassword() {
 
         setShowSuccessModal(true);
       } else {
-        // 👉 Fluxo normal redefinição de senha
         const { error: updateError } = await supabase.auth.updateUser({ password });
 
         if (updateError) {
@@ -134,45 +142,63 @@ export function UpdatePassword() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
+      <div className="w-full text-center">
         <div className="flex justify-center">
-          <Target className="h-20 w-20 text-blue-600" />
+          <Target className="h-12 w-12 text-blue-600" />
         </div>
         <h2 className="mt-3 text-3xl font-extrabold text-gray-900">SingleKey</h2>
-        <p className="mt-2 text-sm text-gray-600">Insira sua nova senha abaixo</p>
+        <p className="mt-2 text-xs text-gray-600">Insira sua nova senha abaixo</p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow-xl sm:rounded-lg sm:px-10">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-xs font-medium text-gray-700">
                 Nova Senha
               </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="mt-1 block w-full px-3 p-2 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-xs border-gray-300"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="confirmPassword" className="block text-xs font-medium text-gray-700">
                 Confirmar Senha
               </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300"
-              />
+              <div className="relative">
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="mt-1 block w-full px-3 p-2 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-xs border-gray-300"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+                >
+                  {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
 
             {error && (

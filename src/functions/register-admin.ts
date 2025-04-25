@@ -1,10 +1,10 @@
-import { Handler } from '@netlify/functions';
+import type { Handler, HandlerEvent } from '@netlify/functions';
 import { supabaseAdmin } from './supabaseAdmin';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY); // sua API Key da Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-const handler: Handler = async (event) => {
+const handler: Handler = async (event: HandlerEvent) => {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -33,7 +33,7 @@ const handler: Handler = async (event) => {
   }
 
   try {
-    // 1. Cria o usuário no auth com email_confirm: false (não confirmado ainda)
+    // 1. Cria o usuário no auth com email_confirm: false
     const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
@@ -50,30 +50,30 @@ const handler: Handler = async (event) => {
       };
     }
 
-    // 2. Insere o registro na tabela `users`
+    const userId = createdUser.user.id;
+
+    // 2. Insere o registro na tabela `users`, com o campo `id` explícito
     const { error: insertError } = await supabaseAdmin.from('users').insert({
-      user_id: createdUser.user.id,
+      id: userId, // <-- necessário, é a PK
+      user_id: userId,
       email,
       company_name: companyName,
       first_name: firstName,
       last_name: lastName,
       phone,
-      role: 'admin',
-      status: 'pending',
     });
-    
+
     if (insertError) {
       console.error('[❌ Erro ao salvar no banco]', {
         insertError,
         payload: {
-          user_id: createdUser.user.id,
+          id: userId,
+          user_id: userId,
           email,
           company_name: companyName,
           first_name: firstName,
           last_name: lastName,
           phone,
-          role: 'admin',
-          status: 'pending',
         },
       });
       return {
@@ -83,9 +83,9 @@ const handler: Handler = async (event) => {
     }
 
     // 3. Gera o link de ativação manual
-    const activationLink = `${process.env.FRONTEND_URL}/ativar?user_id=${createdUser.user.id}`;
+    const activationLink = `${process.env.VITE_APP_URL}/ativar?user_id=${userId}`;
 
-    // 4. Dispara e-mail via Resend
+    // 4. Dispara e-mail de ativação via Resend
     await resend.emails.send({
       from: 'SingleKey <no-reply@singlekey.app>',
       to: email,

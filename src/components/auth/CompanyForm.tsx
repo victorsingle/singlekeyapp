@@ -68,11 +68,15 @@ export function CompanyForm() {
         }),
       });
   
-      let result = {};
+      const raw = await response.text(); // 👈 lê o body uma única vez
+  
+      let result: any = {};
       try {
-        result = await response.json();
+        result = JSON.parse(raw);
       } catch (error) {
-        console.warn('[⚠️ Resposta não era JSON]', error);
+        console.warn('[⚠️ Resposta não era JSON válido]', error);
+        console.warn('[📜 Conteúdo da resposta bruta]:', raw);
+        result = { message: raw };
       }
   
       if (!response.ok) {

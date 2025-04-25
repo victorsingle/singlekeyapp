@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
 export const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // ⚠️ NÃO usar isso no frontend!
+  process.env.VITE_SUPABASE_URL!,
+  process.env.VITE_SUPABASE_SERVICE_ROLE_KEY! // ⚠️ Não usar no frontend, mas aqui é função Netlify
 );

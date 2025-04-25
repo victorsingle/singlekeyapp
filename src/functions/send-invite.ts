@@ -30,16 +30,16 @@ const handler: Handler = async (event) => {
     console.error('❌ RESEND_API_KEY ausente no ambiente');
   }
 
-  if (!process.env.VITE_APP_URL) {
-    console.error('❌ VITE_APP_URL ausente no ambiente');
+  if (!process.env.SITE_URL) {  // Alterado aqui para SITE_URL
+    console.error('❌ SITE_URL ausente no ambiente');
   }
 
-  const inviteLink = `${process.env.VITE_APP_URL}/convite?token=${token}`;
+  const inviteLink = `${process.env.SITE_URL}/convite?token=${token}`;
   console.log('🔗 Link de convite gerado:', inviteLink);
 
   try {
     const data = await resend.emails.send({
-      from: 'SingleKey <onboarding@singlekey.singlejob.com.br>',
+      from: 'SingleKey <no-reply@singlekey.app>',  // Corrigido aqui
       to: email,
       subject: 'Você foi convidado para o SingleKey',
       html: `

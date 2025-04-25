@@ -58,7 +58,7 @@ export function InviteUserModal({ isOpen, onClose, onUserInvited }: InviteUserMo
     }
 
     try {
-      await fetch('/.netlify/functions/send-invite', {
+      const response = await fetch('/.netlify/functions/send-invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -67,6 +67,10 @@ export function InviteUserModal({ isOpen, onClose, onUserInvited }: InviteUserMo
           token,
         }),
       });
+      
+      if (!response.ok) {
+        throw new Error('Falha ao enviar convite');
+      }
 
       toast.success('Convite enviado por e-mail!');
 

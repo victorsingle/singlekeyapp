@@ -85,43 +85,26 @@ export function UpdatePassword() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token, password }),
         });
-        
+    
         const result = await response.json();
-        
+    
         if (!response.ok) {
           toast.error(result.message || 'Erro ao aceitar convite.');
           setLoading(false);
           return;
         }
-        
-        setShowSuccessModal(true);
-        });
-
-        console.log('[🧪 signUpData]', signUpData, signUpError);
-
-        if (signUpError || !signUpData.session) {
-          console.error('[❌ Erro ao criar usuário]', signUpError);
-          toast.error('Erro ao criar usuário. Talvez o convite já tenha sido usado.');
-          setLoading(false);
-          return;
-        }
-
-        await supabase
-          .from('invited_users')
-          .update({ status: 'accepted' })
-          .eq('token', token);
-
+    
         setShowSuccessModal(true);
       } else {
         const { error: updateError } = await supabase.auth.updateUser({ password });
-
+    
         if (updateError) {
           console.error('[❌ Erro ao atualizar senha]', updateError);
           toast.error('Erro ao atualizar a senha. Tente novamente.');
           setLoading(false);
           return;
         }
-
+    
         setShowSuccessModal(true);
       }
     } catch (error) {
@@ -129,7 +112,7 @@ export function UpdatePassword() {
       toast.error('Erro inesperado. Tente novamente.');
     } finally {
       setLoading(false);
-    }
+    }    
   };
 
   if (!sessionReady) {

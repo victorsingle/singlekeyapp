@@ -3,7 +3,6 @@ import { Eye, EyeOff } from 'lucide-react';
 import { maskPhone } from '../../utils/masks';
 import { validateEmail, validatePhone } from '../../utils/validation';
 import { SuccessModal } from './SuccessModal';
-import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -56,33 +55,27 @@ export function CompanyForm() {
     const { email, password, companyName, firstName, lastName, phone } = formData;
 
     try {
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            companyName,
-            firstName,
-            lastName,
-            phone,
-          },
-        },
+      const response = await fetch('/.netlify/functions/register-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password,
+          companyName,
+          firstName,
+          lastName,
+          phone,
+        }),
       });
-
-      if (signUpError) throw signUpError;
-      if (!data.user) throw new Error('Signup failed - no user returned');
-
-      const { error: insertError } = await supabase.from('users').insert({
-        user_id: data.user.id,
-        email,
-        company_name: companyName,
-        first_name: firstName,
-        last_name: lastName,
-        phone,
-      });
-
-      if (insertError) throw insertError;
-
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        toast.error(result.message || 'Erro ao criar conta.');
+        setIsLoading(false);
+        return;
+      }
+      
       setShowSuccessModal(true);
       setFormData({
         email: '',
@@ -93,6 +86,7 @@ export function CompanyForm() {
         lastName: '',
         phone: '',
       });
+      
     } catch (error) {
       console.error('[❌ Erro no processo de signup]', error);
       setErrors({ email: 'Erro ao criar conta. Verifique os dados ou tente novamente.' });

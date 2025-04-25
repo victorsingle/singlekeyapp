@@ -46,14 +46,14 @@ export function CompanyForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
+  
     if (!validateForm()) {
       setIsLoading(false);
       return;
     }
-
+  
     const { email, password, companyName, firstName, lastName, phone } = formData;
-
+  
     try {
       const response = await fetch('/.netlify/functions/register-admin', {
         method: 'POST',
@@ -67,15 +67,21 @@ export function CompanyForm() {
           phone,
         }),
       });
-      
-      const result = await response.json();
-      
+  
+      let result = {};
+      try {
+        result = await response.json();
+      } catch (jsonErr) {
+        console.warn('[⚠️ Resposta vazia ou malformada]', jsonErr);
+      }
+  
       if (!response.ok) {
-        toast.error(result.message || 'Erro ao criar conta.');
+        console.error('[❌ Erro na resposta do servidor]', result);
+        toast.error(result.message || 'Erro ao criar conta. Tente novamente.');
         setIsLoading(false);
         return;
       }
-      
+  
       setShowSuccessModal(true);
       setFormData({
         email: '',
@@ -86,16 +92,15 @@ export function CompanyForm() {
         lastName: '',
         phone: '',
       });
-      
+  
     } catch (error) {
-      console.error('[❌ Erro no processo de signup]', error);
-      setErrors({ email: 'Erro ao criar conta. Verifique os dados ou tente novamente.' });
-      toast.error('Erro ao criar conta. Por favor, tente novamente.');
+      console.error('[❌ Erro inesperado no submit]', error);
+      toast.error('Erro inesperado ao tentar cadastrar. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
   };
-
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const formattedValue = name === 'phone' ? maskPhone(value) : value;

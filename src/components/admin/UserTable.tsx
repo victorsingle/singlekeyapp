@@ -86,29 +86,56 @@ export function UserTable({ users, loading, onInviteClick, onUserUpdated, setUse
       message: 'Tem certeza que deseja excluir este usuário? Esta ação não poderá ser desfeita.',
       onConfirm: async () => {
         try {
-          console.log('[DEBUG] Tentando excluir usuário com e-mail:', id);
+          console.log('[DEBUG] Tentando excluir usuário com ID:', id);
   
-          const { error, data } = await supabase
+          // 1. Buscar o user_id associado ao convite
+          const { data: invitedUser, error: fetchError } = await supabase
+            .from('invited_users')
+            .select('user_id')
+            .eq('id', id)
+            .single();
+  
+          if (fetchError || !invitedUser) {
+            toast.error('Erro ao buscar o convite');
+            console.error('[❌ Fetch Error]', fetchError);
+            return;
+          }
+  
+          const authUserId = invitedUser.user_id;
+  
+          // 2. Se houver user_id, deletar o usuário no Auth (via função serverless)
+          if (authUserId) {
+            const response = await fetch('/.netlify/functions/delete-user', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: authUserId }),
+            });
+  
+            if (!response.ok) {
+              const res = await response.json();
+              console.error('[❌ Erro ao deletar usuário no Auth]', res.message);
+              toast.error('Erro ao excluir usuário no Auth');
+              return;
+            }
+          }
+  
+          // 3. Depois deletar o registro na tabela invited_users
+          const { error: deleteInviteError } = await supabase
             .from('invited_users')
             .delete()
             .eq('id', id);
   
-          if (error) {
-            toast.error('Erro ao excluir usuário');
-            console.error('[❌ Delete Error]', error);
+          if (deleteInviteError) {
+            toast.error('Erro ao excluir convite');
+            console.error('[❌ Delete Invite Error]', deleteInviteError);
             return;
           }
   
           toast.success('Usuário removido com sucesso');
   
           // Atualiza a lista local
-          setUsers((prevUsers) => {
-            const filtered = prevUsers.filter((user) => user.id !== id);
-            console.log('[DEBUG] Lista após exclusão:', filtered);
-            return filtered;
-          });
+          setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id));
   
-          // Garante nova leitura se necessário
           onUserUpdated?.();
         } catch (err) {
           console.error('[❌ Handler Error]', err);
@@ -117,6 +144,7 @@ export function UserTable({ users, loading, onInviteClick, onUserUpdated, setUse
       },
     });
   };
+  
   
   return (
     <div className="bg-white rounded-lg shadow">

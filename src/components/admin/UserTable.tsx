@@ -86,18 +86,20 @@ export function UserTable({ users, loading, onInviteClick, onUserUpdated, setUse
       message: 'Tem certeza que deseja excluir este usuário? Esta ação não poderá ser desfeita.',
       onConfirm: async () => {
         try {
-          const { error } = await fetch('/.netlify/functions/delete-user', {
+          const response = await fetch('/.netlify/functions/delete-user', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              inviteId: user.id,      // ID da tabela invited_users
+              inviteId: user.id,      // ID do registro invited_users
               userId: user.user_id,   // UID do auth.users
             }),
           });
   
-          if (error) {
-            toast.error('Erro ao excluir usuário');
-            console.error('[❌ Delete Error]', error);
+          const result = await response.json();
+  
+          if (!response.ok) {
+            toast.error(result.message || 'Erro ao excluir usuário');
+            console.error('[❌ Delete Error]', result);
             return;
           }
   
@@ -110,6 +112,7 @@ export function UserTable({ users, loading, onInviteClick, onUserUpdated, setUse
       },
     });
   };
+  
   
   
   

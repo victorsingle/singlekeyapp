@@ -35,7 +35,7 @@ const handler: Handler = async (event) => {
   }
 
   try {
-    // Sempre deleta o convite primeiro
+    // 1. Sempre deleta da tabela invited_users usando o inviteId
     console.log('🚀 [PASSO 1] Deletando convite...');
     const { error: deleteInviteError } = await supabaseAdmin
       .from('invited_users')
@@ -49,20 +49,20 @@ const handler: Handler = async (event) => {
         body: JSON.stringify({ message: 'Erro ao deletar o convite' }),
       };
     }
-    console.log('✅ [PASSO 1] Convite removido.');
+    console.log('✅ [PASSO 1] Convite removido da tabela invited_users.');
 
+    // 2. Só tenta deletar do Auth se o userId existir
     if (userId) {
-      // Se tiver userId, é porque o usuário ativou -> tenta deletar também do Auth
       console.log('🚀 [PASSO 2] Deletando usuário do Auth...');
       const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
       if (deleteAuthError) {
-        console.warn('⚠️ [AVISO] Erro ao tentar deletar usuário no Auth (talvez nem exista):', deleteAuthError);
+        console.warn('⚠️ [AVISO] Erro ao tentar deletar usuário no Auth:', deleteAuthError);
       } else {
         console.log('✅ [PASSO 2] Usuário deletado do Auth.users.');
       }
     } else {
-      console.log('ℹ️ [INFO] Sem userId, pulando deleção no Auth (usuário pending).');
+      console.log('ℹ️ [INFO] Usuário pending, pulando deleção no Auth.');
     }
 
     console.log('🏁 [FIM] Processo de exclusão concluído.');

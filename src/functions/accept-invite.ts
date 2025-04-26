@@ -40,10 +40,10 @@ const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin
   password,
   email_confirm: true,
   user_metadata: {
-    firstName: first_name,
-    lastName: last_name,
-    companyName: company_name,
-    phone,
+    ...(first_name && { firstName: first_name }),
+    ...(last_name && { lastName: last_name }),
+    ...(company_name && { companyName: company_name }),
+    ...(phone && { phone }),
   },
 });
 

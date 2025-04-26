@@ -79,8 +79,31 @@ export function UserTable({ users, loading, onInviteClick, onUserUpdated, setUse
     });
   };
   
-  const handleDelete = (user: AppUser) => {
+  const handleDelete = async (user: AppUser) => {
     console.log('[DEBUG] User recebido para exclusão:', user);
+  
+    let inviteId = user.id;
+    let userId = user.user_id;
+  
+    if (!userId) {
+      console.log('[INFO] user_id não disponível no estado. Buscando do Supabase...');
+  
+      const { data, error } = await supabase
+        .from('invited_users')
+        .select('user_id')
+        .eq('id', inviteId)
+        .maybeSingle();
+  
+      if (error || !data?.user_id) {
+        console.error('[❌ Erro ao buscar user_id]', error);
+        toast.error('Erro ao buscar informações do usuário');
+        return;
+      }
+  
+      userId = data.user_id;
+      console.log('[DEBUG] user_id encontrado:', userId);
+    }
+  
     showModal({
       type: 'danger',
       title: 'Excluir usuário',
@@ -90,17 +113,12 @@ export function UserTable({ users, loading, onInviteClick, onUserUpdated, setUse
           const response = await fetch('/.netlify/functions/delete-user', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              inviteId: user.id,      // ID do registro invited_users
-              userId: user.user_id,   // UID do auth.users
-            }),
+            body: JSON.stringify({ inviteId, userId }),
           });
   
-          const result = await response.json();
-  
           if (!response.ok) {
-            toast.error(result.message || 'Erro ao excluir usuário');
-            console.error('[❌ Delete Error]', result);
+            toast.error('Erro ao excluir usuário');
+            console.error('[❌ Delete Error]', await response.text());
             return;
           }
   
@@ -113,9 +131,6 @@ export function UserTable({ users, loading, onInviteClick, onUserUpdated, setUse
       },
     });
   };
-  
-  
-  
   
   return (
     <div className="bg-white rounded-lg shadow">
@@ -218,7 +233,7 @@ export function UserTable({ users, loading, onInviteClick, onUserUpdated, setUse
                   <td className="px-6 py-4 whitespace-nowrap text-right text-xs font-medium">
                     <button
                       className="text-red-600 hover:text-red-800"
-                      onClick={() => handleDelete(user.id)}
+                      onClick={() => handleDelete(user)}
                     >
                       Excluir
                     </button>

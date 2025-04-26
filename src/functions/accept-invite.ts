@@ -33,18 +33,30 @@ const handler: Handler = async (event) => {
     };
   }
   
-  // 2. Cria o usuário no auth com e-mail confirmado
+  const { id, email, first_name, last_name, company_name, phone } = invitedUser;
+
+  console.log('[🛠️ Payload para criar usuário]:', {
+    email,
+    firstName: first_name,
+    lastName: last_name,
+    companyName: company_name,
+    phone,
+  });
+
+  // 2. Cria o usuário no auth com e-mail confirmado e metadados
   const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-    email: invitedUser.email,
+    email,
     password,
     email_confirm: true,
     user_metadata: {
-      firstName,
-      lastName,
-      companyName,
-      phone,
-    }
+      firstName: first_name || '',
+      lastName: last_name || '',
+      companyName: company_name || '',
+      phone: phone || '',
+    },
   });
+
+  console.log('[📥 Resultado criação de usuário]:', createdUser);
 
   if (createError) {
     console.error('[❌ Erro ao criar usuário]', createError);

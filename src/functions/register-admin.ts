@@ -38,6 +38,12 @@ const handler: Handler = async (event: HandlerEvent) => {
       email,
       password,
       email_confirm: false,
+      user_metadata: {
+        firstName,      // 👈 camelCase correto
+        lastName,
+        companyName,
+        phone,
+      },
     });
 
     if (createError || !createdUser?.user) {

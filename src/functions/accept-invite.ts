@@ -24,9 +24,9 @@ const handler: Handler = async (event) => {
     .select('email, first_name, last_name, company_name, phone')
     .eq('token', token)
     .eq('status', 'pending')
-    .single();
+    .maybeSingle(); // 👈 aqui troca .single() por .maybeSingle()
 
-  if (inviteError || !invitedUser) {
+  if (inviteError || !invitedUser || !invitedUser.email) {
     return {
       statusCode: 400,
       body: JSON.stringify({ message: 'Convite inválido ou expirado' }),
@@ -41,10 +41,10 @@ const handler: Handler = async (event) => {
     password,
     email_confirm: true,
     user_metadata: {
-      firstName: first_name,
-      lastName: last_name,
-      companyName: company_name,
-      phone,
+      ...(first_name && { firstName: first_name }),
+      ...(last_name && { lastName: last_name }),
+      ...(company_name && { companyName: company_name }),
+      ...(phone && { phone }),
     },
   });
 

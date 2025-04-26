@@ -132,7 +132,7 @@ export function UpdatePassword() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="w-full max-w-xs space-y-8">
       <div className="w-full text-center">
         <div className="flex justify-center">
           <Target className="h-12 w-12 text-blue-600" />

@@ -5,26 +5,29 @@ const handler: Handler = async (event: HandlerEvent) => {
   const userId = event.queryStringParameters?.user_id;
 
   if (!userId) {
+    console.log('[❌ user_id ausente]');
     return {
       statusCode: 400,
       body: JSON.stringify({ message: 'ID do usuário ausente' }),
     };
   }
 
-  try {
-    // Marca como ativo
-    const { error: updateError } = await supabaseAdmin
-      .from('users')
-      .update({ status: 'active' })
-      .eq('user_id', userId);
+  console.log('[🔍 Ativando usuário no auth.users]:', userId);
 
-    if (updateError) {
-      console.error('[❌ Erro ao ativar usuário]', updateError);
+  try {
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+      email_confirm: true,
+    });
+
+    if (error) {
+      console.error('[❌ Erro ao ativar no auth.users]', error);
       return {
         statusCode: 500,
-        body: JSON.stringify({ message: 'Erro ao ativar usuário' }),
+        body: JSON.stringify({ message: 'Erro ao ativar usuário no auth' }),
       };
     }
+
+    console.log('[✅ Usuário ativado no auth.users]');
 
     return {
       statusCode: 302,
@@ -33,8 +36,8 @@ const handler: Handler = async (event: HandlerEvent) => {
       },
       body: '',
     };
-  } catch (error) {
-    console.error('[❌ Erro inesperado]', error);
+  } catch (err) {
+    console.error('[❌ Erro inesperado]', err);
     return {
       statusCode: 500,
       body: JSON.stringify({ message: 'Erro inesperado' }),

@@ -38,13 +38,18 @@ function App() {
  
   
   async function checkIfUserIsValid() {
-    const { data: user } = await supabase.auth.getUser();
+    console.log('🔎 [DEBUG] Rodando checkIfUserIsValid()...');
   
-    if (!user) {
-      // Usuário não existe mais (foi deletado)
-      console.log('Usuário inválido. Forçando logout...');
+    const { data, error } = await supabase.auth.getUser();
+  
+    console.log('📦 [DEBUG] Resultado getUser():', { data, error });
+  
+    if (error || !data?.user) {
+      console.log('🚪 [DEBUG] Usuário inválido detectado. Forçando logout...');
       await supabase.auth.signOut();
-      window.location.href = '/login'; // ou sua página inicial
+      window.location.href = '/login';
+    } else {
+      console.log('✅ [DEBUG] Usuário válido, segue fluxo.');
     }
   }
   

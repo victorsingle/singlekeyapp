@@ -9,7 +9,7 @@ const handler: Handler = async (event) => {
     };
   }
 
-  const { inviteId } = JSON.parse(event.body || '{}');
+  const { inviteId, userId } = JSON.parse(event.body || '{}');
 
   if (!inviteId) {
     return {
@@ -21,54 +21,7 @@ const handler: Handler = async (event) => {
   console.log('[🚀 Iniciando exclusão do convite ID]:', inviteId);
 
   try {
-    // 1. Buscar o registro do convite
-    const { data: invitedUser, error: fetchError } = await supabaseAdmin
-      .from('invited_users')
-      .select('user_id')
-      .eq('id', inviteId)
-      .single();
-
-    if (fetchError || !invitedUser) {
-      console.error('[❌ Erro ao buscar convite]:', fetchError);
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ message: 'Convite não encontrado' }),
-      };
-    }
-
-    const authUserId = invitedUser.user_id;
-
-    if (authUserId) {
-      console.log('[🔍 Tentando forçar revogação de sessão do usuário]:', authUserId);
-
-      // 2. Tenta revogar a sessão (não é obrigatório, mas ajuda a evitar erros 500)
-      const { error: revokeError } = await supabaseAdmin.auth.admin.signOut(authUserId);
-
-      if (revokeError) {
-        console.warn('[⚠️ Erro ao tentar revogar sessão (seguindo mesmo assim)]:', revokeError);
-      } else {
-        console.log('[✅ Sessão revogada com sucesso]');
-      }
-
-      // 3. Agora tenta deletar o usuário
-      console.log('[🔍 Tentando deletar usuário no Auth]:', authUserId);
-
-      const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(authUserId);
-
-      if (deleteAuthError) {
-        console.error('[❌ Erro ao deletar usuário no Auth]:', deleteAuthError);
-        return {
-          statusCode: 400,
-          body: JSON.stringify({ message: 'Erro ao deletar usuário no Auth' }),
-        };
-      }
-
-      console.log('[✅ Usuário do Auth deletado com sucesso]');
-    } else {
-      console.log('[ℹ️ Nenhum user_id registrado no convite, pulando deleção no Auth]');
-    }
-
-    // 4. Deletar o registro do convite
+    // 1. Deleta o registro do convite
     const { error: deleteInviteError } = await supabaseAdmin
       .from('invited_users')
       .delete()
@@ -84,9 +37,27 @@ const handler: Handler = async (event) => {
 
     console.log('[✅ Convite deletado com sucesso]');
 
+    // 2. Marca o usuário como revogado na tabela `users`, se o userId for informado
+    if (userId) {
+      const { error: updateUserError } = await supabaseAdmin
+        .from('users')
+        .update({ status: 'revoked' })
+        .eq('user_id', userId);
+
+      if (updateUserError) {
+        console.error('[❌ Erro ao atualizar usuário para revoked]:', updateUserError);
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ message: 'Erro ao atualizar usuário para revoked' }),
+        };
+      }
+
+      console.log('[✅ Usuário marcado como revoked]');
+    }
+
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Usuário convidado e convite excluídos com sucesso' }),
+      body: JSON.stringify({ message: 'Usuário convidado excluído e status atualizado' }),
     };
   } catch (err) {
     console.error('[❌ Erro inesperado na exclusão]:', err);

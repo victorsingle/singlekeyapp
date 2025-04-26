@@ -51,7 +51,7 @@ const handler: Handler = async (event) => {
   // 3. Atualiza o status do convite
   const { error: updateError } = await supabaseAdmin
   .from('invited_users')
-  .update({ status: 'accepted' })
+  .update({ status: 'active' })
   .eq('id', invitedUser.id)
   .select(); // 👈 Importante adicionar .select() para ver o que foi afetado
 

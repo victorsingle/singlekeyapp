@@ -25,6 +25,7 @@ export function useUsers() {
     const { data, error } = await supabase
       .from('invited_users')
       .select('id, email, first_name, last_name, role, status, invited_by')  // Incluindo o campo invited_by
+      .eq('invited_by', userId)
       .order('created_at', { ascending: false });
 
     if (error) {

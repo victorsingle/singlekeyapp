@@ -21,7 +21,7 @@ const handler: Handler = async (event) => {
   console.log('[🚀 Iniciando exclusão do convite ID]:', inviteId);
 
   try {
-    // 1. Buscar o registro do convite usando o ID
+    // 1. Buscar o registro do convite
     const { data: invitedUser, error: fetchError } = await supabaseAdmin
       .from('invited_users')
       .select('user_id')
@@ -39,7 +39,19 @@ const handler: Handler = async (event) => {
     const authUserId = invitedUser.user_id;
 
     if (authUserId) {
-      console.log('[🔍 Deletando usuário no Auth ID]:', authUserId);
+      console.log('[🔍 Tentando forçar revogação de sessão do usuário]:', authUserId);
+
+      // 2. Tenta revogar a sessão (não é obrigatório, mas ajuda a evitar erros 500)
+      const { error: revokeError } = await supabaseAdmin.auth.admin.signOut(authUserId);
+
+      if (revokeError) {
+        console.warn('[⚠️ Erro ao tentar revogar sessão (seguindo mesmo assim)]:', revokeError);
+      } else {
+        console.log('[✅ Sessão revogada com sucesso]');
+      }
+
+      // 3. Agora tenta deletar o usuário
+      console.log('[🔍 Tentando deletar usuário no Auth]:', authUserId);
 
       const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(authUserId);
 
@@ -53,10 +65,10 @@ const handler: Handler = async (event) => {
 
       console.log('[✅ Usuário do Auth deletado com sucesso]');
     } else {
-      console.log('[ℹ️ Convite sem user_id (provavelmente pendente), pulando deleção no Auth]');
+      console.log('[ℹ️ Nenhum user_id registrado no convite, pulando deleção no Auth]');
     }
 
-    // 2. Deletar o registro do convite
+    // 4. Deletar o registro do convite
     const { error: deleteInviteError } = await supabaseAdmin
       .from('invited_users')
       .delete()

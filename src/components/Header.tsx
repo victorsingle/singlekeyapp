@@ -31,7 +31,7 @@ export function Header({ session, onLogout, onMobileMenuOpen }: HeaderProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-
+  
   useEffect(() => {
   if (company) {
     console.log('[Updated Company]', company); // Verifique quando o estado é atualizado
@@ -80,14 +80,19 @@ export function Header({ session, onLogout, onMobileMenuOpen }: HeaderProps) {
           </nav>
 
           {/* Avatar */}
-          <div className="relative" ref={dropdownRef}>
+          <div className="relative flex items-center space-x-2" ref={dropdownRef}>
             <button
               onClick={() => setShowDropdown((prev) => !prev)}
-              className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-semibold focus:outline-none"
+              className="flex items-center space-x-2 w-auto h-9 rounded-full px-3 text-blue-700 font-semibold focus:outline-none"
             >
-              {session?.user?.email?.charAt(0)?.toUpperCase() ?? 'U'}
+              <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-semibold">
+                {session?.user?.email?.charAt(0)?.toUpperCase() ?? 'U'}
+              </div>
+              {company?.first_name && (
+              <span className="text-sm font-medium text-gray-700">{company.first_name}</span>
+            )}
             </button>
-          
+            
             {showDropdown && (
             <div className="absolute right-0 top-12 w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
               {company && company.company_name && (

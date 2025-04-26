@@ -27,7 +27,7 @@ const handler: Handler = async (event) => {
   console.log('📥 [INPUT RECEBIDO]', { inviteId, userId });
 
   if (!inviteId) {
-    console.error('❌ [ERRO] inviteId ausente:', { inviteId, userId });
+    console.error('❌ [ERRO] inviteId ausente');
     return {
       statusCode: 400,
       body: JSON.stringify({ message: 'Invite ID é obrigatório' }),
@@ -35,7 +35,7 @@ const handler: Handler = async (event) => {
   }
 
   try {
-    // 1. Sempre deleta da tabela invited_users usando o inviteId
+    // 1. Sempre deleta da tabela invited_users usando inviteId
     console.log('🚀 [PASSO 1] Deletando convite...');
     const { error: deleteInviteError } = await supabaseAdmin
       .from('invited_users')
@@ -51,18 +51,18 @@ const handler: Handler = async (event) => {
     }
     console.log('✅ [PASSO 1] Convite removido da tabela invited_users.');
 
-    // 2. Só tenta deletar do Auth se o userId existir
-    if (userId) {
+    // 2. Se userId existir, tenta deletar do Auth, se não, assume que é pending
+    if (userId && typeof userId === 'string') {
       console.log('🚀 [PASSO 2] Deletando usuário do Auth...');
       const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
       if (deleteAuthError) {
-        console.warn('⚠️ [AVISO] Erro ao tentar deletar usuário no Auth:', deleteAuthError);
+        console.warn('⚠️ [AVISO] Erro ao tentar deletar usuário no Auth (pode não existir):', deleteAuthError);
       } else {
         console.log('✅ [PASSO 2] Usuário deletado do Auth.users.');
       }
     } else {
-      console.log('ℹ️ [INFO] Usuário pending, pulando deleção no Auth.');
+      console.log('ℹ️ [INFO] userId ausente ou inválido. Usuário pending, pulando deleção no Auth.');
     }
 
     console.log('🏁 [FIM] Processo de exclusão concluído.');

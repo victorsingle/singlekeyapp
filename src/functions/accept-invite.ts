@@ -18,10 +18,10 @@ const handler: Handler = async (event) => {
     };
   }
 
-  // 1. Valida o token
+  // 1. Valida o token e busca dados do convite
   const { data: invitedUser, error: inviteError } = await supabaseAdmin
     .from('invited_users')
-    .select('email')
+    .select('email, first_name, last_name, company_name, phone')
     .eq('token', token)
     .eq('status', 'pending')
     .single();
@@ -33,11 +33,19 @@ const handler: Handler = async (event) => {
     };
   }
 
-  // 2. Cria o usuário no auth com e-mail confirmado
+  const { email, first_name, last_name, company_name, phone } = invitedUser;
+
+  // 2. Cria o usuário no auth com e-mail confirmado + user_metadata
   const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-    email: invitedUser.email,
+    email,
     password,
     email_confirm: true,
+    user_metadata: {
+      firstName: first_name,
+      lastName: last_name,
+      companyName: company_name,
+      phone,
+    },
   });
 
   if (createError) {

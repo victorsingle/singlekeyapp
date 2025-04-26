@@ -18,34 +18,26 @@ const handler: Handler = async (event) => {
     };
   }
 
-  // 1. Valida o token e busca dados do convite
+  // 1. Valida o token
   const { data: invitedUser, error: inviteError } = await supabaseAdmin
     .from('invited_users')
-    .select('email, first_name, last_name, company_name, phone')
+    .select('email')
     .eq('token', token)
     .eq('status', 'pending')
-    .maybeSingle(); // 👈 aqui troca .single() por .maybeSingle()
+    .single();
 
-  if (inviteError || !invitedUser || !invitedUser.email) {
+  if (inviteError || !invitedUser) {
     return {
       statusCode: 400,
       body: JSON.stringify({ message: 'Convite inválido ou expirado' }),
     };
   }
 
-  const { email, first_name, last_name, company_name, phone } = invitedUser;
-
-  // 2. Cria o usuário no auth com e-mail confirmado + user_metadata
+  // 2. Cria o usuário no auth com e-mail confirmado
   const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-    email,
+    email: invitedUser.email,
     password,
     email_confirm: true,
-    user_metadata: {
-      ...(first_name && { firstName: first_name }),
-      ...(last_name && { lastName: last_name }),
-      ...(company_name && { companyName: company_name }),
-      ...(phone && { phone }),
-    },
   });
 
   if (createError) {

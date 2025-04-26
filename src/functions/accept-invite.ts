@@ -2,6 +2,8 @@ import { Handler } from '@netlify/functions';
 import { supabaseAdmin } from './supabaseAdmin';
 
 const handler: Handler = async (event) => {
+  console.log('[🚀 Função accept-invite iniciou execução]');
+
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -12,27 +14,31 @@ const handler: Handler = async (event) => {
   const { token, password } = JSON.parse(event.body || '{}');
 
   if (!token || !password) {
+    console.error('[❌ Token ou senha ausentes]');
     return {
       statusCode: 400,
       body: JSON.stringify({ message: 'Token e senha são obrigatórios' }),
     };
   }
 
-  // 1. Valida o token
+  console.log('[📨 Token recebido]:', token);
+
+  // 1. Valida o token e traz os dados
   const { data: invitedUser, error: inviteError } = await supabaseAdmin
-  .from('invited_users')
-  .select('id, email, first_name, last_name, company_name, phone')
-  .eq('token', token)
-  .eq('status', 'pending')
-  .single();
+    .from('invited_users')
+    .select('id, email, first_name, last_name, company_name, phone')
+    .eq('token', token)
+    .eq('status', 'pending')
+    .single();
 
   if (inviteError || !invitedUser) {
+    console.error('[❌ Erro ao validar convite]', inviteError);
     return {
       statusCode: 400,
       body: JSON.stringify({ message: 'Convite inválido ou expirado' }),
     };
   }
-  
+
   const { id, email, first_name, last_name, company_name, phone } = invitedUser;
 
   console.log('[🛠️ Payload para criar usuário]:', {
@@ -43,7 +49,7 @@ const handler: Handler = async (event) => {
     phone,
   });
 
-  // 2. Cria o usuário no auth com e-mail confirmado e metadados
+  // 2. Cria o usuário no auth com e-mail confirmado + metadados
   const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
     email,
     password,
@@ -68,9 +74,9 @@ const handler: Handler = async (event) => {
 
   // 3. Atualiza o status do convite
   const { error: updateError } = await supabaseAdmin
-  .from('invited_users')
-  .update({ status: 'active' })
-  .eq('id', invitedUser.id)
+    .from('invited_users')
+    .update({ status: 'active' })
+    .eq('id', id); // 👈 corrigido aqui: usa `id` direto, já desestruturado.
 
   if (updateError) {
     console.error('[❌ Erro ao atualizar status do convite]', updateError);

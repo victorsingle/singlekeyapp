@@ -49,14 +49,14 @@ const handler: Handler = async (event) => {
   }
 
   // 3. Atualiza o status do convite
-  await supabaseAdmin
+  const { error: updateError } = await supabaseAdmin
     .from('invited_users')
     .update({ status: 'accepted' })
     .eq('token', token);
 
-    if (updateError) {
-      console.error('[❌ Erro ao atualizar status do convite]', updateError);
-    }
+  if (updateError) {
+    console.error('[❌ Erro ao atualizar status do convite]', updateError);
+  }
 
   return {
     statusCode: 200,

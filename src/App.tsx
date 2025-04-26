@@ -37,26 +37,24 @@ function App() {
   const [recoveryMode, setRecoveryMode] = useState(false);
  
   
-  async function checkIfUserIsValid() {
-    console.log('🔎 [DEBUG] Rodando checkIfUserIsValid()...');
-  
-    const { data, error } = await supabase.auth.getUser();
-  
-    console.log('📦 [DEBUG] Resultado getUser():', { data, error });
-  
-    if (error || !data?.user) {
-      console.log('🚪 [DEBUG] Usuário inválido detectado. Forçando logout...');
-      await supabase.auth.signOut();
-      window.location.href = '/login';
-    } else {
-      console.log('✅ [DEBUG] Usuário válido, segue fluxo.');
-    }
-  }
-  
-  // Chamar esse check no início
   useEffect(() => {
-    checkIfUserIsValid();
-  }, []);
+    const checkUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      console.log('📦 [DEBUG] Resultado getUser():', { data, error });
+  
+      if (error || !data?.user) {
+        console.log('🚪 [DEBUG] Usuário inválido detectado. Forçando logout...');
+        await supabase.auth.signOut();
+        window.location.href = '/login';
+      } else {
+        console.log('✅ [DEBUG] Usuário válido, segue fluxo.');
+      }
+    };
+  
+    if (isAuthChecked) { // ⚡ SÓ RODA SE A AUTENTICAÇÃO JÁ FOI CHECADA!
+      checkUser();
+    }
+  }, [isAuthChecked]);
 
 
   const publicPaths = [

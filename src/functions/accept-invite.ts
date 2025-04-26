@@ -20,11 +20,11 @@ const handler: Handler = async (event) => {
 
   // 1. Valida o token
   const { data: invitedUser, error: inviteError } = await supabaseAdmin
-    .from('invited_users')
-    .select('email')
-    .eq('token', token)
-    .eq('status', 'pending')
-    .single();
+  .from('invited_users')
+  .select('id, email, status') // 👈 adiciona status se quiser
+  .eq('token', token)
+  .eq('status', 'pending')
+  .single();
 
   if (inviteError || !invitedUser) {
     return {

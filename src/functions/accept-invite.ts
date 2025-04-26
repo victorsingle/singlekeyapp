@@ -52,7 +52,7 @@ const handler: Handler = async (event) => {
   const { error: updateError } = await supabaseAdmin
   .from('invited_users')
   .update({ status: 'accepted' })
-  .eq('id', id);
+  .eq('id', invitedUser.id);
 
   if (updateError) {
     console.error('[❌ Erro ao atualizar status do convite]', updateError);

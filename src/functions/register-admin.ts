@@ -83,7 +83,7 @@ const handler: Handler = async (event: HandlerEvent) => {
     }
 
     // 3. Gera o link de ativação manual
-    const activationLink = `${process.env.VITE_APP_URL}/ativar?user_id=${userId}`;
+    const activationLink = `${process.env.VITE_APP_URL}/.netlify/functions/confirm-user?user_id=${createdUser.user.id}`;
 
     // 4. Dispara e-mail de ativação via Resend
     await resend.emails.send({

@@ -26,16 +26,16 @@ const handler: Handler = async (event) => {
   const { inviteId, userId } = bodyParsed;
   console.log('📥 [INPUT RECEBIDO]', { inviteId, userId });
 
-  if (!inviteId || !userId) {
-    console.error('❌ [ERRO] inviteId ou userId ausentes:', { inviteId, userId });
+  if (!inviteId) {
+    console.error('❌ [ERRO] inviteId ausente:', { inviteId, userId });
     return {
       statusCode: 400,
-      body: JSON.stringify({ message: 'Invite ID e User ID são obrigatórios' }),
+      body: JSON.stringify({ message: 'Invite ID é obrigatório' }),
     };
   }
 
   try {
-    // 1. Deleta da tabela invited_users
+    // Sempre deleta o convite primeiro
     console.log('🚀 [PASSO 1] Deletando convite...');
     const { error: deleteInviteError } = await supabaseAdmin
       .from('invited_users')
@@ -51,15 +51,18 @@ const handler: Handler = async (event) => {
     }
     console.log('✅ [PASSO 1] Convite removido.');
 
-    // 2. Deleta do auth.users
-    console.log('🚀 [PASSO 2] Deletando usuário do Auth...');
-    const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    if (userId) {
+      // Se tiver userId, é porque o usuário ativou -> tenta deletar também do Auth
+      console.log('🚀 [PASSO 2] Deletando usuário do Auth...');
+      const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
-    if (deleteAuthError) {
-      // 🔥 Correção aqui: NÃO vai mais barrar tudo, apenas loga e segue.
-      console.warn('⚠️ [AVISO] Erro ao tentar deletar usuário no Auth (talvez nem exista):', deleteAuthError);
+      if (deleteAuthError) {
+        console.warn('⚠️ [AVISO] Erro ao tentar deletar usuário no Auth (talvez nem exista):', deleteAuthError);
+      } else {
+        console.log('✅ [PASSO 2] Usuário deletado do Auth.users.');
+      }
     } else {
-      console.log('✅ [PASSO 2] Usuário deletado do Auth.users.');
+      console.log('ℹ️ [INFO] Sem userId, pulando deleção no Auth (usuário pending).');
     }
 
     console.log('🏁 [FIM] Processo de exclusão concluído.');

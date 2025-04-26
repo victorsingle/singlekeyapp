@@ -21,7 +21,7 @@ const handler: Handler = async (event) => {
   // 1. Valida o token
   const { data: invitedUser, error: inviteError } = await supabaseAdmin
   .from('invited_users')
-  .select('id, email, status') // 👈 adiciona status se quiser
+  .select('id, email') 
   .eq('token', token)
   .eq('status', 'pending')
   .single();
@@ -52,7 +52,7 @@ const handler: Handler = async (event) => {
   const { error: updateError } = await supabaseAdmin
   .from('invited_users')
   .update({ status: 'accepted' })
-  .eq('id', invitedUser.id);
+  .eq('id', id);
 
   if (updateError) {
     console.error('[❌ Erro ao atualizar status do convite]', updateError);

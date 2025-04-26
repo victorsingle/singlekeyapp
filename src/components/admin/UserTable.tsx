@@ -82,27 +82,8 @@ export function UserTable({ users, loading, onInviteClick, onUserUpdated, setUse
   const handleDelete = async (user: AppUser) => {
     console.log('[DEBUG] User recebido para exclusão:', user);
   
-    let inviteId = user.id;
-    let userId = user.user_id;
-  
-    if (!userId) {
-      console.log('[INFO] user_id não disponível no estado. Buscando do Supabase...');
-  
-      const { data, error } = await supabase
-        .from('invited_users')
-        .select('user_id')
-        .eq('id', inviteId)
-        .maybeSingle();
-  
-      if (error || !data?.user_id) {
-        console.error('[❌ Erro ao buscar user_id]', error);
-        toast.error('Erro ao buscar informações do usuário');
-        return;
-      }
-  
-      userId = data.user_id;
-      console.log('[DEBUG] user_id encontrado:', userId);
-    }
+    const inviteId = user.id;
+    const userId = user.user_id; // pode ser null, não tem problema agora!
   
     showModal({
       type: 'danger',
@@ -113,7 +94,7 @@ export function UserTable({ users, loading, onInviteClick, onUserUpdated, setUse
           const response = await fetch('/.netlify/functions/delete-user', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ inviteId, userId }),
+            body: JSON.stringify({ inviteId, userId }), // pode ser null mesmo
           });
   
           if (!response.ok) {
@@ -131,6 +112,7 @@ export function UserTable({ users, loading, onInviteClick, onUserUpdated, setUse
       },
     });
   };
+  
   
   return (
     <div className="bg-white rounded-lg shadow">

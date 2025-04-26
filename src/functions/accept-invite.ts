@@ -39,13 +39,12 @@ const handler: Handler = async (event) => {
     };
   }
 
-  const { id, email, first_name, last_name, company_name, phone } = invitedUser;
+  const { id, email, first_name, last_name, phone } = invitedUser;
 
   console.log('[🛠️ Payload para criar usuário]:', {
     email,
     firstName: first_name,
     lastName: last_name,
-    companyName: company_name,
     phone,
   });
 
@@ -57,7 +56,6 @@ const handler: Handler = async (event) => {
     user_metadata: {
       firstName: first_name || '',
       lastName: last_name || '',
-      companyName: company_name || '',
       phone: phone || '',
     },
   });

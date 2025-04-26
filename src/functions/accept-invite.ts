@@ -32,20 +32,19 @@ const handler: Handler = async (event) => {
       body: JSON.stringify({ message: 'Convite inválido ou expirado' }),
     };
   }
-
-const { id, email, first_name, last_name, company_name, phone } = invitedUser;
-
-const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-  email,
-  password,
-  email_confirm: true,
-  user_metadata: {
-    ...(first_name && { firstName: first_name }),
-    ...(last_name && { lastName: last_name }),
-    ...(company_name && { companyName: company_name }),
-    ...(phone && { phone }),
-  },
-});
+  
+  // 2. Cria o usuário no auth com e-mail confirmado
+  const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+    email: invitedUser.email,
+    password,
+    email_confirm: true,
+    user_metadata: {
+      firstName,
+      lastName,
+      companyName,
+      phone,
+    }
+  });
 
   if (createError) {
     console.error('[❌ Erro ao criar usuário]', createError);

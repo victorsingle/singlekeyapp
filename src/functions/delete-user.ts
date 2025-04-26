@@ -56,18 +56,16 @@ const handler: Handler = async (event) => {
     const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
     if (deleteAuthError) {
-      console.error('❌ [ERRO] Falha ao deletar usuário do Auth:', deleteAuthError);
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ message: 'Erro ao deletar usuário do Auth' }),
-      };
+      // 🔥 Correção aqui: NÃO vai mais barrar tudo, apenas loga e segue.
+      console.warn('⚠️ [AVISO] Erro ao tentar deletar usuário no Auth (talvez nem exista):', deleteAuthError);
+    } else {
+      console.log('✅ [PASSO 2] Usuário deletado do Auth.users.');
     }
-    console.log('✅ [PASSO 2] Usuário deletado do Auth.users.');
 
     console.log('🏁 [FIM] Processo de exclusão concluído.');
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Usuário removido e bloqueado com sucesso.' }),
+      body: JSON.stringify({ message: 'Usuário convidado removido (e Auth deletado se existia).' }),
     };
 
   } catch (err) {

@@ -5,6 +5,7 @@ import { validateEmail, validatePhone } from '../../utils/validation';
 import { SuccessModal } from './SuccessModal';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { PasswordStrengthSegments } from '../../components/PasswordStrengthSegments';
 
 export function CompanyForm() {
   const [formData, setFormData] = useState({
@@ -222,6 +223,8 @@ export function CompanyForm() {
               {showPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
             </button>
           </div>
+          {/* Barrinha de força aqui abaixo da senha */}
+          <PasswordStrengthSegments password={formData.password} />
           {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password}</p>}
         </div>
 

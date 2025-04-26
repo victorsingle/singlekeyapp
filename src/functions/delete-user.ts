@@ -2,75 +2,94 @@ import { Handler } from '@netlify/functions';
 import { supabaseAdmin } from './supabaseAdmin';
 
 const handler: Handler = async (event) => {
+  console.log('🛬 [INÍCIO] delete-user.ts chamado');
+
   if (event.httpMethod !== 'POST') {
+    console.error('❌ [ERRO] Método não permitido:', event.httpMethod);
     return {
       statusCode: 405,
       body: JSON.stringify({ message: 'Método não permitido' }),
     };
   }
 
-  const { inviteId, userId } = JSON.parse(event.body || '{}');
+  let bodyParsed;
+  try {
+    bodyParsed = JSON.parse(event.body || '{}');
+  } catch (err) {
+    console.error('❌ [ERRO] Falha ao fazer parse do body:', err);
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ message: 'Body inválido' }),
+    };
+  }
+
+  const { inviteId, userId } = bodyParsed;
+  console.log('📥 [INPUT RECEBIDO]', { inviteId, userId });
 
   if (!inviteId || !userId) {
+    console.error('❌ [ERRO] inviteId ou userId ausentes:', { inviteId, userId });
     return {
       statusCode: 400,
       body: JSON.stringify({ message: 'Invite ID e User ID são obrigatórios' }),
     };
   }
 
-  console.log('[🚀 Iniciando processo de exclusão e bloqueio]');
-
   try {
-    // 1. Excluir o registro do convite
+    // 1. Deletar da tabela invited_users
+    console.log('🚀 [PASSO 1] Tentando deletar invite na tabela invited_users...');
     const { error: deleteInviteError } = await supabaseAdmin
       .from('invited_users')
       .delete()
       .eq('id', inviteId);
 
     if (deleteInviteError) {
-      console.error('[❌ Erro ao deletar convite]:', deleteInviteError);
+      console.error('❌ [ERRO] Falha ao deletar na invited_users:', deleteInviteError);
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: 'Erro ao excluir convite' }),
+        body: JSON.stringify({ message: 'Erro ao deletar o convite' }),
       };
     }
 
-    console.log('[✅ Convite excluído da tabela invited_users]');
+    console.log('✅ [PASSO 1] Invite deletado da tabela invited_users.');
 
-    // 2. Bloquear o usuário no Auth (set banned_until = infinity)
-    const { error: updateAuthError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-      banned_until: '9999-12-31T23:59:59Z', // praticamente bloqueia para sempre
+    // 2. Bloquear o usuário no Auth (banned_until = infinito)
+    console.log('🚀 [PASSO 2] Tentando bloquear usuário no Auth...');
+    const { data: updatedUser, error: updateAuthError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+      banned_until: '9999-12-31T23:59:59Z',
     });
 
     if (updateAuthError) {
-      console.error('[❌ Erro ao bloquear usuário no Auth]:', updateAuthError);
+      console.error('❌ [ERRO] Falha ao bloquear no Auth:', updateAuthError);
       return {
         statusCode: 400,
         body: JSON.stringify({ message: 'Erro ao bloquear usuário no Auth' }),
       };
     }
 
-    console.log('[✅ Usuário bloqueado no Auth (banned_until infinity)]');
+    console.log('✅ [PASSO 2] Usuário bloqueado no Auth.', updatedUser);
 
-    // 3. Forçar logout: revogar sessões
+    // 3. Forçar revogação da sessão
+    console.log('🚀 [PASSO 3] Tentando revogar sessões do usuário...');
     const { error: revokeError } = await supabaseAdmin.auth.admin.signOut(userId);
 
     if (revokeError) {
-      console.warn('[⚠️ Erro ao revogar sessão (seguindo)]:', revokeError);
-      // Não travamos o fluxo se falhar
+      console.warn('⚠️ [WARNING] Falha ao revogar sessões (seguindo mesmo assim):', revokeError);
     } else {
-      console.log('[✅ Sessão revogada com sucesso]');
+      console.log('✅ [PASSO 3] Sessões revogadas com sucesso.');
     }
+
+    console.log('🏁 [FIM] Processo de exclusão concluído com sucesso.');
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Usuário convidado removido, bloqueado e sessão encerrada' }),
+      body: JSON.stringify({ message: 'Usuário convidado removido, bloqueado e sessões revogadas' }),
     };
+
   } catch (err) {
-    console.error('[❌ Erro inesperado na operação]:', err);
+    console.error('❌ [ERRO FATAL] Exceção inesperada no handler:', err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ message: 'Erro inesperado ao excluir convite e bloquear usuário' }),
+      body: JSON.stringify({ message: 'Erro inesperado no processo de exclusão' }),
     };
   }
 };

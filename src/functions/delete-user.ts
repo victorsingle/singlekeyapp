@@ -21,7 +21,7 @@ const handler: Handler = async (event) => {
   console.log('[🚀 Iniciando exclusão do convite ID]:', inviteId);
 
   try {
-    // 1. Buscar o user_id do convite
+    // 1. Buscar o registro do convite usando o id
     const { data: invitedUser, error: fetchError } = await supabaseAdmin
       .from('invited_users')
       .select('user_id')
@@ -38,19 +38,26 @@ const handler: Handler = async (event) => {
 
     const authUserId = invitedUser.user_id;
 
-    // 2. Se tiver user_id, deletar no Supabase Auth
+    // 2. Se houver user_id, deletar o usuário no Supabase Auth
     if (authUserId) {
+      console.log('[🔍 Deletando usuário no Auth ID]:', authUserId);
+
       const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(authUserId);
+
       if (deleteAuthError) {
-        console.error('[❌ Erro ao deletar no Auth]:', deleteAuthError);
+        console.error('[❌ Erro ao deletar usuário no Auth]:', deleteAuthError);
         return {
           statusCode: 400,
           body: JSON.stringify({ message: 'Erro ao deletar usuário no Auth' }),
         };
       }
+
+      console.log('[✅ Usuário no Auth deletado com sucesso]');
+    } else {
+      console.log('[ℹ️ Nenhum user_id vinculado ao convite, pulando deleção no Auth]');
     }
 
-    // 3. Deletar o convite da tabela invited_users
+    // 3. Deletar o registro do convite
     const { error: deleteInviteError } = await supabaseAdmin
       .from('invited_users')
       .delete()
@@ -64,11 +71,11 @@ const handler: Handler = async (event) => {
       };
     }
 
-    console.log('[✅ Usuário e convite excluídos com sucesso]');
+    console.log('[✅ Convite deletado com sucesso]');
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Usuário convidado excluído com sucesso' }),
+      body: JSON.stringify({ message: 'Usuário convidado e convite excluídos com sucesso' }),
     };
   } catch (err) {
     console.error('[❌ Erro inesperado na exclusão]:', err);

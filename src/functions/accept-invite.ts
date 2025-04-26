@@ -21,7 +21,7 @@ const handler: Handler = async (event) => {
   // 1. Valida o token
   const { data: invitedUser, error: inviteError } = await supabaseAdmin
   .from('invited_users')
-  .select('id, email') 
+  .select('id, email, first_name, last_name, company_name, phone')
   .eq('token', token)
   .eq('status', 'pending')
   .single();
@@ -33,12 +33,19 @@ const handler: Handler = async (event) => {
     };
   }
 
-  // 2. Cria o usuário no auth com e-mail confirmado
-  const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-    email: invitedUser.email,
-    password,
-    email_confirm: true,
-  });
+const { id, email, first_name, last_name, company_name, phone } = invitedUser;
+
+const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+  email,
+  password,
+  email_confirm: true,
+  user_metadata: {
+    firstName: first_name,
+    lastName: last_name,
+    companyName: company_name,
+    phone,
+  },
+});
 
   if (createError) {
     console.error('[❌ Erro ao criar usuário]', createError);

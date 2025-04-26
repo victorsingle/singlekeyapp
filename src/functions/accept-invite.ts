@@ -54,6 +54,10 @@ const handler: Handler = async (event) => {
     .update({ status: 'accepted' })
     .eq('token', token);
 
+    if (updateError) {
+      console.error('[❌ Erro ao atualizar status do convite]', updateError);
+    }
+
   return {
     statusCode: 200,
     body: JSON.stringify({ message: 'Usuário criado com sucesso' }),

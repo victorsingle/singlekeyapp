@@ -80,6 +80,7 @@ export function UserTable({ users, loading, onInviteClick, onUserUpdated, setUse
   };
   
   const handleDelete = (user: AppUser) => {
+    console.log('[DEBUG] User recebido para exclusão:', user);
     showModal({
       type: 'danger',
       title: 'Excluir usuário',

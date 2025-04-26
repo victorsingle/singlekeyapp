@@ -35,7 +35,25 @@ function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const [recoveryMode, setRecoveryMode] = useState(false);
+ 
   
+  async function checkIfUserIsValid() {
+    const { data: user } = await supabase.auth.getUser();
+  
+    if (!user) {
+      // Usuário não existe mais (foi deletado)
+      console.log('Usuário inválido. Forçando logout...');
+      await supabase.auth.signOut();
+      window.location.href = '/login'; // ou sua página inicial
+    }
+  }
+  
+  // Chamar esse check no início
+  useEffect(() => {
+    checkIfUserIsValid();
+  }, []);
+
+
   const publicPaths = [
     '/login',
     '/register',

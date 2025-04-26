@@ -53,17 +53,11 @@ const handler: Handler = async (event) => {
   .from('invited_users')
   .update({ status: 'active' })
   .eq('id', invitedUser.id)
-  .select(); // 👈 Importante adicionar .select() para ver o que foi afetado
 
   if (updateError) {
     console.error('[❌ Erro ao atualizar status do convite]', updateError);
-  } else if (updateData.length === 0) {
-    console.error('[⚠️ NENHUM registro atualizado]', {
-      tokenUsado: token,
-      idUsado: invitedUser.id,
-    });
   } else {
-    console.log('[✅ Update realizado]', updateData);
+    console.log('[✅ convite aceito com sucesso!]');
   }
 
   return {

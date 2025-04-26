@@ -79,34 +79,29 @@ export function UserTable({ users, loading, onInviteClick, onUserUpdated, setUse
     });
   };
   
-  const handleDelete = (id: string) => {
+  const handleDelete = (user: AppUser) => {
     showModal({
       type: 'danger',
       title: 'Excluir usuário',
       message: 'Tem certeza que deseja excluir este usuário? Esta ação não poderá ser desfeita.',
       onConfirm: async () => {
         try {
-          console.log('[DEBUG] Chamando função delete-user para ID:', id);
-  
-          const response = await fetch('/.netlify/functions/delete-user', {
+          const { error } = await fetch('/.netlify/functions/delete-user', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ inviteId: id }),
+            body: JSON.stringify({
+              inviteId: user.id,      // ID da tabela invited_users
+              userId: user.user_id,   // UID do auth.users
+            }),
           });
   
-          const result = await response.json();
-  
-          if (!response.ok) {
-            console.error('[❌ delete-user error]:', result.message);
-            toast.error(result.message || 'Erro ao excluir usuário');
+          if (error) {
+            toast.error('Erro ao excluir usuário');
+            console.error('[❌ Delete Error]', error);
             return;
           }
   
           toast.success('Usuário removido com sucesso');
-  
-          // Atualiza a lista local
-          setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id));
-  
           onUserUpdated?.();
         } catch (err) {
           console.error('[❌ Handler Error]', err);
@@ -115,6 +110,7 @@ export function UserTable({ users, loading, onInviteClick, onUserUpdated, setUse
       },
     });
   };
+  
   
   
   return (

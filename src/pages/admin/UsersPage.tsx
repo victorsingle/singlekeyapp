@@ -24,6 +24,7 @@ export function UsersPage() {
           users={users}
           loading={loading}
           onInviteClick={() => setIsInviteModalOpen(true)}
+          onUserUpdated={refetch}
           setUsers={setUsers} 
         />
         <InviteUserModal

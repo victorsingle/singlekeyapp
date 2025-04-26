@@ -52,28 +52,28 @@ const handler: Handler = async (event) => {
 
     console.log('✅ [PASSO 1] Invite deletado da tabela invited_users.');
 
-    // 2. Bloquear o usuário no Auth (banned_until = infinito)
-    console.log('🚀 [PASSO 2] Tentando bloquear usuário no Auth...');
+    // 2. Bloquear o usuário no Auth usando disabled: true 🔥
+    console.log('🚀 [PASSO 2] Tentando desabilitar usuário no Auth...');
     const { data: updatedUser, error: updateAuthError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-      banned_until: '9999-12-31T23:59:59Z',
+      disabled: true, // 🔥 Correção: usar disabled: true no lugar de banned_until
     });
 
     if (updateAuthError) {
-      console.error('❌ [ERRO] Falha ao bloquear no Auth:', updateAuthError);
+      console.error('❌ [ERRO] Falha ao desabilitar no Auth:', updateAuthError);
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: 'Erro ao bloquear usuário no Auth' }),
+        body: JSON.stringify({ message: 'Erro ao desabilitar usuário no Auth' }),
       };
     }
 
-    console.log('✅ [PASSO 2] Usuário bloqueado no Auth.', updatedUser);
+    console.log('✅ [PASSO 2] Usuário desabilitado no Auth.', updatedUser);
 
     // 3. Forçar revogação da sessão
     console.log('🚀 [PASSO 3] Tentando revogar sessões do usuário...');
     const { error: revokeError } = await supabaseAdmin.auth.admin.signOut(userId);
 
     if (revokeError) {
-      console.warn('⚠️ [WARNING] Falha ao revogar sessões (seguindo mesmo assim):', revokeError);
+      console.warn('⚠️ [WARNING] Falha ao revogar sessões (continuando mesmo assim):', revokeError); // 🔥 Tratamento de warning, mas continua
     } else {
       console.log('✅ [PASSO 3] Sessões revogadas com sucesso.');
     }
@@ -82,7 +82,7 @@ const handler: Handler = async (event) => {
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Usuário convidado removido, bloqueado e sessões revogadas' }),
+      body: JSON.stringify({ message: 'Usuário convidado removido, desabilitado e sessões revogadas' }),
     };
 
   } catch (err) {

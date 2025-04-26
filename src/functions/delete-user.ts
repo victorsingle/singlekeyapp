@@ -56,6 +56,7 @@ const handler: Handler = async (event) => {
     console.log('🚀 [PASSO 2] Tentando bloquear usuário no Auth (banned_until)...');
     const { data: updatedUser, error: updateAuthError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
       banned_until: '9999-12-31T23:59:59Z',
+      confirmed_at: null,
     });
 
     if (updateAuthError) {

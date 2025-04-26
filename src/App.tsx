@@ -35,26 +35,7 @@ function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const [recoveryMode, setRecoveryMode] = useState(false);
- 
-  
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      console.log('📦 [DEBUG] Resultado getUser():', { data, error });
-  
-      if (error || !data?.user) {
-        console.log('🚪 [DEBUG] Usuário inválido detectado. Forçando logout...');
-        await supabase.auth.signOut();
-        window.location.href = '/login';
-      } else {
-        console.log('✅ [DEBUG] Usuário válido, segue fluxo.');
-      }
-    };
-  
-    if (isAuthChecked) { // ⚡ SÓ RODA SE A AUTENTICAÇÃO JÁ FOI CHECADA!
-      checkUser();
-    }
-  }, [isAuthChecked]);
+
 
 
   const publicPaths = [

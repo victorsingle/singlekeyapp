@@ -99,7 +99,7 @@ export function Header({ session, onLogout, onMobileMenuOpen }: HeaderProps) {
               )}
               <ul className="py-1">
           
-                {/* BLOCO: PERFIL */}
+                {/* BLOCO: PERFIL 
                 <li>
                   <button
                     onClick={() => {
@@ -126,7 +126,8 @@ export function Header({ session, onLogout, onMobileMenuOpen }: HeaderProps) {
                 </li>
           
                 <li><hr className="my-1 border-t border-gray-200" /></li>
-          
+                */}
+
                 {/* BLOCO: ADMINISTRAÇÃO */}
                 <li>
                   <button
@@ -140,6 +141,7 @@ export function Header({ session, onLogout, onMobileMenuOpen }: HeaderProps) {
                     Usuários
                   </button>
                 </li>
+                 {/* BLOCO: ADMINISTRAÇÃO 
                 <li>
                   <button
                     onClick={() => {
@@ -154,6 +156,8 @@ export function Header({ session, onLogout, onMobileMenuOpen }: HeaderProps) {
                 </li>
           
                 <li><hr className="my-1 border-t border-gray-200" /></li>
+
+                */}
           
                 {/* BLOCO: SAIR */}
                 <li>

@@ -56,7 +56,7 @@ export function ResetPassword() {
         {/* Lado esquerdo - Logo e mensagem */}
         <div className="text-center md:text-left">
           <div className="flex justify-center md:justify-start">
-            <Target className="h-14 w-14 text-blue-600" />
+            <Target className="h-12 w-12 text-blue-600" />
           </div>
           <h2 className="mt-0 text-3xl font-extrabold text-gray-900">SingleKey</h2>
           <p className="mt-0 text-xs text-gray-600 max-w-xs">

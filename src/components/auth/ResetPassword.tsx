@@ -51,21 +51,19 @@ export function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="flex flex-col md:flex-row items-center gap-8">
-        {/* Lado esquerdo - Logo e mensagem */}
-        <div className="text-center md:text-left">
-          <div className="flex justify-center md:justify-start">
-            <Target className="h-12 w-12 text-blue-600" />
-          </div>
+    <div className="min-h-screen flex flex-col justify-center bg-gray-50 px-4">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        {/* Logo e título */}
+        <div className="flex flex-col items-center">
+          <Target className="h-12 w-12 text-blue-600" />
           <h2 className="mt-0 text-3xl font-extrabold text-gray-900">SingleKey</h2>
-          <p className="mt-0 text-xs text-gray-600 max-w-xs">
+          <p className="mt-0 text-sm text-gray-600">
             Digite seu e-mail para receber um link de redefinição
           </p>
         </div>
 
-        {/* Lado direito - Formulário */}
-        <div className="w-full max-w-sm bg-white py-8 px-6 shadow-xl rounded-lg">
+        {/* Formulário */}
+        <div className="mt-8 bg-white py-8 px-6 shadow rounded-lg sm:px-10">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -100,7 +98,7 @@ export function ResetPassword() {
             </button>
           </form>
 
-          <div className="mt-6">
+          <div className="mt-2">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />
@@ -110,7 +108,7 @@ export function ResetPassword() {
               </div>
             </div>
 
-            <div className="mt-6">
+            <div className="mt-2">
               <button
                 onClick={() => navigate('/login')}
                 className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"

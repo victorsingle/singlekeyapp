@@ -1,5 +1,5 @@
 // src/lib/resolveOwnerContext.ts
-import { supabase } from "./supabase";
+import { supabase } from "../lib/supabase"; // ✅ corrigido o import aqui!
 
 export interface OwnerContext {
   ownerId: string;

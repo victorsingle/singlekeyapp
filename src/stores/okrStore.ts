@@ -57,6 +57,7 @@ export const useOKRStore = create<OKRState>((set, get) => ({
 
     if (!context || !context.organizationId) {
       console.error('[DEBUG] Sem contexto ou organizationId nulo');
+      set({ cycles: [], selectedCycleId: null });
       return [];
     }
 
@@ -65,7 +66,7 @@ export const useOKRStore = create<OKRState>((set, get) => ({
     const { data, error } = await supabase
       .from('okr_cycles')
       .select('*')
-      .eq('organization_id', organizationId)
+      .filter('organization_id', 'eq', organizationId) // <- trocado .eq por .filter
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -75,19 +76,13 @@ export const useOKRStore = create<OKRState>((set, get) => ({
 
     console.log('[DEBUG] Ciclos carregados:', data);
 
-    const formattedCycles = (data || []).map(cycle => ({
-      ...cycle,
-      start_date_text: cycle.start_date ? cycle.start_date.split('T')[0] : null,
-      end_date_text: cycle.end_date ? cycle.end_date.split('T')[0] : null,
-    }));
-
-    if (formattedCycles.length > 0) {
-      set({ cycles: formattedCycles, selectedCycleId: formattedCycles[0].id });
+    if (data && data.length > 0) {
+      set({ cycles: data, selectedCycleId: data[0].id });
     } else {
       set({ cycles: [], selectedCycleId: null });
     }
 
-    return formattedCycles;
+    return data || [];
   } catch (error) {
     console.error('[DEBUG] Erro geral em fetchCycles:', error);
     set({ cycles: [], selectedCycleId: null });

@@ -119,7 +119,7 @@ export function CompanyForm() {
     <div className="w-full max-w-xs space-y-8">
       <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6">
         <div>
-          <label className="block text-xs font-medium text-gray-700">Nome da Empresa</label>
+          <label className="block text-xs font-medium text-gray-700 mt-1">Nome da Empresa</label>
           <input
             type="text"
             name="companyName"
@@ -136,7 +136,7 @@ export function CompanyForm() {
 
         <div className="flex gap-4">
           <div className="w-1/2">
-            <label className="block text-xs font-medium text-gray-700">Nome</label>
+            <label className="block text-xs font-medium text-gray-700 mt-1">Nome</label>
             <input
               type="text"
               name="firstName"
@@ -152,7 +152,7 @@ export function CompanyForm() {
           </div>
 
           <div className="w-1/2">
-            <label className="block text-xs font-medium text-gray-700">Sobrenome</label>
+            <label className="block text-xs font-medium text-gray-700 mt-1">Sobrenome</label>
             <input
               type="text"
               name="lastName"
@@ -169,7 +169,7 @@ export function CompanyForm() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-700">Telefone</label>
+          <label className="block text-xs font-medium text-gray-700 mt-1">Telefone</label>
           <input
             type="text"
             name="phone"
@@ -186,7 +186,7 @@ export function CompanyForm() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-700">E-mail</label>
+          <label className="block text-xs font-medium text-gray-700 mt-1">E-mail</label>
           <input
             type="email"
             name="email"
@@ -202,7 +202,7 @@ export function CompanyForm() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-700">Senha</label>
+          <label className="block text-xs font-medium text-gray-700 mt-1">Senha</label>
           <div className="mt-1 relative">
             <input
               type={showPassword ? 'text' : 'password'}
@@ -229,7 +229,7 @@ export function CompanyForm() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-700">Confirmar Senha</label>
+          <label className="block text-xs font-medium text-gray-700 mt-1">Confirmar Senha</label>
           <div className="mt-1 relative">
             <input
               type={showConfirmPassword ? 'text' : 'password'}

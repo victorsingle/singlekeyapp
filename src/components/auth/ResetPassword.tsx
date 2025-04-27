@@ -52,14 +52,13 @@ export function ResetPassword() {
 
   return (
     <div className="min-h-screen flex flex-col justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-xs">
-        {/* Logo e título */}
-        <div className="flex flex-col items-center">
-          <Target className="h-12 w-12 text-blue-600" />
-          <h2 className="mt-0 text-3xl font-extrabold text-gray-900">SingleKey</h2>
-          <p className="mt-0 text-sm text-gray-600">
-            Digite seu e-mail para receber um link de redefinição
-          </p>
+      <div className="w-full max-w-xs space-y-8">
+        <div className="text-center">
+          <div className="flex justify-center">
+            <Target className="h-12 w-12 text-blue-600 mx-auto" />
+          </div>
+          <h2 className="mt-0 text-2xl font-extrabold text-gray-900">SingleKey</h2>
+          <p className="mt-0 text-xs text-gray-600">Informe seu e-mail para recuperar sua senha.</p>
         </div>
 
         {/* Formulário */}

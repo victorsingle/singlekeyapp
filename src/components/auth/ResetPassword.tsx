@@ -52,7 +52,7 @@ export function ResetPassword() {
 
   return (
     <div className="min-h-screen flex flex-col justify-center bg-gray-50 px-4">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="w-full max-w-xs">
         {/* Logo e título */}
         <div className="flex flex-col items-center">
           <Target className="h-12 w-12 text-blue-600" />

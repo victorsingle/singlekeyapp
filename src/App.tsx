@@ -21,7 +21,6 @@ import { TeamsPage } from './pages/admin/TeamsPage';
 import { TeamDetailPage } from './pages/admin/TeamDetailPage';
 import { AcceptInvitePage } from './components/auth/AcceptInvitePage';
 
-
 export function CycleDetailPageWrapper() {
   const { id } = useParams();
   return <CycleDetailPage cycleId={id!} />;
@@ -34,9 +33,6 @@ function App() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const [recoveryMode, setRecoveryMode] = useState(false);
-
-
 
   const publicPaths = [
     '/login',
@@ -74,31 +70,29 @@ function App() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
- 
-useEffect(() => {
-  const init = async () => {
-    const { data: { session }, error } = await supabase.auth.getSession();
-    if (!error) setSession(session);
-    setIsAuthChecked(true);
-  };
+  useEffect(() => {
+    const init = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (!error) setSession(session);
+      setIsAuthChecked(true);
+    };
 
-  init();
+    init();
 
-  const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-    console.log('[🔄 Auth State Changed]', { event, session });
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('[🔄 Auth State Changed]', { event, session });
 
-    if (session) {
-      setSession(session);
-    }
+      if (session) {
+        setSession(session);
+      }
 
-    if (event === 'PASSWORD_RECOVERY') {
-      setRecoveryMode(true);
-      navigate('/update-password');
-    }
-  });
+      if (event === 'PASSWORD_RECOVERY') {
+        navigate('/update-password');
+      }
+    });
 
-  return () => authListener.subscription.unsubscribe();
-}, []);
+    return () => authListener.subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (session) {
@@ -172,8 +166,8 @@ useEffect(() => {
     isPublicRoute,
     pathname: location.pathname,
   });
-  
-  if (!session && !isPublicRoute && !recoveryMode) {
+
+  if (!session && !isPublicRoute) {
     return <Navigate to="/login" replace />;
   }
 
@@ -288,7 +282,7 @@ useEffect(() => {
       )}
 
       <main className={clsx({ 'pt-0': !isPublicRoute })}>
-        <Routes>
+      <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<AuthTabs />} />
           <Route path="/reset-password" element={<ResetPassword />} />

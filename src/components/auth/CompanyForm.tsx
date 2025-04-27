@@ -134,7 +134,7 @@ export function CompanyForm() {
           {errors.companyName && <p className="mt-1 text-xs text-red-600">{errors.companyName}</p>}
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex gap-4 mt-0">
           <div className="w-1/2">
             <label className="block text-xs font-medium text-gray-700 mt-1">Nome</label>
             <input

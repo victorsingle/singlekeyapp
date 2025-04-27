@@ -51,15 +51,14 @@ export function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-xs space-y-8">
-        <div className="text-center">
-          <div className="flex justify-center">
-            <Target className="h-12 w-12 text-blue-600 mx-auto" />
-          </div>
-          <h2 className="mt-0 text-2xl font-extrabold text-gray-900">SingleKey</h2>
-          <p className="mt-0 text-xs text-gray-600">Informe seu e-mail para recuperar sua senha.</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="w-full max-w-xs space-y-8">
+      {/* Logo + Título */}
+      <div className="text-center">
+        <Target className="h-12 w-12 text-blue-600 mx-auto" />
+        <h2 className="mt-4 text-2xl font-extrabold text-gray-900">SingleKey</h2>
+        <p className="mt-2 text-xs text-gray-600">Informe seu e-mail para recuperar sua senha.</p>
+      </div>
 
         {/* Formulário */}
         <div className="mt-8 bg-white py-8 px-6 shadow rounded-lg sm:px-10">

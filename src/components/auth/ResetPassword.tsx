@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 export function ResetPassword() {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const navigate = useNavigate();
 
@@ -20,14 +21,17 @@ export function ResetPassword() {
       return;
     }
 
+    setLoading(true);
+
     try {
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/update-password`
+        redirectTo: `${window.location.origin}/update-password`,
       });
 
       if (resetError) {
         console.error('[❌ Erro ao enviar link de recuperação]', resetError);
         toast.error('Erro ao enviar link de recuperação. Tente novamente.');
+        setLoading(false);
         return;
       }
 
@@ -36,18 +40,24 @@ export function ResetPassword() {
     } catch (err) {
       console.error('[❌ Erro inesperado no reset]', err);
       toast.error('Erro inesperado. Tente novamente mais tarde.');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    navigate('/login');
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="w-full text-center">
-        {/* Logo */}
+      <div className="w-full max-w-xs space-y-8 text-center">
         <div className="flex justify-center">
           <Target className="h-20 w-20 text-blue-600" />
         </div>
-        <h2 className="mt-3 text-3xl font-extrabold text-gray-900">SingleKey</h2>
-        <p className="mt-2 text-sm text-gray-600">
+        <h2 className="mt-0 text-2xl font-extrabold text-gray-900">SingleKey</h2>
+        <p className="mt-0 text-xs text-gray-600">
           Digite seu e-mail para receber um link de redefinição
         </p>
       </div>
@@ -81,9 +91,10 @@ export function ResetPassword() {
 
             <button
               type="submit"
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
+              disabled={loading}
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none disabled:opacity-50"
             >
-              Enviar link de recuperação
+              {loading ? 'Enviando...' : 'Enviar link de recuperação'}
             </button>
           </form>
 
@@ -111,7 +122,7 @@ export function ResetPassword() {
 
       <SuccessModal
         isOpen={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
+        onClose={handleCloseSuccessModal}
         title="Verifique seu e-mail"
         message="Enviamos um link de recuperação para o e-mail informado. Acesse o link para redefinir sua senha."
       />

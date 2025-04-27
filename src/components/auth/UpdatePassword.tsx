@@ -31,13 +31,13 @@ export function UpdatePassword() {
       const refresh_token = query.get('refresh_token');
 
       if (access_token && refresh_token) {
-        const { error, data } = await supabase.auth.setSession({ access_token, refresh_token });
+        // fluxo de recuperação de senha (admin)
+        const { error } = await supabase.auth.setSession({ access_token, refresh_token });
         if (error) {
           console.error('[❌ Erro ao aplicar sessão]', error);
           toast.error('Erro ao validar o link de redefinição.');
           navigate('/login');
         } else {
-          console.log('[🧩 Sessão aplicada]', data);
           setSessionReady(true);
         }
       } else if (token) {

@@ -52,18 +52,20 @@ export function ResetPassword() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-xs space-y-8 text-center">
-        <div className="flex justify-center">
-          <Target className="h-12 w-12 text-blue-600" />
+      <div className="flex flex-col md:flex-row items-center gap-8">
+        {/* Lado esquerdo - Logo e mensagem */}
+        <div className="text-center md:text-left">
+          <div className="flex justify-center md:justify-start">
+            <Target className="h-14 w-14 text-blue-600" />
+          </div>
+          <h2 className="mt-0 text-3xl font-extrabold text-gray-900">SingleKey</h2>
+          <p className="mt-0 text-xs text-gray-600 max-w-xs">
+            Digite seu e-mail para receber um link de redefinição
+          </p>
         </div>
-        <h2 className="mt-0 text-2xl font-extrabold text-gray-900">SingleKey</h2>
-        <p className="mt-0 text-xs text-gray-600">
-          Digite seu e-mail para receber um link de redefinição
-        </p>
-      </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-xl sm:rounded-lg sm:px-10">
+        {/* Lado direito - Formulário */}
+        <div className="w-full max-w-sm bg-white py-8 px-6 shadow-xl rounded-lg">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">

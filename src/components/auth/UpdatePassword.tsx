@@ -6,7 +6,6 @@ import toast from 'react-hot-toast';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PasswordStrengthSegments } from '../../components/PasswordStrengthSegments';
 
-
 export function UpdatePassword() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -14,9 +13,8 @@ export function UpdatePassword() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
+  const [isInviteFlow, setIsInviteFlow] = useState(false); // << NOVO
   const [email, setEmail] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -30,16 +28,17 @@ export function UpdatePassword() {
       const refresh_token = query.get('refresh_token');
 
       if (access_token && refresh_token) {
-        supabase.auth.setSession({ access_token, refresh_token }).then(({ error }) => {
-          if (error) {
-            console.error('[❌ Erro ao aplicar sessão]', error);
-            toast.error('Erro ao validar o link de redefinição.');
-            navigate('/login');
-          } else {
-            setSessionReady(true);
-          }
-        });
+        // fluxo de recuperação de senha (admin)
+        const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+        if (error) {
+          console.error('[❌ Erro ao aplicar sessão]', error);
+          toast.error('Erro ao validar o link de redefinição.');
+          navigate('/login');
+        } else {
+          setSessionReady(true);
+        }
       } else if (token) {
+        // fluxo de aceitação de convite (convidado)
         const { data, error } = await supabase
           .from('invited_users')
           .select('email')
@@ -56,6 +55,7 @@ export function UpdatePassword() {
 
         setEmail(data.email);
         setSessionReady(true);
+        setIsInviteFlow(true); // << MARCA QUE É FLUXO DE CONVITE
       } else {
         navigate('/login');
       }
@@ -67,51 +67,53 @@ export function UpdatePassword() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-  
+
     if (password.length < 6) {
       setError('A senha deve ter pelo menos 6 caracteres');
       return;
     }
-  
+
     if (password !== confirmPassword) {
       setError('As senhas não coincidem');
       return;
     }
-  
+
     setLoading(true);
-  
+
     try {
-      if (email) {
+      if (isInviteFlow && email) {
+        // fluxo de aceitar convite
         const response = await fetch('/.netlify/functions/accept-invite', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token, password }),
         });
-  
+
         let result = {};
         try {
           result = await response.json();
         } catch (error) {
           console.warn('[⚠️ Resposta não era JSON]', error);
         }
-  
+
         if (!response.ok) {
           toast.error(result.message || 'Erro ao aceitar convite.');
           setLoading(false);
           return;
         }
-  
+
         setShowSuccessModal(true);
       } else {
+        // fluxo de redefinir senha normal (admin)
         const { error: updateError } = await supabase.auth.updateUser({ password });
-  
+
         if (updateError) {
           console.error('[❌ Erro ao atualizar senha]', updateError);
           toast.error('Erro ao atualizar a senha. Tente novamente.');
           setLoading(false);
           return;
         }
-  
+
         setShowSuccessModal(true);
       }
     } catch (error) {
@@ -121,7 +123,6 @@ export function UpdatePassword() {
       setLoading(false);
     }
   };
-  
 
   if (!sessionReady) {
     return (

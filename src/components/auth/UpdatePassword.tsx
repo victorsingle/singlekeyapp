@@ -29,16 +29,22 @@ export function UpdatePassword() {
       const query = new URLSearchParams(hash.substring(1));
       const access_token = query.get('access_token');
       const refresh_token = query.get('refresh_token');
-
+  
       if (access_token && refresh_token) {
-        // fluxo de recuperação de senha (admin)
         const { error } = await supabase.auth.setSession({ access_token, refresh_token });
         if (error) {
           console.error('[❌ Erro ao aplicar sessão]', error);
           toast.error('Erro ao validar o link de redefinição.');
           navigate('/login');
         } else {
-          setSessionReady(true);
+          const { data: userData, error: userError } = await supabase.auth.getUser();
+          console.log('[🧩 Resultado getUser após setSession]', userData, userError);
+          if (userData?.user) {
+            setSessionReady(true);
+          } else {
+            toast.error('Não foi possível validar sua sessão. Por favor, tente novamente.');
+            navigate('/login');
+          }
         }
       } else if (token) {
         // fluxo de aceitação de convite (convidado)
@@ -48,14 +54,14 @@ export function UpdatePassword() {
           .eq('token', token)
           .eq('status', 'pending')
           .single();
-
+  
         if (error || !data) {
           console.error('[❌ Token inválido ou convite expirado]', error);
           toast.error('Convite inválido ou expirado.');
           navigate('/login');
           return;
         }
-
+  
         setEmail(data.email);
         setSessionReady(true);
         setIsInviteFlow(true);
@@ -63,9 +69,10 @@ export function UpdatePassword() {
         navigate('/login');
       }
     };
-
+  
     initializeSessionOrFetchInvite();
   }, [navigate, token]);
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

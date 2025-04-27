@@ -5,6 +5,7 @@ import { mockOKRs, mockLinks } from '../lib/mockData';
 import toast from 'react-hot-toast';
 import { getUserId } from '../lib/utils';
 import OpenAI from 'openai';
+import { resolveOwnerContext } from '../lib/resolveOwnerContext';
 
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_OPENAI_API_KEY, // ou chave fixa se for teste
@@ -49,62 +50,50 @@ export const useOKRStore = create<OKRState>((set, get) => ({
 
  setSelectedCycleId: (cycleId: string | null) => set({ selectedCycleId: cycleId }),
 
-  fetchCycles: async () => {
-    set({ loading: true });
-    console.log('[🌀 Buscando ciclos da view...]');
-  
-    function calculateStatus(start: string, end: string): 'draft' | 'active' | 'completed' {
-      if (!start || !end) {
-        console.warn('[⚠️ Datas ausentes no ciclo]', { start, end });
-        return 'draft';
-      }
-  
-      const startDate = new Date(`${start}T00:00:00`);
-      const endDate = new Date(`${end}T23:59:59`);
-      const today = new Date();
-  
-      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-        console.warn('[⚠️ Datas inválidas no ciclo]', { start, end });
-        return 'draft';
-      }
-  
-      if (today < startDate) return 'draft';
-      if (today > endDate) return 'completed';
-      return 'active';
-    }
-  
-    try {
-      const { data: rawCycles, error } = await supabase
-        .from('vw_okr_cycles')
-        .select(`
-          id,
-          name,
-          start_date_text,
-          end_date_text,
-          strategic_theme,
-          user_id,
-          status
-        `)
-        .order('start_date_text', { ascending: false });
-  
-      if (error) {
-        console.error('[❌ Erro ao buscar ciclos]', error);
-        throw error;
-      }
-  
-      const cycles = rawCycles.map(cycle => ({
-        ...cycle,
-        status: calculateStatus(cycle.start_date_text, cycle.end_date_text)
-      }));
-  
-      console.log('[✅ Ciclos carregados da view]', cycles);
-      set({ cycles, loading: false });
-    } catch (error) {
-      console.error('[❌ Erro no catch do fetchCycles]', error);
-      set({ error: (error as Error).message, loading: false });
-    }
-  },
+ fetchCycles: async () => {
+  try {
+    const context = await resolveOwnerContext();
+    console.log('[DEBUG] Contexto:', context);
 
+    if (!context || !context.organizationId) {
+      console.error('[DEBUG] Sem contexto ou organizationId nulo');
+      return [];
+    }
+
+    const { organizationId } = context;
+
+    const { data, error } = await supabase
+      .from('okr_cycles')
+      .select('*')
+      .eq('organization_id', organizationId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('[DEBUG] Erro no fetch de ciclos:', error);
+      throw error;
+    }
+
+    console.log('[DEBUG] Ciclos carregados:', data);
+
+    const formattedCycles = (data || []).map(cycle => ({
+      ...cycle,
+      start_date_text: cycle.start_date ? cycle.start_date.split('T')[0] : null,
+      end_date_text: cycle.end_date ? cycle.end_date.split('T')[0] : null,
+    }));
+
+    if (formattedCycles.length > 0) {
+      set({ cycles: formattedCycles, selectedCycleId: formattedCycles[0].id });
+    } else {
+      set({ cycles: [], selectedCycleId: null });
+    }
+
+    return formattedCycles;
+  } catch (error) {
+    console.error('[DEBUG] Erro geral em fetchCycles:', error);
+    set({ cycles: [], selectedCycleId: null });
+    return [];
+  }
+},
 
   fetchAllOKRs: async () => {
   console.log('[📦 Buscando TODOS os OKRs de todos os ciclos]');

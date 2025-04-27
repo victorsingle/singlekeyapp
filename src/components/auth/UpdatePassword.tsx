@@ -24,28 +24,12 @@ export function UpdatePassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
-    const initializeSessionOrFetchInvite = async () => {
-      const hash = window.location.hash;
-      const query = new URLSearchParams(hash.substring(1));
-      const access_token = query.get('access_token');
-      const refresh_token = query.get('refresh_token');
+    const checkSessionOrFetchInvite = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
   
-      if (access_token && refresh_token) {
-        const { error } = await supabase.auth.setSession({ access_token, refresh_token });
-        if (error) {
-          console.error('[❌ Erro ao aplicar sessão]', error);
-          toast.error('Erro ao validar o link de redefinição.');
-          navigate('/login');
-        } else {
-          const { data: userData, error: userError } = await supabase.auth.getUser();
-          console.log('[🧩 Resultado getUser após setSession]', userData, userError);
-          if (userData?.user) {
-            setSessionReady(true);
-          } else {
-            toast.error('Não foi possível validar sua sessão. Por favor, tente novamente.');
-            navigate('/login');
-          }
-        }
+      if (session) {
+        // Se há uma sessão ativa, prossegue diretamente
+        setSessionReady(true);
       } else if (token) {
         // fluxo de aceitação de convite (convidado)
         const { data, error } = await supabase
@@ -66,12 +50,14 @@ export function UpdatePassword() {
         setSessionReady(true);
         setIsInviteFlow(true);
       } else {
+        toast.error('Sua sessão não é válida ou expirou, solicite novamente.');
         navigate('/login');
       }
     };
   
-    initializeSessionOrFetchInvite();
+    checkSessionOrFetchInvite();
   }, [navigate, token]);
+  
   
 
   const handleSubmit = async (e: React.FormEvent) => {

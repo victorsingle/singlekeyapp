@@ -125,7 +125,7 @@ export function CompanyForm() {
             name="companyName"
             value={formData.companyName}
             onChange={handleChange}
-            className={`mt-1 block w-full rounded-md shadow-sm text-xs p-2 ${
+            className={`mt-1 block w-full rounded-md shadow-sm text-xs p-2 border ${
               errors.companyName
                 ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
                 : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
@@ -142,7 +142,7 @@ export function CompanyForm() {
               name="firstName"
               value={formData.firstName}
               onChange={handleChange}
-              className={`mt-1 block w-full rounded-md shadow-sm text-xs p-2 ${
+              className={`mt-1 block w-full rounded-md shadow-sm text-xs p-2 border ${
                 errors.firstName
                   ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
                   : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
@@ -158,7 +158,7 @@ export function CompanyForm() {
               name="lastName"
               value={formData.lastName}
               onChange={handleChange}
-              className={`mt-1 block w-full rounded-md shadow-sm text-xs p-2 ${
+              className={`mt-1 block w-full rounded-md shadow-sm text-xs p-2 border ${
                 errors.lastName
                   ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
                   : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
@@ -176,7 +176,7 @@ export function CompanyForm() {
             value={formData.phone}
             onChange={handleChange}
             maxLength={15}
-            className={`mt-1 block w-full rounded-md shadow-sm text-xs p-2 ${
+            className={`mt-1 block w-full rounded-md shadow-sm text-xs p-2 border ${
               errors.phone
                 ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
                 : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
@@ -192,7 +192,7 @@ export function CompanyForm() {
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className={`mt-1 block w-full rounded-md shadow-sm text-xs p-2 ${
+            className={`mt-1 block w-full rounded-md shadow-sm text-xs p-2 border ${
               errors.email
                 ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
                 : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
@@ -209,7 +209,7 @@ export function CompanyForm() {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className={`block w-full rounded-md shadow-sm text-xs p-2 ${
+              className={`block w-full rounded-md shadow-sm text-xs p-2 border ${
                 errors.password
                   ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
                   : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
@@ -236,7 +236,7 @@ export function CompanyForm() {
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              className={`block w-full rounded-md shadow-sm text-xs p-2 ${
+              className={`block w-full rounded-md shadow-sm text-xs p-2 border ${
                 errors.confirmPassword
                   ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
                   : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'

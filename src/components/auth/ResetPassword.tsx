@@ -51,7 +51,7 @@ export function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex justify-center bg-gray-50 px-4">
       <div className="w-full max-w-xs space-y-8">
         <div className="text-center">
           <div className="flex justify-center">

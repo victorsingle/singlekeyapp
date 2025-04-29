@@ -91,7 +91,7 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false }: OKRGe
             <Target className="w-10 h-10 text-blue-600" />
           </div>
         </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Eu sou a KEY, sua copiloto de OKRs</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">Eu sou a KAI, sua copiloto de OKRs</h2>
         <p className="text-gray-600 text-sm leading-relaxed">
           Me diga qual é o seu desafio do próximo ciclo e eu cuido do resto.
         </p>

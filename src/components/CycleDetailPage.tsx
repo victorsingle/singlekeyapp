@@ -1,55 +1,77 @@
 import React, { useState, useEffect } from 'react';
+import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ReactFlowProvider } from 'reactflow';
-import { ArrowLeft, List, Network } from 'lucide-react';
+import { List, Network } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { groupOKRsByHierarchy } from '../lib/okr/groupOKRsByHierarchy';
-import { getUnlinkedOKRs } from '../lib/okr/getUnlinkedOKRs';
-import { OKRListTable } from '../components/OKRListTable';
+
+// 2. Stores
+import { useAuthStore } from '../stores/authStore';
 import { useOKRStore } from '../stores/okrStore';
-import { OKRRelationMap } from './OKRRelationMap';
-import clsx from 'clsx';
-import { useNavigate } from 'react-router-dom';
-import { Breadcrumb } from '../components/Breadcrumb';
+
+// 3. Services
+import { createManualOKR } from '../services/okrService';
+
+// 4. Components
 import { SubHeader } from '../components/SubHeader';
+import { OkrDetailsView } from '../components/okr/OkrDetailsView';
+import { OKRRelationMap } from './OKRRelationMap';
+
+
 
 interface CycleDetailPageProps {
   cycleId: string;
 }
 
 export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
-  const { updateOKR, updateKeyResult, deleteOKR, deleteKeyResult, setSelectedCycleId } = useOKRStore();
-  const cycles = useOKRStore((s) => s.cycles);
-  const loading = useOKRStore((s) => s.loading);
-  const allOKRs = useOKRStore((s) => s.okrs);
-  const allLinks = useOKRStore((s) => s.links);
-  const [viewMode, setViewMode] = useState<'list' | 'graph'>('list');
+  const {
+    setSelectedCycleId,
+    updateOKR,
+    updateKeyResult,
+    deleteOKR,
+    deleteKeyResult,
+    fetchLinks,
+    createLink,
+    deleteLink,
+    selectedCycleId,
+    cycles = [],
+    loading,
+    okrs: allOKRs,
+    links: allLinks,
+  } = useOKRStore();
+
   const navigate = useNavigate();
-  const selectedCycleId = useOKRStore((s) => s.selectedCycleId);
+  const [viewMode, setViewMode] = useState<'list' | 'graph'>('list');
+  const [isCreating, setIsCreating] = useState(false); // <- controle de loading do botão
+
+  const organizationId = useAuthStore((s) => s.organizationId);
+
+  useEffect(() => {
+    if (!organizationId || !cycleId) return;
+
+    setSelectedCycleId(cycleId);
+
+    const loadEverything = async () => {
+      console.log('[🛠️] Disparando loadEverything');
+    
+      await useOKRStore.getState().loadCycles(organizationId);
+      await useOKRStore.getState().loadOKRs(organizationId, cycleId);
+    
+      const okrs = useOKRStore.getState().okrs.filter(o => o.cycle_id === cycleId);
+    
+      await Promise.all(
+        okrs.map((okr) => useOKRStore.getState().loadKeyResults(okr.id))
+      );
+    
+      await useOKRStore.getState().fetchLinks(organizationId);
+    };
+
+    loadEverything();
+  }, [organizationId, cycleId]);
+
   const selectedCycle = cycles.find((c) => c.id === selectedCycleId);
   const isReadOnly = selectedCycle?.status === 'completed';
-  const { createManualOKR } = useOKRStore();
-
-  const currentCycle = cycles.find((c) => c.id === cycleId);
-  const breadcrumbItems = [
-    { label: 'Ciclos', href: '/cycles' },
-    currentCycle ? { label: currentCycle.name } : { label: '...' },
-  ];
-  
- useEffect(() => {
-  if (!cycleId) return;
-
-  setSelectedCycleId(cycleId);
-
-  const loadOKRsAndLinks = async () => {
-    await useOKRStore.getState().fetchOKRs(cycleId);
-    await useOKRStore.getState().fetchLinks();
-  };
-
-  loadOKRsAndLinks();
-}, [cycleId, setSelectedCycleId]);
-
-
 
   if (loading || !cycles.length) {
     return (
@@ -70,38 +92,35 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
 
   const okrsDoCiclo = allOKRs.filter((okr) => okr.cycle_id === cycleId);
   const linksDoCiclo = allLinks.filter((link) => {
-    const source = allOKRs.find(o => o.id === link.source_okr_id);
+    const source = allOKRs.find((o) => o.id === link.source_okr_id);
     return source?.cycle_id === cycleId;
   });
 
-  // 🔧 Agrupamento e desvinculados
-  const grouped = Array.isArray(okrsDoCiclo) && Array.isArray(linksDoCiclo)
-    ? groupOKRsByHierarchy(okrsDoCiclo, linksDoCiclo)
-    : [];
 
-  const usedIds = new Set<string>();
-  grouped.forEach(group => {
-    usedIds.add(group.strategic.id);
-    group.children.forEach(t => {
-      usedIds.add(t.tactical.id);
-      t.children.forEach(op => usedIds.add(op.id));
-    });
-  });
+  //Handlers Ações
 
-  const unlinked = getUnlinkedOKRs(okrsDoCiclo, usedIds);
-
-  const handleUpdateOKR = async (okrId: string, updates: Partial<OKR>) => {
-    await updateOKR(okrId, updates);
-  };
-
-  const handleUpdateKeyResult = async (krId: string, updates: Partial<OKR['keyResults'][0]>) => {
-    await updateKeyResult(krId, updates);
+  const handleCreateOKR = async () => {
+    if (!selectedCycleId) return;
+    try {
+      setIsCreating(true);
+      const newOKR = await createManualOKR(selectedCycleId);
+      if (newOKR) {
+        useOKRStore.getState().addOKR(newOKR); 
+      }
+    } catch (error) {
+      console.error('Erro ao criar OKR:', error);
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <SubHeader
-        breadcrumb={breadcrumbItems}
+        breadcrumb={[
+          { label: 'Ciclos', href: '/cycles' },
+          cycle ? { label: cycle.name } : { label: '...' },
+        ]}
         title={cycle.name}
         badge={
           cycle.status === 'active'
@@ -110,10 +129,10 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
             ? 'Concluído'
             : 'Rascunho'
         }
-        subtitle={cycle.strategic_theme || undefined}
+        subtitle={cycle.strategicTheme || undefined}
         period={
-          cycle.start_date_text && cycle.end_date_text
-            ? `${format(new Date(`${cycle.start_date_text}T00:00:00`), "d 'de' MMMM 'de' yyyy", { locale: ptBR })} até ${format(new Date(`${cycle.end_date_text}T00:00:00`), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}`
+          cycle?.start_date && cycle?.end_date
+            ? `${format(new Date(cycle.start_date), "d 'de' MMMM 'de' yyyy", { locale: ptBR })} até ${format(new Date(cycle.end_date), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}`
             : 'Período inválido'
         }
         actions={
@@ -138,38 +157,32 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
           </div>
         }
       />
-  
+
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {viewMode === 'list' && (
-          <OKRListTable
-            grouped={grouped ?? []}
-            unlinked={unlinked ?? []}
-            onUpdateOKR={handleUpdateOKR}
-            onUpdateKeyResult={handleUpdateKeyResult}
-            onDeleteOKR={deleteOKR}
-            onDeleteKeyResult={deleteKeyResult}
-            readOnly={isReadOnly}
-          />
-        )}
-  
-        {viewMode === 'graph' && (
-          <div className="fixed inset-0 z-[10] w-screen h-screen bg-white">
-            <ReactFlowProvider>
-              <OKRRelationMap okrs={okrsDoCiclo} links={linksDoCiclo} />
-            </ReactFlowProvider>
-          </div>
-        )}
-  
+      {viewMode === 'list' && (
+        <OkrDetailsView okrs={okrsDoCiclo} />
+      )}
+
+      {viewMode === 'graph' && (
+        <div className="fixed inset-0 z-[10] w-screen h-screen bg-white">
+          <ReactFlowProvider>
+            <OKRRelationMap okrs={okrsDoCiclo} links={linksDoCiclo} />
+          </ReactFlowProvider>
+        </div>
+      )}
+
         <div className="flex justify-center mt-10">
           <button
-            onClick={() => selectedCycleId && createManualOKR(selectedCycleId)}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+            onClick={handleCreateOKR}
+            disabled={isCreating}
+            className={`px-4 py-2 rounded transition ${
+              isCreating ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+            } text-white`}
           >
-            Criar Novo Objetivo
+            {isCreating ? 'Criando...' : 'Criar Novo Objetivo'}
           </button>
         </div>
       </main>
     </div>
   );
-
 }

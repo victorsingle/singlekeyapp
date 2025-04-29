@@ -1,5 +1,5 @@
 // src/lib/resolveOwnerContext.ts
-import { supabase } from "../lib/supabase"; // ✅ corrigido o import aqui!
+import { supabase } from "../lib/supabase";
 
 export interface OwnerContext {
   ownerId: string;
@@ -9,7 +9,6 @@ export interface OwnerContext {
 
 export async function resolveOwnerContext(): Promise<OwnerContext | null> {
   try {
-    // Pegar usuário atual autenticado
     const {
       data: { user },
       error: userError,
@@ -22,21 +21,37 @@ export async function resolveOwnerContext(): Promise<OwnerContext | null> {
 
     const authUserId = user.id;
 
-    // Buscar o perfil do usuário na tabela users
-    const { data: userProfile, error: userProfileError } = await supabase
+    // 1️⃣ Primeiro tenta buscar em users
+    let { data: userProfile, error: userProfileError } = await supabase
       .from('users')
       .select('id, user_id, role')
       .eq('user_id', authUserId)
       .maybeSingle();
 
-    if (userProfileError || !userProfile) {
-      console.error('Usuário não encontrado na tabela users', userProfileError);
-      return null;
+    // 2️⃣ Se não achou no users, tenta no invited_users
+    if (!userProfile) {
+      const { data: invitedProfile, error: invitedError } = await supabase
+        .from('invited_users')
+        .select('id, user_id, role')
+        .eq('user_id', authUserId)
+        .maybeSingle();
+
+      if (invitedError) {
+        console.error('Erro ao buscar no invited_users:', invitedError);
+        return null;
+      }
+
+      if (invitedProfile) {
+        userProfile = invitedProfile;
+      } else {
+        console.error('Usuário não encontrado nem em users nem em invited_users');
+        return null;
+      }
     }
 
     const ownerId = userProfile.id;
 
-    // Buscar a conta relacionada usando authUserId
+    // 3️⃣ Tenta buscar como OWNER (accounts)
     const { data: accountDataFromAuth, error: accountErrorFromAuth } = await supabase
       .from('accounts')
       .select('id')
@@ -44,19 +59,42 @@ export async function resolveOwnerContext(): Promise<OwnerContext | null> {
       .maybeSingle();
 
     if (accountErrorFromAuth) {
-      console.error('Erro ao buscar organização:', accountErrorFromAuth);
+      console.error('Erro ao buscar organização como owner:', accountErrorFromAuth);
       return null;
     }
 
-    const organizationId = accountDataFromAuth?.id ?? null;
+    if (accountDataFromAuth) {
+      return {
+        ownerId,
+        organizationId: accountDataFromAuth.id,
+        role: userProfile.role,
+      };
+    }
 
-    return {
-      ownerId,
-      organizationId,
-      role: userProfile.role,
-    };
+    // 4️⃣ Se não achou como owner, busca como membro (organization_users)
+    const { data: memberAssociation, error: memberError } = await supabase
+      .from('organization_users')
+      .select('organization_id')
+      .eq('user_id', authUserId)
+      .maybeSingle();
+
+    if (memberError) {
+      console.error('Erro ao buscar organização como membro:', memberError);
+      return null;
+    }
+
+    if (memberAssociation) {
+      return {
+        ownerId,
+        organizationId: memberAssociation.organization_id,
+        role: userProfile.role,
+      };
+    }
+
+    console.error('Nenhuma organização encontrada para o usuário.');
+    return null;
   } catch (error) {
-    console.error('Erro inesperado ao resolver contexto do owner:', error);
+    console.error('Erro inesperado ao resolver contexto:', error);
     return null;
   }
 }

@@ -1,6 +1,7 @@
 import type { Handler, HandlerEvent } from '@netlify/functions';
 import { supabaseAdmin } from './supabaseAdmin';
 import { Resend } from 'resend';
+import { v4 as uuidv4 } from 'uuid';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -25,73 +26,42 @@ const handler: Handler = async (event: HandlerEvent) => {
 
   const { email, password, companyName, firstName, lastName, phone } = parsed;
 
-  if (!email || !password || !companyName || !firstName || !lastName) {
+  if (!email || !password || !companyName?.trim() || !firstName?.trim() || !lastName?.trim()) {
     return {
       statusCode: 400,
-      body: JSON.stringify({ message: 'Campos obrigatórios ausentes' }),
+      body: JSON.stringify({ message: 'Campos obrigatórios ausentes ou inválidos.' }),
     };
   }
 
   try {
-    // 1. Cria o usuário no auth com email_confirm: false
-    const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: false,
-      user_metadata: {
-        firstName,      // 👈 camelCase correto
-        lastName,
-        companyName,
+    const userId = uuidv4();
+
+    const { error: insertError } = await supabaseAdmin
+      .from('users')
+      .insert({
+        id: userId,
+        email,
+        company_name: companyName,
+        first_name: firstName,
+        last_name: lastName,
         phone,
-      },
-    });
-
-    if (createError || !createdUser?.user) {
-      console.error('[❌ Erro ao criar usuário no Supabase]', { createError, createdUser });
-      return {
-        statusCode: 400,
-        body: JSON.stringify({
-          message: createError?.message || 'Erro ao criar usuário no Supabase.',
-        }),
-      };
-    }
-
-    const userId = createdUser.user.id;
-
-    // 2. Insere o registro na tabela `users`, com o campo `id` explícito
-    const { error: insertError } = await supabaseAdmin.from('users').insert({
-      id: userId, // <-- necessário, é a PK
-      user_id: userId,
-      email,
-      company_name: companyName,
-      first_name: firstName,
-      last_name: lastName,
-      phone,
-    });
+      })
+      .select()
+      .maybeSingle();
 
     if (insertError) {
-      console.error('[❌ Erro ao salvar no banco]', {
-        insertError,
-        payload: {
-          id: userId,
-          user_id: userId,
-          email,
-          company_name: companyName,
-          first_name: firstName,
-          last_name: lastName,
-          phone,
-        },
-      });
+      console.error('[❌ Erro ao salvar no banco]', insertError);
       return {
         statusCode: 400,
         body: JSON.stringify({ message: 'Erro ao salvar usuário no banco.' }),
       };
     }
 
-    // 3. Gera o link de ativação manual
-    const activationLink = `${process.env.VITE_APP_URL}/.netlify/functions/confirm-user?user_id=${createdUser.user.id}`;
+    const activationLink = `${process.env.VITE_APP_URL}/.netlify/functions/confirm-user` +
+      `?user_id=${userId}` +
+      `&email=${encodeURIComponent(email)}` +
+      `&password=${encodeURIComponent(password)}`;
 
-    // 4. Dispara e-mail de ativação via Resend
     await resend.emails.send({
       from: 'SingleKey <no-reply@singlekey.app>',
       to: email,

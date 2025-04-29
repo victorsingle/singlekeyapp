@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { useOKRStore } from '../stores/okrStore';
+import { useAuthStore } from '../stores/authStore';
+
+
+//Mudou
+import { useCycleStore } from '../stores/okrCycleStore';
 
 interface CycleFormProps {
   cycle?: any;
@@ -10,7 +14,10 @@ interface CycleFormProps {
 }
 
 export function CycleForm({ cycle, onClose, onSubmit }: CycleFormProps) {
-  const { createCycle, updateCycle } = useOKRStore();
+  
+  //Mudou
+  const { createCycle, updateCycle } = useCycleStore();
+
   const [formData, setFormData] = useState({
     name: '',
     start_date: '',
@@ -23,86 +30,114 @@ export function CycleForm({ cycle, onClose, onSubmit }: CycleFormProps) {
   const isReadOnly = ['completed', 'closed', 'done'].includes(cycle?.status);
   
   useEffect(() => {
-  if (!cycle) return;
-
-  setFormData({
-    name: cycle.name,
-    start_date: cycle.start_date_text || '',
-    end_date: cycle.end_date_text || '',
-    strategic_theme: cycle.strategic_theme || '',
-  });
-
-  const fetchCheckins = async () => {
-    try {
-      // se tiver checkins válidos no ciclo, usa eles
-      if (Array.isArray(cycle.checkins) && cycle.checkins.length > 0) {
-        setCheckins(cycle.checkins.map((c: any) => c.checkin_date));
-        return;
-      }
-
-      // senão, busca do supabase
-      const { data, error } = await supabase
-        .from('okr_checkins')
-        .select('checkin_date')
-        .eq('cycle_id', cycle.id)
-        .order('checkin_date', { ascending: true });
-
-      if (error) {
-        console.error('[❌ Erro ao buscar checkins]', error);
-        return;
-      }
-
-      if (data) {
-        setCheckins(data.map((c) => c.checkin_date));
-      }
-    } catch (err) {
-      console.error('[❌ Falha inesperada no fetch de checkins]', err);
-    }
-  };
-
-  fetchCheckins();
-}, [cycle]);
-
-
+    if (!cycle) return;
   
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      let cycleId = cycle?.id;
+    setFormData({
+      name: cycle.name || '',
+      start_date: cycle.startDateText || '',
+      end_date: cycle.endDateText || '',
+      strategic_theme: cycle.strategicTheme || '',
+    });
   
-      if (cycle) {
-        await updateCycle(cycle.id, formData);
-      } else {
-        cycleId = await createCycle(formData); // agora retorna o id
-      }
-  
-      // 🔄 Remove check-ins anteriores (em modo edição)
-      await supabase.from('okr_checkins').delete().eq('cycle_id', cycleId);
-  
-      // ➕ Insere os check-ins atuais
-      const insertPayload = checkins
-        .filter(date => !!date)
-        .map(date => ({
-          cycle_id: cycleId,
-          checkin_date: date,
-        }));
-  
-      if (insertPayload.length > 0) {
-        const { error: insertError } = await supabase
-          .from('okr_checkins')
-          .insert(insertPayload);
-  
-        if (insertError) {
-          console.error('[❌ Erro ao inserir check-ins]', insertError);
+    const fetchCheckins = async () => {
+      try {
+        if (Array.isArray(cycle.checkins) && cycle.checkins.length > 0) {
+          setCheckins(cycle.checkins.map((c: any) => c.checkin_date));
           return;
         }
-      }
   
-      onSubmit();
-    } catch (error) {
-      console.error('[❌ Erro ao salvar ciclo e check-ins]', error);
+        const { data, error } = await supabase
+          .from('okr_checkins')
+          .select('checkin_date')
+          .eq('cycle_id', cycle.id)
+          .order('checkin_date', { ascending: true });
+  
+        if (error) {
+          console.error('[❌ Erro ao buscar checkins]', error);
+          return;
+        }
+  
+        if (data) {
+          setCheckins(data.map((c) => c.checkin_date));
+        }
+      } catch (err) {
+        console.error('[❌ Falha inesperada no fetch de checkins]', err);
+      }
+    };
+  
+    fetchCheckins();
+  }, [cycle]);
+
+  
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  try {
+    const { organizationId, userId } = useAuthStore.getState();
+    console.log('[📦] user_id no Submit:', userId);
+    if (!organizationId || !userId) {
+      console.error('[❌] organizationId ou userId ausente!');
+      return;
     }
-  };
+
+    let cycleId = cycle?.id;
+
+    const now = new Date();
+    const startDate = new Date(formData.start_date);
+    const endDate = new Date(formData.end_date);
+
+    let status = 'draft'; // Default status
+
+    // Calcular o status
+    if (now >= startDate && now <= endDate) {
+      status = 'active'; // Se dentro do intervalo
+    } else if (now > endDate) {
+      status = 'completed'; // Se já passou do término
+    }
+
+    // Criar o payload com status calculado
+    const payload = {
+      ...formData,
+      organization_id: organizationId,
+      user_id: userId,
+      status, // Adiciona status calculado
+    };
+
+    console.log('[📦] Payload que será enviado para createCycle:', payload);
+
+    if (cycle) {
+      await updateCycle(cycle.id, payload); // Atualiza com o payload completo
+    } else {
+      cycleId = await createCycle(payload); // Criação do ciclo com o payload
+    }
+
+    // 🔄 Remove check-ins anteriores (em modo edição)
+    await supabase.from('okr_checkins').delete().eq('cycle_id', cycleId);
+
+    // ➕ Insere os check-ins atuais
+    const insertPayload = checkins
+      .filter(date => !!date)
+      .map(date => ({
+        cycle_id: cycleId,
+        checkin_date: date,
+      }));
+
+    if (insertPayload.length > 0) {
+      const { error: insertError } = await supabase
+        .from('okr_checkins')
+        .insert(insertPayload);
+
+      if (insertError) {
+        console.error('[❌ Erro ao inserir check-ins]', insertError);
+        return;
+      }
+    }
+
+    onSubmit();
+  } catch (error) {
+    console.error('[❌ Erro ao salvar ciclo e check-ins]', error);
+  }
+};
+
 
 
   return (

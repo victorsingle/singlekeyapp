@@ -5,7 +5,7 @@ import { CycleDashboard } from './components/CycleDashboard';
 import { CycleDetailPage } from './components/CycleDetailPage';
 import { Dashboard } from './components/dashboard/Dashboard';
 import { ModalContainer } from './components/ModalContainer';
-import { useOKRStore } from './stores/okrStore';
+import { useAuthStore } from './stores/authStore';
 import { Toaster } from 'react-hot-toast';
 import { AuthTabs } from './components/auth/AuthTabs';
 import { Login } from './components/auth/Login';
@@ -20,6 +20,8 @@ import { UsersPage } from './pages/admin/UsersPage';
 import { TeamsPage } from './pages/admin/TeamsPage';
 import { TeamDetailPage } from './pages/admin/TeamDetailPage';
 import { AcceptInvitePage } from './components/auth/AcceptInvitePage';
+import { useCycleStore } from './stores/okrCycleStore';
+import { GuidePage } from './pages/GuidePage';
 
 export function CycleDetailPageWrapper() {
   const { id } = useParams();
@@ -27,7 +29,8 @@ export function CycleDetailPageWrapper() {
 }
 
 function App() {
-  const { fetchCycles } = useOKRStore();
+  //const { fetchCycles } = useOKRStore();
+  const { loadCycles } = useCycleStore();
   const [session, setSession] = useState<Session | null>(null);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -97,7 +100,9 @@ function App() {
   useEffect(() => {
     if (session) {
       console.log('[🆔 SESSION USER ID]', session.user.id);
-      fetchCycles();
+  
+      useAuthStore.getState().fetchUserData(); // 🚨 Aqui chama para carregar o usuário!
+  
       fetchNotifications(session.user.id);
     }
   }, [session]);
@@ -296,6 +301,7 @@ function App() {
           <Route path="/admin/teams" element={<TeamsPage />} />
           <Route path="/admin/teams/:id" element={<TeamDetailPage />} />
           <Route path="*" element={<Navigate to="/" />} />
+          <Route path="/guide" element={<GuidePage />} />
         </Routes>
       </main>
 

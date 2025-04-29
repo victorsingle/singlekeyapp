@@ -128,7 +128,7 @@ export function OKRRelationMap({ okrs, links }: { okrs: any[], links: any[] }) {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const { fitView } = useReactFlow();
   const { showModal } = useModalStore();
-  const { createLink, deleteLink } = useOKRStore();
+  const { createLink, deleteLink, fetchLinks } = useOKRStore();
 
   // Transform OKRs into nodes
   useEffect(() => {
@@ -235,7 +235,9 @@ export function OKRRelationMap({ okrs, links }: { okrs: any[], links: any[] }) {
 
     try {
       await createLink(connection.source, connection.target, linkType);
-      await useOKRStore.getState().fetchLinks();
+      const organizationId = useAuthStore.getState().organizationId;
+      await fetchLinks(organizationId);
+
     } catch (error) {
       console.error('Error creating link:', error);
     }

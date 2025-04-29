@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware'; 
 import { supabase } from '../lib/supabase';
+import { keysToCamel } from '../utils/case'; 
 
 interface AuthState {
   userId: string | null;
@@ -8,6 +9,7 @@ interface AuthState {
   firstName: string | null;
   adminId: string | null;
   companyName: string | null;
+  organizationId: string | null; // <<< ADICIONAR AQUI!
   loading: boolean;
   error: string | null;
 
@@ -15,82 +17,77 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>()(
-    devtools((set) => ({
-  userId: null,
-  role: null,
-  firstName: null,
-  adminId: null,
-  companyName: null,
-  loading: false,
-  error: null,
+  devtools((set) => ({
+    userId: null,
+    role: null,
+    firstName: null,
+    adminId: null,
+    companyName: null,
+    organizationId: null, // <<< ADICIONAR AQUI TAMBÉM!
+    loading: false,
+    error: null,
 
-  fetchUserData: async () => {
-    set({ loading: true });
-
-    try {
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !sessionData?.session?.user?.id) {
-        throw sessionError || new Error('Usuário não autenticado.');
-      }
-
-      const userId = sessionData.session.user.id;
-
-      // Primeiro tenta buscar no invited_users
-      const { data: invitedUser } = await supabase
-        .from('invited_users')
-        .select('first_name, role, invited_by')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-        console.log('[🔎 invitedUser encontrado?]', invitedUser);
-
-      if (invitedUser) {
-        set({
-          userId,
-          firstName: invitedUser.first_name,
-          role: invitedUser.role,
-          adminId: invitedUser.invited_by,
-          companyName: null,
-          loading: false,
-          error: null,
-        });
-      } else {
-        // Se não for convidado, busca no users
-        const { data: userProfile } = await supabase
-          .from('users')
-          .select('first_name, company_name')
+    fetchUserData: async () => {
+      set({ loading: true });
+    
+      try {
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !sessionData?.session?.user?.id) {
+          throw sessionError || new Error('Usuário não autenticado.');
+        }
+    
+        const userId = sessionData.session.user.id;
+    
+        console.log('[📦] user_id obtido da sessão:', userId);
+    
+        // Primeiro tenta buscar no invited_users
+        const { data: invitedUserRaw } = await supabase
+          .from('invited_users')
+          .select('*')
           .eq('user_id', userId)
           .maybeSingle();
-
-        if (userProfile) {
+    
+        if (invitedUserRaw) {
+          const invitedUser = keysToCamel(invitedUserRaw); // 🛠️ Converte aqui!
+    
           set({
             userId,
-            firstName: userProfile.first_name,
-            role: 'admin',
-            adminId: null,
-            companyName: userProfile.company_name,
+            firstName: invitedUser.firstName,
+            role: invitedUser.role,
+            adminId: invitedUser.invitedBy,
+            companyName: null,
+            organizationId: invitedUser.organizationId, // camelCase funcionando agora!
             loading: false,
             error: null,
           });
-
-          console.log('[✅ authStore preenchida como ADMIN]', {
-            userId,
-            role: 'admin',
-            firstName: userProfile.first_name,
-            companyName: userProfile.company_name,
-          });
-
-          
-
         } else {
-          throw new Error('Usuário não encontrado nas tabelas de perfil.');
+          const { data: userProfileRaw } = await supabase
+            .from('users')
+            .select('*')
+            .eq('user_id', userId)
+            .maybeSingle();
+    
+          if (userProfileRaw) {
+            const userProfile = keysToCamel(userProfileRaw); // 🛠️ Converte aqui também!
+    
+            set({
+              userId,
+              firstName: userProfile.firstName,
+              role: 'admin',
+              adminId: null,
+              companyName: userProfile.companyName,
+              organizationId: userProfile.organizationId, // camelCase funcionando!
+              loading: false,
+              error: null,
+            });
+          } else {
+            throw new Error('Usuário não encontrado nas tabelas de perfil.');
+          }
         }
+      } catch (error: any) {
+        console.error('[❌ useAuthStore] Erro ao buscar dados do usuário:', error);
+        set({ error: error.message, loading: false });
       }
-    } catch (error: any) {
-      console.error('[❌ useAuthStore] Erro ao buscar dados do usuário:', error);
-      set({ error: error.message, loading: false });
     }
-  }
-}), { name: 'AuthStore' })
-
+  }), { name: 'AuthStore' })
 );

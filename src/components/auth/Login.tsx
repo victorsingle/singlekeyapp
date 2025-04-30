@@ -68,7 +68,7 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 bg-gradient-to-b from-white via-[#f5f8ff] to-[#e7effc]">
       <div className="w-full max-w-xs space-y-8">
         <div className="text-center">
           <div className="flex justify-center">

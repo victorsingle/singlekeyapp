@@ -1,5 +1,5 @@
 import React from 'react';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, MoreVertical } from 'lucide-react';
 import { useOKRStore } from '../../stores/okrStore';
 import { DropdownMenu, DropdownMenuItem } from '../../components/DropdownMenu';
 
@@ -55,7 +55,7 @@ export function KeyResultEditable({ kr }: KeyResultEditableProps) {
       <DropdownMenu
           trigger={
             <button className="text-gray-400 hover:text-gray-600">
-              <MoreHorizontal className="w-5 h-5" />
+              <MoreVertical className="w-5 h-5" />
             </button>
           }
         >

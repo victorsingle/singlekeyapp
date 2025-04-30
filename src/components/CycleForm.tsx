@@ -141,7 +141,8 @@ const handleSubmit = async (e: React.FormEvent) => {
 
 
   return (
-    <div className="max-h-[90vh] overflow-y-auto p-6">
+    <div className="p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl bg-white shadow-xl">
+
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-gray-900">
           {cycle ? 'Editar Ciclo' : 'Novo Ciclo'}

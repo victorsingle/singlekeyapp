@@ -12,7 +12,7 @@ export function AuthTabs() {
 
   if (inviteMode) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white via-[#f5f8ff] to-[#e7effc]">
         <div className="mx-auto w-full max-w-md">
           <div className="flex items-center justify-center mb-6">
             <Target className="h-8 w-8 text-blue-600 -ml-6" />
@@ -28,7 +28,7 @@ export function AuthTabs() {
 
   if (fromLogin) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-6 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-6 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white via-[#f5f8ff] to-[#e7effc]">
         <div className="mx-auto  max-w-md">
           <div className="flex items-center justify-center bg-gray-50 mb-4">
             <Target className="h-8 w-8 text-blue-600" />

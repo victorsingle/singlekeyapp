@@ -8,9 +8,10 @@ interface OKRGeneratorProps {
   onFinish: (cycleId: string) => void;
   onManualStart: () => void;
   isModal?: boolean;
+  fromList?: boolean;
 }
 
-export function OKRGenerator({ onFinish, onManualStart, isModal = false }: OKRGeneratorProps) {
+export function OKRGenerator({ onFinish, onManualStart, isModal = false, fromList = false }: OKRGeneratorProps) {
   const [context, setContext] = useState('');
   const [loading, setLoading] = useState(false);
   const minChars = 350;
@@ -84,58 +85,68 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false }: OKRGe
       </form>
     </section>
   ) : (
-    <section className="w-full max-w-3xl mx-auto mt-0 p-0 rounded-xl text-center">
-      <div className="p-5">
-        <div className="flex justify-center items-center mb-2">
-          <div className={`${avatarAnimation} bg-blue-50 p-3 rounded-full shadow-inner`}>
-            <Target className="w-10 h-10 text-blue-600" />
-          </div>
-        </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Eu sou a KAI, sua copiloto de OKRs</h2>
-        <p className="text-gray-600 text-sm leading-relaxed">
-          Me diga qual é o seu desafio do próximo ciclo e eu cuido do resto.
+    <div className="fixed inset-0 bg-gradient-to-b from-white via-[#f5f8ff] to-[#e7effc] flex flex-col items-center justify-center px-6 py-12 z-1 text-center">
+    <div className="relative max-w-2xl w-full space-y-10">
+      
+      {/* TÍTULO */}
+      <div className="space-y-2">
+        <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+          Eu sou a <span className="text-blue-600">KAI</span>, sua copiloto de OKRs
+        </h1>
+        <p className="text-sm text-gray-500">
+          Me diga qual é o desafio do próximo ciclo e eu cuido do resto.
         </p>
       </div>
 
-      <form onSubmit={handleGenerate} className="space-y-6">
-        <textarea
-          value={context}
-          onChange={(e) => setContext(e.target.value)}
-          className="w-full h-[200px] p-4 border rounded-xl resize-none text-sm leading-relaxed mb-0"
-          placeholder={`Exemplo: Queremos expandir nossa atuação no mercado B2B, focando em empresas de médio porte em crescimento. Buscamos aumentar em 30% a receita nos próximos 3 meses, melhorar a aquisição de clientes, reforçar nossa presença digital e ampliar o time de vendas sem comprometer a qualidade do atendimento.`}
-        />
-        <div className="flex justify-between text-xs text-gray-500 !mt-[0px]">
-          <span>{context.length} / {minChars} caracteres</span>
-          {context.length < minChars && (
-            <span className="text-red-500">Mínimo de 350 caracteres para gerar</span>
-          )}
-        </div>
-        <button
-          type="submit"
-          disabled={context.length < minChars || loading}
-          className={clsx(
-            'w-full flex items-center justify-center gap-2 py-3 px-6 rounded-xl text-white font-semibold',
-            'bg-blue-600 hover:bg-blue-700 transition',
-            (loading || context.length < minChars) && 'opacity-50 cursor-not-allowed'
-          )}
-        >
-          {loading ? (
-            <span>Gerando...</span>
-          ) : (
-            <>
-              <Sparkles className="w-5 h-5" />
-              Gerar Novo Ciclo
-            </>
-          )}
-        </button>
+      {/* FORM */}
+        <form onSubmit={handleGenerate} className="space-y-5">
+          <div className="relative">
+            <textarea
+              value={context}
+              onChange={(e) => setContext(e.target.value)}
+              placeholder="Ex: Precisamos expandir nossa atuação no mercado B2B focando em empresas de médio porte. A meta é aumentar 30% da receita nos próximos 3 meses, melhorar a aquisição de clientes, reforçar nossa presença digital, ampliar o time de vendas e reduzir o ciclo de conversão em 20% sem perder qualidade...."
+              className="w-full text-xs h-32 text-sm p-4 rounded-xl bg-white resize-none shadow-[0_20px_50px_rgba(0,0,0,0.07)] focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+            />
+            <div className="absolute bottom-3 right-3 text-[10px] text-gray-400">
+              {context.length} / 350
+              {context.length < 350 && (
+                <span className="text-red-500 ml-2">Mínimo de 350</span>
+              )}
+            </div>
+          </div>
+
+          {/* Botão principal */}
+          <div className="flex justify-center pt-2">
+            <button 
+              type="submit"
+              disabled={context.length < 350 || loading}
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 hover:shadow-xl transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+            >
+              <Sparkles className="w-4 h-4" />
+              {loading ? "Gerando..." : "Gerar com a KAI"}
+            </button>
+          </div>
+        </form>
+
+        {/* Botão SECUNDÁRIO FORA do form */}
+        <div className="absolute right-0 bottom-8">
         <button
           type="button"
-          onClick={onManualStart}
-          className="w-full flex items-center border justify-center gap-2 py-3 px-6 rounded-xl text-blue-600 bg-white !mt-[10px] hover:bg-gray-100 transition"
+          onClick={() => {
+            if (fromList) {
+              window.dispatchEvent(new CustomEvent('closeGenerator'));
+            } else {
+              onManualStart();
+            }
+          }}
+          className="text-xs text-gray-500 hover:text-blue-600 transition"
         >
-          Criar Manualmente
+          {fromList ? 'Voltar' : 'Criar Manualmente'} →
         </button>
-      </form>
-    </section>
+        </div>
+
+    </div>
+  </div>
+  
   );
 }

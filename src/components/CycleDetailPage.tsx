@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ReactFlowProvider } from 'reactflow';
-import { List, Network } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Calendar, List, Network } from 'lucide-react';
 
 // 2. Stores
 import { useAuthStore } from '../stores/authStore';
@@ -135,32 +135,51 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
             ? `${format(new Date(cycle.start_date), "d 'de' MMMM 'de' yyyy", { locale: ptBR })} até ${format(new Date(cycle.end_date), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}`
             : 'Período inválido'
         }
-        actions={
-          <div className="fixed z-50 flex gap-2 md:top-[130px] right-4 md:right-[calc((100vw-88rem)/2)]">
-            <button 
-              onClick={() => setViewMode('list')}
-              className={`p-3 rounded-full shadow-md transition ${
-                viewMode === 'list' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500'
-              }`}
-            >
-              <List className="w-5 h-5" />
-            </button>
-  
-            <button
-              onClick={() => setViewMode('graph')}
-              className={`p-3 rounded-full shadow-md transition ${
-                viewMode === 'graph' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500'
-              }`}
-            >
-              <Network className="w-5 h-5" />
-            </button>
-          </div>
-        }
       />
 
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-10">
+
+      <div
+        className={`flex justify-end items-center gap-2 mb-4 ${
+          viewMode === 'graph'
+            ? 'fixed top-20 right-5 z-[9999]'
+            : ''
+        }`}
+      >
+
+            <div
+              className={`inline-flex rounded-md overflow-hidden ${
+                viewMode === 'graph' ? 'shadow-lg' : ''
+              }`}
+            >
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-4 py-2 m-0 border border-gray-200 bg-gray-50 text-blue-600 text-xs rounded-bl rounded-tl ${
+                viewMode === 'list'
+                  ? 'bg-blue-700 text-white'
+                  : 'bg-gray-200 text-white-700'
+              }`}
+            >
+              <List className="w-4 h-4" />
+            </button>
+
+            <button
+              onClick={() => setViewMode('graph')}
+              className={`px-4 py-2 m-0 border border-gray-200 bg-gray-50 text-blue-600 text-xs rounded-br rounded-tr ${
+                viewMode === 'graph'
+                  ? 'bg-blue-700 text-white'
+                  : 'bg-gray-200 text-white-700'
+              }`}
+            >
+              <Network className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+
+
       {viewMode === 'list' && (
-        <OkrDetailsView okrs={okrsDoCiclo} />
+        <OkrDetailsView  okrs={okrsDoCiclo} viewMode={viewMode} setViewMode={setViewMode} />
       )}
 
       {viewMode === 'graph' && (
@@ -175,12 +194,24 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
           <button
             onClick={handleCreateOKR}
             disabled={isCreating}
-            className={`px-4 py-2 rounded transition ${
+            className={`px-4 py-2 rounded text-xs  transition ${
               isCreating ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
             } text-white`}
           >
             {isCreating ? 'Criando...' : 'Criar Novo Objetivo'}
           </button>
+
+          {okrsDoCiclo.length > 0 && okrsDoCiclo.length > 0 && (
+          <button
+            onClick={() => console.log('Abrir check-in')}
+            disabled
+            className="flex items-center ml-2 px-4 py-2 bg-gray-200 text-gray-400 rounded text-xs cursor-not-allowed"
+          >
+            <Calendar className="w-4 h-4 mr-2" />
+            Realizar Check-in
+          </button>
+          )}
+
         </div>
       </main>
     </div>

@@ -20,17 +20,17 @@ interface SubHeaderProps {
 
 export function SubHeader({ breadcrumb, title, subtitle, badge, period, actions, className, innerClassName }: SubHeaderProps) {
   return (
-    <div className="w-full bg-gray-100 pt-6 pb-4 border-b">
-      <div className={clsx("max-w-[1440px] mx-auto px-4 md:px-6", innerClassName)}>
+    <div className="w-full bg-gray-100 py-4 border-b">
+      <div className={clsx("max-w-7xl mx-auto px-4 sm:px-6 lg:px-10", innerClassName)}>
         {/* Breadcrumb */}
-        <nav className="text-sm text-gray-500 flex items-center gap-1 mb-1" aria-label="Breadcrumb">
+        <nav className="text-xs text-gray-500 flex items-center gap-1 mb-1" aria-label="Breadcrumb">
           {breadcrumb.map((item, index) => (
             <div key={index} className="flex items-center gap-1">
               {index > 0 && <ChevronRight className="w-4 h-4 text-gray-400" />}
               {item.href ? (
-                <Link to={item.href} className="hover:text-blue-600 font-medium">{item.label}</Link>
+                <Link to={item.href} className="hover:text-blue-600 font-normal font-[10px]">{item.label}</Link>
               ) : (
-                <span className="text-gray-900 font-semibold">{item.label}</span>
+                <span className="text-gray-900 font-normal">{item.label}</span>
               )}
             </div>
           ))}
@@ -38,9 +38,9 @@ export function SubHeader({ breadcrumb, title, subtitle, badge, period, actions,
 
         {/* Título + Badge */}
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold text-gray-900 mt-2 mb-2">{title}</h1>
+          <h1 className="text-2xl font-medium text-gray-700 pt-2 mb-0">{title}</h1>
           {badge && (
-            <span className="px-2 py-0.5 text-sm font-medium rounded-full bg-green-100 text-green-700">
+            <span className="px-2 text-sm font-normal rounded-full text-gray-600 bg-gray-200 ml-auto">
               {badge}
             </span>
           )}
@@ -48,12 +48,12 @@ export function SubHeader({ breadcrumb, title, subtitle, badge, period, actions,
 
         {/* Subtítulo */}
         {subtitle && (
-          <p className="text-sm text-blue-600 font-medium mt-1">{subtitle}</p>
+          <p className="text-xs text-blue-500 mt-0.5">{subtitle}</p>
         )}
 
         {/* Período */}
         {period && (
-          <p className="text-sm text-gray-500 mt-0.5">{period}</p>
+          <p className="text-xs text-blue-500 mt-0.5">{period}</p>
         )}
 
         {/* Ações */}

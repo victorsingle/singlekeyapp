@@ -1,8 +1,9 @@
 import React from 'react';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, MoreVertical, Eye, EyeOff } from 'lucide-react';
 import { useOKRStore } from '../stores/okrStore';
 import { DropdownMenu, DropdownMenuItem } from '../components/DropdownMenu';
 import { KeyResultEditable } from '../components/okr/KeyResultEditable';
+
 
 interface KeyResult {
   id: string;
@@ -22,6 +23,7 @@ interface OKRCardEditableProps {
   keyResults: KeyResult[];
   expanded: boolean;
   onToggleExpand: () => void;
+  indentLevel?: number;
 }
 
 function OKRCardEditableComponent({
@@ -31,7 +33,8 @@ function OKRCardEditableComponent({
   status,
   keyResults = [],
   expanded,
-  onToggleExpand
+  onToggleExpand,
+  indentLevel = 0 
 }: OKRCardEditableProps) {
   const { updateOKR, deleteOKR, createKeyResults } = useOKRStore();
 
@@ -69,23 +72,42 @@ function OKRCardEditableComponent({
     }
   };
 
-  const prefix = type === 'strategic' ? '★ Estratégico' : type === 'tactical' ? '↳ Tático' : '↳↳ Operacional';
+  let prefix = '';
+
+  if (indentLevel === 1) prefix = '↳ ';
+  else if (indentLevel === 2) prefix = '↳↳ ';
+  else if (type === 'strategic') prefix = '★ ';
+
+  prefix +=
+    type === 'strategic' ? 'Estratégico' :
+    type === 'tactical' ? 'Tático' :
+    'Operacional';
 
   return (
     <div>
       <div className="relative bg-white border rounded-lg shadow-sm p-4 -mt-2 hover:shadow-lg transition duration-300">
         {/* Status e ações */}
-        <div className="absolute top-[5px] right-2 flex items-center text-xs text-blue-600 cursor-pointer">
+        <div className="absolute top-[5px] right-2 flex items-center text-xs cursor-pointer">
           <button
             onClick={onToggleExpand}
             className="text-xs text-blue-600 mr-2 mt-0 hover:underline"
           >
-            {expanded ? 'Ocultar KRs' : 'Ver KRs'}
+            <span className="flex items-center gap-1">
+              {expanded ? (
+                <>
+                  <EyeOff className="w-4 h-4 text-blue-600" />
+                </>
+              ) : (
+                <>
+                  <Eye className="w-4 h-4 text-gray-400 " />
+                </>
+              )}
+            </span>
           </button>
           <DropdownMenu
             trigger={
-              <button className="text-gray-400 hover:text-gray-600 mt-1">
-                <MoreHorizontal className="w-5 h-5" />
+              <button className="text-gray-400 hover:text-gray-600 mt-1 ">
+                <MoreVertical className="w-5 h-5" />
               </button>
             }
           >

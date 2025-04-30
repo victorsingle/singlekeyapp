@@ -3,6 +3,7 @@ import { Target, Menu, User, Settings, LogOut, Users, LayoutGrid } from 'lucide-
 import { useLocation, useNavigate, NavLink, Link } from 'react-router-dom';
 import { useCurrentCompany } from '../hooks/useCurrentCompany';
 import clsx from 'clsx';
+import { useCycleStore } from '../stores/okrCycleStore'; 
 
 interface HeaderProps {
   session: any;
@@ -16,6 +17,8 @@ export function Header({ session, onLogout, onMobileMenuOpen }: HeaderProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const company = useCurrentCompany();
+  const { cycles } = useCycleStore();
+  const hasCycles = cycles && cycles.length > 0;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -37,10 +40,13 @@ export function Header({ session, onLogout, onMobileMenuOpen }: HeaderProps) {
     console.log('[Updated Company]', company); // Verifique quando o estado é atualizado
   }
 }, [company]);
+
+
   
   return (
-    <header className="w-full border-b bg-white shadow-sm">
-      <div className="max-w-[1440px] mx-auto flex items-center justify-between p-4 md:px-6">
+    
+    <header className="w-full fixed z-[9999] backdrop-blur-md bg-white/30bg-white shadow-sm">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-10 py-4">
         
         {/* Logo */}
         <div className="flex items-center space-x-2">

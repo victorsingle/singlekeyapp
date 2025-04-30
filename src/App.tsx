@@ -286,7 +286,7 @@ function App() {
         </>
       )}
 
-      <main className={clsx({ 'pt-0': !isPublicRoute })}>
+      <main className={clsx({ 'pt-[60px]': !isPublicRoute })}>
       <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<AuthTabs />} />

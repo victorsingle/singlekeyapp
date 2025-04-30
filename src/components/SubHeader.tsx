@@ -20,7 +20,7 @@ interface SubHeaderProps {
 
 export function SubHeader({ breadcrumb, title, subtitle, badge, period, actions, className, innerClassName }: SubHeaderProps) {
   return (
-    <div className="w-full bg-gray-100 py-4 border-b">
+    <div className="w-full bg-gray-100 py-6 border-b">
       <div className={clsx("max-w-7xl mx-auto px-4 sm:px-6 lg:px-10", innerClassName)}>
         {/* Breadcrumb */}
         <nav className="text-xs text-gray-500 flex items-center gap-1 mb-1" aria-label="Breadcrumb">

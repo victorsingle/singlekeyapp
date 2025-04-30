@@ -90,7 +90,7 @@ function OKRCardEditableComponent({
         <div className="absolute top-[5px] right-2 flex items-center text-xs cursor-pointer">
           <button
             onClick={onToggleExpand}
-            className="text-xs text-blue-600 mr-2 mt-0 hover:underline"
+            className="text-xs text-blue-600 mr-2 mt-0"
           >
             <span className="flex items-center gap-1">
               {expanded ? (
@@ -99,7 +99,7 @@ function OKRCardEditableComponent({
                 </>
               ) : (
                 <>
-                  <Eye className="w-4 h-4 text-gray-400 " />
+                  <Eye className="w-4 h-4 text-gray-400 hover:text-gray-600 " />
                 </>
               )}
             </span>
@@ -162,7 +162,7 @@ function OKRCardEditableComponent({
             <div className="text-center mt-4">
               <button
                 onClick={handleAddKeyResult}
-                className="text-sm text-blue-600 hover:underline"
+                className="text-xs text-blue-600 hover:underline"
               >
                 + Adicionar Key Result
               </button>

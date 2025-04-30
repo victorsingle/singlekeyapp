@@ -156,7 +156,7 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
               onClick={() => setViewMode('list')}
               className={`px-4 py-2 m-0 border border-gray-200 bg-gray-50 text-blue-600 text-xs rounded-bl rounded-tl ${
                 viewMode === 'list'
-                  ? 'bg-blue-700 text-white'
+                  ? '!bg-blue-700 text-white'
                   : 'bg-gray-200 text-white-700'
               }`}
             >
@@ -167,7 +167,7 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
               onClick={() => setViewMode('graph')}
               className={`px-4 py-2 m-0 border border-gray-200 bg-gray-50 text-blue-600 text-xs rounded-br rounded-tr ${
                 viewMode === 'graph'
-                  ? 'bg-blue-700 text-white'
+                  ? '!bg-blue-700 text-white'
                   : 'bg-gray-200 text-white-700'
               }`}
             >
@@ -194,7 +194,7 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
           <button
             onClick={handleCreateOKR}
             disabled={isCreating}
-            className={`px-4 py-2 rounded text-xs  transition ${
+            className={`px-4 py-2 rounded text-sm  transition ${
               isCreating ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
             } text-white`}
           >
@@ -205,7 +205,7 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
           <button
             onClick={() => console.log('Abrir check-in')}
             disabled
-            className="flex items-center ml-2 px-4 py-2 bg-gray-200 text-gray-400 rounded text-xs cursor-not-allowed"
+            className="flex items-center ml-2 px-4 py-2 bg-gray-200 text-gray-400 rounded text-sm cursor-not-allowed"
           >
             <Calendar className="w-4 h-4 mr-2" />
             Realizar Check-in

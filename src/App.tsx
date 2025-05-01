@@ -41,7 +41,8 @@ function App() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const company = useCurrentCompany();
+  const { userId } = useAuthStore();
+  const company = isAuthChecked && session && userId ? useCurrentCompany() : null;
 
   const SomeComponent = () => {
     return (

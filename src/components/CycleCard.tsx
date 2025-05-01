@@ -1,5 +1,6 @@
 import { Calendar, MoreVertical } from "lucide-react";
 import { DropdownMenu, DropdownMenuItem } from "../components/DropdownMenu";
+import { usePermissions } from '../hooks/usePermissions'; 
 import clsx from "clsx";
 
 type CycleCardProps = {
@@ -44,6 +45,8 @@ export function CycleCard({
     active: "Ativo",
     completed: "Concluído",
   }[status];
+  
+  const { isAdmin, isChampion } = usePermissions();
 
   return (
     <div
@@ -79,12 +82,12 @@ export function CycleCard({
                 </button>
                 }
             >
-                {onView && <DropdownMenuItem onClick={onView}>Visualizar OKRs</DropdownMenuItem>}
-                {canEdit && onEdit && <DropdownMenuItem onClick={onEdit}>Editar</DropdownMenuItem>}
-                {canDelete && onDelete && (
-                <DropdownMenuItem onClick={onDelete} className="text-red-600">
-                    Excluir
-                </DropdownMenuItem>
+              <DropdownMenuItem onClick={onView}>Visualizar OKRs</DropdownMenuItem>
+                {(isAdmin || isChampion) && (
+                  <>
+                  <DropdownMenuItem onClick={onEdit}>Editar</DropdownMenuItem>
+                  <DropdownMenuItem onClick={onDelete} className="text-red-600">Excluir</DropdownMenuItem>
+                  </>
                 )}
             </DropdownMenu>
         </div>

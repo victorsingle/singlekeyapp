@@ -23,6 +23,8 @@ import { OKRRelationMap } from './OKRRelationMap';
 import { useNotificationStore } from '../stores/notificationStore'; 
 import { CheckinButton } from '../components/CheckinButton';
 
+import { usePermissions } from '../hooks/usePermissions'; 
+
 interface CycleDetailPageProps {
   cycleId: string;
 }
@@ -59,6 +61,8 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
       </div>
     );
   };
+  
+  const { isAdmin, isChampion } = usePermissions();
 
   useEffect(() => {
     if (!organizationId || !cycleId) return;
@@ -220,13 +224,17 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
           >
             {isCreating ? 'Criando...' : 'Criar Novo Objetivo'}
           </button>
-
-          {okrsDoCiclo.length > 0 && okrsDoCiclo.length > 0 && (
-          <CheckinButton
-            cycleId={cycle.id}
-            userId={user?.id}
-            checkinNotification={checkinNotification}
-          />
+          
+          {(isAdmin || isChampion) && (
+           <>
+            {okrsDoCiclo.length > 0 && okrsDoCiclo.length > 0 && (
+            <CheckinButton
+              cycleId={cycle.id}
+              userId={user?.id}
+              checkinNotification={checkinNotification}
+            />
+            )}
+            </>
           )}
 
         </div>

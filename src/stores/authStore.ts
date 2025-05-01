@@ -50,16 +50,25 @@ export const useAuthStore = create<AuthState>()(
         if (invitedUserRaw) {
           const invitedUser = keysToCamel(invitedUserRaw); // 🛠️ Converte aqui!
     
+          // busca nome da organização na view já existente
+          const { data: invitedOrg } = await supabase
+          .from('invited_users_with_org')
+          .select('organization_name')
+          .eq('user_id', userId)
+          .maybeSingle();
+
           set({
-            userId,
-            firstName: invitedUser.firstName,
-            role: invitedUser.role,
-            adminId: invitedUser.invitedBy,
-            companyName: null,
-            organizationId: invitedUser.organizationId, // camelCase funcionando agora!
-            loading: false,
-            error: null,
+          userId,
+          firstName: invitedUser.firstName,
+          role: invitedUser.role,
+          adminId: invitedUser.invitedBy,
+          companyName: invitedOrg?.organization_name ?? null,
+          organizationId: invitedUser.organizationId,
+          loading: false,
+          error: null,
           });
+
+
         } else {
           const { data: userProfileRaw } = await supabase
             .from('users')

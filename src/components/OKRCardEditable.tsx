@@ -3,6 +3,7 @@ import { MoreHorizontal, MoreVertical, Eye, EyeOff } from 'lucide-react';
 import { useOKRStore } from '../stores/okrStore';
 import { DropdownMenu, DropdownMenuItem } from '../components/DropdownMenu';
 import { KeyResultEditable } from '../components/okr/KeyResultEditable';
+import { usePermissions } from '../hooks/usePermissions';
 
 
 interface KeyResult {
@@ -37,6 +38,8 @@ function OKRCardEditableComponent({
   indentLevel = 0 
 }: OKRCardEditableProps) {
   const { updateOKR, deleteOKR, createKeyResults } = useOKRStore();
+
+  const { isAdmin, isChampion } = usePermissions();
 
   const handleAddKeyResult = async () => {
     try {
@@ -104,6 +107,8 @@ function OKRCardEditableComponent({
               )}
             </span>
           </button>
+          {(isAdmin || isChampion) && (
+          <>
           <DropdownMenu
             trigger={
               <button className="text-gray-400 hover:text-gray-600 mt-1 ">
@@ -118,6 +123,8 @@ function OKRCardEditableComponent({
               Excluir
             </DropdownMenuItem>
           </DropdownMenu>
+          </>
+          )}
         </div>
 
         {/* Objetivo */}

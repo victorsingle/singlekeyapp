@@ -2,6 +2,7 @@ import React from 'react';
 import { MoreHorizontal, MoreVertical } from 'lucide-react';
 import { useOKRStore } from '../../stores/okrStore';
 import { DropdownMenu, DropdownMenuItem } from '../../components/DropdownMenu';
+import { usePermissions } from '../../hooks/usePermissions'; 
 
 interface KeyResult {
   id: string;
@@ -20,7 +21,8 @@ interface KeyResultEditableProps {
 
 export function KeyResultEditable({ kr }: KeyResultEditableProps) {
   const { updateKeyResult, deleteKeyResult } = useOKRStore();
-
+  
+  const { isAdmin, isChampion } = usePermissions();
 
   const handleBlur = (field: string, value: any) => {
     if (value === undefined || value === '') return;
@@ -52,6 +54,8 @@ export function KeyResultEditable({ kr }: KeyResultEditableProps) {
     <div className="bg-gray-100 border border-gray-400 border-dashed rounded-md p-3 relative">
       {/* Header */}
       <div className="flex items-center absolute right-2 top-2">
+      {(isAdmin || isChampion) && (
+                  <>
       <DropdownMenu
           trigger={
             <button className="text-gray-400 hover:text-gray-600">
@@ -63,6 +67,8 @@ export function KeyResultEditable({ kr }: KeyResultEditableProps) {
             Excluir
           </DropdownMenuItem>
         </DropdownMenu>
+        </>
+      )}
         </div>
         <div className="flex flex-col md:flex-row gap-2 mb-4">
           <div className="flex-1">

@@ -25,7 +25,7 @@ export function UserCard({
       : 'bg-gray-100 text-gray-500';
   
     return (
-      <div className="relative bg-white rounded-md p-4 shadow-sm border">
+      <div className="relative bg-white rounded-md p-4 shadow-sm border mb-2">
         <div className="flex h-full justify-between items-center">
             <div className="flex items-center gap-4">
                 {/* Avatar */}

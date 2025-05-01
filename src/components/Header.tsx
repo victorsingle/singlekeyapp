@@ -4,6 +4,8 @@ import { useLocation, useNavigate, NavLink, Link } from 'react-router-dom';
 import { useCurrentCompany } from '../hooks/useCurrentCompany';
 import clsx from 'clsx';
 import { useCycleStore } from '../stores/okrCycleStore'; 
+import { useAuthStore } from '../stores/authStore';
+import { usePermissions } from '../hooks/usePermissions';
 
 interface HeaderProps {
   session: any;
@@ -23,8 +25,10 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
   const navigate = useNavigate();
   const location = useLocation();
   const company = useCurrentCompany();
+  const companyName = useAuthStore(state => state.companyName);
   const { cycles } = useCycleStore();
   const hasCycles = cycles && cycles.length > 0;
+  const { isAdmin, isChampion } = usePermissions();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -117,13 +121,15 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
             
             {showDropdown && (
             <div className="absolute right-0 top-12 w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-              {company && company.company_name && (
+              
+              {(company?.company_name || companyName) && (
                 <div className="px-4 pt-3 pt-2 pb-2 text-xs bg-gray-100 rounded-tr-lg rounded-tl-lg border-b border-gray-100">
                   <span className="block font-semibold text-gray-400 truncate">
-                    {company.company_name}
+                    {company?.company_name || companyName}
                   </span>
                 </div>
               )}
+
               <ul className="py-1">
           
                 {/* BLOCO: PERFIL 
@@ -156,6 +162,8 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
                 */}
 
                 {/* BLOCO: ADMINISTRAÇÃO */}
+
+                {(isAdmin) && (
                 <li>
                   <button
                     onClick={() => {
@@ -168,6 +176,8 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
                     Usuários
                   </button>
                 </li>
+                )}
+
                  {/* BLOCO: ADMINISTRAÇÃO 
                 <li>
                   <button

@@ -132,7 +132,7 @@ export function UserTable({ users, loading, onInviteClick, onUserUpdated, setUse
         </div>
       ) : (
         <>
-          <div className="mb-4">
+          <div className="w-full mb-4">
             <button
               onClick={onInviteClick}
               className="flex items-center text-sm justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -142,7 +142,7 @@ export function UserTable({ users, loading, onInviteClick, onUserUpdated, setUse
             </button>
           </div>
   
-          <div className="w-full gap-4 py-4 grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="w-full">
             {users.map((user) => (
               <UserCard
                 key={user.id}

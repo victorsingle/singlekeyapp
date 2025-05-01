@@ -25,6 +25,7 @@ import { AcceptInvitePage } from './components/auth/AcceptInvitePage';
 import { useCycleStore } from './stores/okrCycleStore';
 import { GuidePage } from './pages/GuidePage';
 import { useCurrentCompany } from './hooks/useCurrentCompany';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 export function CycleDetailPageWrapper() {
   const { id } = useParams();
@@ -124,58 +125,78 @@ useEffect(() => {
   const today = new Date().toLocaleDateString('sv-SE');
 
   const checkReminder = async () => {
+    // 🔍 1. Buscar check-ins programados para hoje
     const { data: checkins, error } = await supabase
       .from('okr_checkins')
       .select('checkin_date, cycle_id')
       .eq('checkin_date', today)
       .limit(10);
 
-    if (error) {
-      console.error('[❌ Erro ao buscar check-ins do dia]', error);
+    if (error || !checkins?.length) {
+      console.log('[ℹ️ Nenhum check-in programado ou erro]');
       return;
     }
 
-    if (!checkins?.length) {
-      console.log('[ℹ️ Nenhum check-in programado para hoje]');
+    // 🔍 2. Buscar organization_id e role do usuário logado
+    const userData = useAuthStore.getState();
+    const orgId = userData.organizationId;
+    const role = userData.role;
+
+    if (!orgId) {
+      console.warn('[⚠️] Organização não encontrada para usuário logado.');
       return;
     }
+
+    // 🔍 3. Buscar todos os champions da organização
+    const { data: champions, error: championError } = await supabase
+      .from('invited_users')
+      .select('user_id')
+      .eq('organization_id', orgId)
+      .eq('role', 'champion');
+
+    if (championError) {
+      console.error('[❌ Erro ao buscar champions da organização]', championError);
+      return;
+    }
+
+    // ✅ 4. Inclui o próprio usuário somente se for admin ou champion
+    const includeSelf = role === 'admin' || role === 'champion';
+    const allUserIds = [
+      ...(champions?.map(c => c.user_id) ?? []),
+      ...(includeSelf ? [session.user.id] : [])
+    ];
 
     for (const checkin of checkins) {
-      // Busca manual do ciclo
       const { data: cycle, error: cycleError } = await supabase
         .from('okr_cycles')
         .select('id, name')
         .eq('id', checkin.cycle_id)
         .maybeSingle();
 
-      if (cycleError) {
-        console.error('[❌ Erro ao buscar ciclo do check-in]', cycleError);
-        continue;
+      if (cycleError || !cycle) continue;
+
+      // 🔁 5. Criar notificação para cada user relevante
+      for (const userId of allUserIds) {
+        await createNotificationIfNecessary({
+          userId,
+          cycleId: cycle.id,
+          title: 'Lembrete de Check-in',
+          buildMessage: () =>
+            `Hoje é dia de Check-in do Ciclo ${cycle.name}. Clique e atualize suas métricas.`,
+          checkIfActionDone: async () => {
+            const { data } = await supabase
+              .from('key_result_checkins')
+              .select('id')
+              .eq('user_id', userId)
+              .eq('date', today)
+              .limit(1);
+            return !!data?.length;
+          },
+        });
       }
-
-      if (!cycle) continue;
-
-      await createNotificationIfNecessary({
-        userId: session.user.id,
-        type: 'checkin_reminder',
-        dataCheckKey: 'cycle_id',
-        cycleId: cycle.id,
-        title: 'Lembrete de Check-in',
-        buildMessage: () =>
-          `Hoje é dia de Check-in do Ciclo ${cycle.name}. Clique e atualize suas métricas.`,
-        checkIfActionDone: async () => {
-          const { data } = await supabase
-            .from('key_result_checkins')
-            .select('id')
-            .eq('user_id', session.user.id)
-            .eq('date', today)
-            .limit(1);
-          return !!data?.length;
-        },
-      });
     }
 
-    // Atualiza a store com notificações atualizadas
+    // ✅ 6. Atualiza a store com as notificações novas (apenas para o logado)
     useNotificationStore.getState().fetchNotifications(session.user.id);
   };
 
@@ -309,21 +330,33 @@ if (!isAuthChecked) {
           })}
           >
       <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<AuthTabs />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/update-password" element={<UpdatePassword />} />
-          <Route path="/convite" element={<AcceptInvitePage />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/" element={<CycleDashboard />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/cycle/:id" element={<CycleDetailPageWrapper />} />
-          <Route path="/admin/users" element={<UsersPage />} />
-          <Route path="/admin/teams" element={<TeamsPage />} />
-          <Route path="/admin/teams/:id" element={<TeamDetailPage />} />
-          <Route path="*" element={<Navigate to="/" />} />
-          <Route path="/guide" element={<GuidePage />} />
-        </Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<AuthTabs />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/update-password" element={<UpdatePassword />} />
+        <Route path="/convite" element={<AcceptInvitePage />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/" element={<CycleDashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/cycle/:id" element={<CycleDetailPageWrapper />} />
+
+        {/* 🔐 Protegidas por papel */}
+        <Route
+          path="/admin/users"
+          element={<ProtectedRoute requireAdmin element={<UsersPage />} />}
+        />
+        <Route
+          path="/admin/teams"
+          element={<ProtectedRoute requireChampion element={<TeamsPage />} />}
+        />
+        <Route
+          path="/admin/teams/:id"
+          element={<ProtectedRoute requireChampion element={<TeamDetailPage />} />}
+        />
+
+        <Route path="*" element={<Navigate to="/" />} />
+        <Route path="/guide" element={<GuidePage />} />
+      </Routes>
       </main>
 
       <ModalContainer />

@@ -12,9 +12,9 @@ import { CycleForm } from './CycleForm';
 import { OKRGenerator } from './OKRGenerator';
 import { Modal } from './Modal';
 import { SubHeader } from './SubHeader';
-import { usePermissions } from '../hooks/usePermissions'; // ADICIONEI
+import { usePermissions } from '../hooks/usePermissions'; 
 import clsx from 'clsx';
-import toast from 'react-hot-toast'; // ADICIONEI
+import toast from 'react-hot-toast';
 import { useAuthStore } from '../stores/authStore';
 
 export function CycleDashboard() {
@@ -28,6 +28,8 @@ export function CycleDashboard() {
   const [selectedCycle, setSelectedCycle] = useState<any>(null);
   const [shouldOpenForm, setShouldOpenForm] = useState(false);
   const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
+
+  const { isAdmin, isChampion } = usePermissions();
 
   const SomeComponent = () => {
     return (
@@ -157,28 +159,29 @@ export function CycleDashboard() {
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-10">
         {cycles.length > 0 ? (
           <>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-4 mb-10">
+            {(isAdmin || isChampion) && (
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-4 mb-10">
 
-  
-              {canCreateCycle && (
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto sm:justify-end">
-                  <button
-                    onClick={() => setIsGeneratorOpen(true)}
-                    className="w-full sm:w-auto flex items-center text-sm justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    <Sparkles className="w-5 h-5 mr-2" />
-                    Gerar com a KAI
-                  </button>
-                  <button
-                    onClick={() => setIsFormOpen(true)}
-                    className="w-full sm:w-auto flex items-center text-sm justify-center px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-blue-100 hover:text-blue-600 transition-colors"
-                  >
-                    Criar Manualmente
-                  </button>
-                </div>
-              )}
-            </div>
-  
+    
+                {canCreateCycle && (
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto sm:justify-end">
+                    <button
+                      onClick={() => setIsGeneratorOpen(true)}
+                      className="w-full sm:w-auto flex items-center text-sm justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Sparkles className="w-5 h-5 mr-2" />
+                      Gerar com a KAI
+                    </button>
+                    <button
+                      onClick={() => setIsFormOpen(true)}
+                      className="w-full sm:w-auto flex items-center text-sm justify-center px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-blue-100 hover:text-blue-600 transition-colors"
+                    >
+                      Criar Manualmente
+                    </button>
+                  </div>
+                )}
+              </div>
+             )}
             <div className="grid gap-6">
 
             {cycles.map((cycle) => (

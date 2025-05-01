@@ -1,8 +1,8 @@
 import { useAuthStore } from "../stores/authStore";
 
 export function usePermissions() {
-  const { userId, role } = useAuthStore(); // 🛠️ USA ROLE DIRETAMENTE
-  // Proteção se ainda não carregou
+  const { role } = useAuthStore();
+
   if (!role) {
     return {
       isAdmin: false,
@@ -15,6 +15,7 @@ export function usePermissions() {
       canEditOKR: false,
       canDeleteOKR: false,
       canUpdateKRProgress: false,
+      canManageUsers: false,
     };
   }
 
@@ -22,26 +23,21 @@ export function usePermissions() {
   const isChampion = role === 'champion';
   const isCollaborator = role === 'collaborator';
 
-  const canCreateCycle = isAdmin || isChampion;
-  const canEditCycle = isAdmin || isChampion;
-  const canDeleteCycle = isAdmin;
-
-  const canCreateOKR = isAdmin || isChampion;
-  const canEditOKR = isAdmin || isChampion;
-  const canDeleteOKR = isAdmin;
-
-  const canUpdateKRProgress = isAdmin || isChampion || isCollaborator;
-
   return {
     isAdmin,
     isChampion,
     isCollaborator,
-    canCreateCycle,
-    canEditCycle,
-    canDeleteCycle,
-    canCreateOKR,
-    canEditOKR,
-    canDeleteOKR,
-    canUpdateKRProgress,
+
+    canCreateCycle: isAdmin || isChampion,
+    canEditCycle: isAdmin || isChampion,
+    canDeleteCycle: isAdmin || isChampion,
+
+    canCreateOKR: isAdmin || isChampion,
+    canEditOKR: isAdmin || isChampion,
+    canDeleteOKR: isAdmin || isChampion,
+
+    canUpdateKRProgress: isAdmin || isChampion || isCollaborator,
+
+    canManageUsers: isAdmin, // apenas admin
   };
 }

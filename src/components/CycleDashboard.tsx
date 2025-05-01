@@ -27,6 +27,13 @@ export function CycleDashboard() {
   const [selectedCycle, setSelectedCycle] = useState<any>(null);
   const [shouldOpenForm, setShouldOpenForm] = useState(false);
   const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
+
+  const formattedPeriod = (start: string, end: string) => {
+    if (!start || !end) return 'Período inválido';
+    const inicio = format(new Date(`${start}T00:00:00`), "d 'de' MMMM 'de' yyyy", { locale: ptBR });
+    const fim = format(new Date(`${end}T00:00:00`), "d 'de' MMMM 'de' yyyy", { locale: ptBR });
+    return `${inicio} até ${fim}`;
+  };
   
   const handleManualStart = () => {
     console.log('handleManualStart chamado');
@@ -172,7 +179,7 @@ export function CycleDashboard() {
                   title={cycle.name}
                   status={cycle.status}
                   strategicTheme={cycle.strategicTheme}
-                  period={`${cycle.startDateText} até ${cycle.endDateText}`}
+                  period={formattedPeriod(cycle.startDateText, cycle.endDateText)}
                   onView={() => navigate(`/cycle/${cycle.id}`)}
                   onEdit={() => handleEdit(cycle)}
                   onDelete={() => handleDelete(cycle.id)}

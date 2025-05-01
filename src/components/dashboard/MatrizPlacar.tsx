@@ -1,5 +1,3 @@
-// components/dashboard/MatrizPlacar.tsx
-
 import React from 'react';
 import clsx from 'clsx';
 import { format } from 'date-fns';
@@ -19,6 +17,7 @@ interface MatrizPlacarProps {
 }
 
 export function MatrizPlacar({ data, dates }: MatrizPlacarProps) {
+  console.log('[📦 MatrizPlacar recebendo]', { data, dates });
   const getFlagColor = (flag: string | null) => {
     return clsx(
       'w-4 h-4 rounded-full mx-auto',
@@ -43,7 +42,7 @@ export function MatrizPlacar({ data, dates }: MatrizPlacarProps) {
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6 w-full overflow-auto">
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">Placar</h2>
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">Placar de OKRs</h2>
 
       <table className="min-w-full text-xs text-left">
         <thead>

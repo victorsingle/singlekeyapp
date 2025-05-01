@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useDashboardStore } from '../../stores/dashboardStore';
 import { useAuthStore } from '../../stores/authStore';
 import { useOKRStore } from '../../stores/okrStore';
 import { CycleProgress } from './CycleProgress';
@@ -8,7 +9,6 @@ import { ConfidenceIndicator } from './ConfidenceIndicator';
 import { CycleComparison } from './CycleComparison';
 import { MatrizPlacar } from './MatrizPlacar';
 import { DetailPanel } from './DetailPanel';
-import { supabase } from '../../lib/supabase';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { SubHeader } from '../SubHeader';
@@ -61,12 +61,11 @@ useEffect(() => {
     const freshCycles = useOKRStore.getState().cycles;
     const first = freshCycles.at(-1);
 
-    if (first && !selectedCycleId) {
-      setSelectedCycleId(first.id);
-    }
-
     if (first) {
-      await loadOKRs(organizationId, first.id);
+      setSelectedCycleId(first.id); // garante que UI responde
+    
+      await loadOKRs(organizationId, first.id);     // carrega OKRs
+      await loadPlacarData(organizationId, first.id); // carrega placar no mesmo fluxo!
     }
   };
 
@@ -90,30 +89,18 @@ useEffect(() => {
 
 
 
-  // 📊 Matriz do Placar: montar dados e datas
-  const placarData = okrs
-  .filter(okr => okr.cycle_id === selectedCycleId)
-  .flatMap(okr =>
-    (okr.keyResults ?? []).map(kr => {
-      const checkinsMap = (kr.checkins ?? []).reduce((acc: Record<string, 'green' | 'yellow' | 'red' | null>, checkin) => {
-        acc[checkin.date] = checkin.confidence_flag ?? null;
-        return acc;
-      }, {});
+// 📊 Matriz do Placar: montar dados e datas
+const placarData = useDashboardStore(state => state.placarData);
+const allDates = useDashboardStore(state => state.allDates);
+const loadPlacarData = useDashboardStore(state => state.loadPlacarData);
 
-      return {
-        kr_text: kr.text,
-        okr_type: okr.type, // <-- vem do OKR pai!
-        progress: kr.progress ?? 0,
-        checkins: checkinsMap,
-      };
-    })
-  );
+  useEffect(() => {
+    if (!organizationId || !selectedCycleId) return;
+    loadPlacarData(organizationId, selectedCycleId);
+  }, [organizationId, selectedCycleId]);
 
-  const allDates = [...new Set(
-    keyResults
-      .flatMap(kr => kr.checkins ?? [])
-      .map(checkin => checkin.date)
-  )].sort();
+  console.log('[Matriz Debug] placarData:', placarData);
+  console.log('[Matriz Debug] allDates:', allDates);
 
   return (
     <>
@@ -133,8 +120,8 @@ useEffect(() => {
               : 'Rascunho'
           }
           period={
-            selectedCycle.start_date_text && selectedCycle.end_date_text
-              ? `${format(new Date(`${selectedCycle.start_date_text}T00:00:00`), "d 'de' MMMM 'de' yyyy", { locale: ptBR })} até ${format(new Date(`${selectedCycle.end_date_text}T00:00:00`), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}`
+            selectedCycle.start_date && selectedCycle.end_date
+              ? `${format(new Date(`${selectedCycle.start_date}T00:00:00`), "d 'de' MMMM 'de' yyyy", { locale: ptBR })} até ${format(new Date(`${selectedCycle.end_date}T00:00:00`), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}`
               : 'Período inválido'
           }
         />
@@ -217,8 +204,8 @@ useEffect(() => {
               </div>
             </div>
   
-            {/* Linha 2: Matriz do Placar */}
-            {placarData.length > 0 && allDates.length > 0 && (
+           {/* Linha 2: Matriz do Placar */}
+           {placarData.length > 0 && allDates.length > 0 && (
               <div className="grid grid-cols-1">
                 <MatrizPlacar data={placarData} dates={allDates} />
               </div>

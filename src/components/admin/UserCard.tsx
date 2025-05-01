@@ -35,20 +35,20 @@ export function UserCard({
 
                 {/* Informações do usuário */}
                 <div className="space-y-1">
-                    <p className="font-medium text-gray-900">{name}</p>
-                    <p className="text-sm text-gray-500">{email}</p>
-                    <div className="flex gap-2 text-sm text-gray-600">
+                  <p className="font-medium text-gray-900">{name}</p>
+                  <p className="text-sm text-gray-500">{email}</p>
+                  <div className="flex gap-2 text-sm text-gray-600">
                     <span>{role}</span>
                     <span className="text-gray-400">|</span>
                     <span>{team}</span>
-                    </div>
+                  </div>
+                  <span className={`inline-block text-xs px-2 rounded-full ${statusColor}`}>
+                    {status}
+                  </span>
                 </div>
             </div>
   
           <div className="flex items-center gap-2">
-            <span className={`text-xs px-2 rounded-full ${statusColor}`}>
-              {status}
-            </span>
             <DropdownMenu
               trigger={
                 <button className="text-gray-400 hover:text-gray-600 mt-2">

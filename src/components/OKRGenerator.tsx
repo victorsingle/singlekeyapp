@@ -105,7 +105,7 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false, fromLis
               value={context}
               onChange={(e) => setContext(e.target.value)}
               placeholder="Ex: Precisamos expandir nossa atuação no mercado B2B focando em empresas de médio porte. A meta é aumentar 30% da receita nos próximos 3 meses, melhorar a aquisição de clientes, reforçar nossa presença digital, ampliar o time de vendas e reduzir o ciclo de conversão em 20% sem perder qualidade...."
-              className="w-full text-xs h-32 text-sm p-4 rounded-xl bg-white resize-none shadow-[0_20px_50px_rgba(0,0,0,0.07)] focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+              className="w-full text-xs h-36 text-sm p-4 rounded-xl bg-white resize-none shadow-[0_20px_50px_rgba(0,0,0,0.07)] focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
             />
             <div className="absolute bottom-3 right-3 text-[10px] text-gray-400">
               {context.length} / 350

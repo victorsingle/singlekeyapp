@@ -136,15 +136,15 @@ const loadPlacarData = useDashboardStore(state => state.loadPlacarData);
                   Nenhum ciclo encontrado
                 </h1>
                 <p className="text-sm text-gray-500 mb-6">
-                  Comece seu planejamento com a ajuda da Key. Crie um ciclo de OKRs e defina
+                  Comece seu planejamento com a ajuda da KAI. Crie um ciclo de OKRs e defina
                   os próximos passos com mais clareza e foco.
                 </p>
                 <button
                   onClick={() => navigate('/')}
-                  className="inline-flex items-center justify-center px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg shadow-sm hover:bg-blue-700 transition"
+                  className="inline-flex items-center justify-center px-6 py-2.5 rounded-lg bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 hover:shadow-xl transition"
                 >
                   <Sparkles className="w-4 h-4 mr-2" />
-                  Criar Ciclo de OKR
+                 Criar novo ciclo
                 </button>
               </div>
             </div>

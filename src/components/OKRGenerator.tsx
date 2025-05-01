@@ -129,7 +129,7 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false, fromLis
         </form>
 
         {/* Botão SECUNDÁRIO FORA do form */}
-        <div className="absolute right-0 bottom-8">
+        <div className="absolute right-2 bottom-2">
         <button
           type="button"
           onClick={() => {

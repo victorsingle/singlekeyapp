@@ -112,13 +112,7 @@ const loadPlacarData = useDashboardStore(state => state.loadPlacarData);
   console.log('[Matriz Debug] placarData:', placarData);
   console.log('[Matriz Debug] allDates:', allDates);
 
-  if (!selectedCycle) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <RadarLoader />
-      </div>
-    );
-  }
+
 
   return (
     <>

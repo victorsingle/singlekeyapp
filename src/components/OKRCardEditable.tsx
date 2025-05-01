@@ -125,7 +125,7 @@ function OKRCardEditableComponent({
           <div className="w-full">
             <span className="text-xs text-gray-500">{prefix}</span>
 
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex flex-col md:flex-row md:items-center gap-2 mt-1">
               <input
                 className="border text-sm rounded px-2 py-1 w-full"
                 defaultValue={objective}
@@ -134,7 +134,7 @@ function OKRCardEditableComponent({
               />
 
               <select
-                className="border text-sm rounded px-2 py-1 w-40"
+                className="border text-sm rounded px-2 py-1 w-full md:w-40"
                 defaultValue={type}
                 onBlur={(e) =>
                   handleTypeBlur(e.target.value as 'strategic' | 'tactical' | 'operational')
@@ -145,12 +145,13 @@ function OKRCardEditableComponent({
                 <option value="operational">Operacional</option>
               </select>
 
-              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full whitespace-nowrap">
+              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full whitespace-nowrap self-start md:self-auto">
                 {status}
               </span>
             </div>
           </div>
         </div>
+
 
         {/* Key Results */}
         {expanded && (

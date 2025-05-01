@@ -3,13 +3,14 @@ import {
   createCycle as createCycleService,  
   updateCycle, 
   fetchCycles, 
-  deleteCycle 
+  deleteCycle
 } from '../services/okrCycleService';
 
 export const useCycleStore = create((set, get) => ({
   // Estado
   cycles: [],
-  loading: false,
+  loading: false,          // usado para criar/editar/excluir ciclos
+  loadingCycles: false,    // usado apenas para carregar ciclos
   error: null,
 
   // Carregar ciclos da organização
@@ -19,18 +20,17 @@ export const useCycleStore = create((set, get) => ({
       return;
     }
     console.log('[📦] Buscando ciclos para organizationId:', organizationId);
-    set({ loading: true });
+    set({ loadingCycles: true });
     try {
       const cycles = await fetchCycles(organizationId);
-      set({ cycles, loading: false });
+      set({ cycles, loadingCycles: false });
     } catch (error) {
       console.error('[❌] Erro ao carregar ciclos:', error);
-  
-      // Só exibe erro de fato se for algo além de "ID da organização obrigatório"
+
       if (error.message !== 'ID da organização é obrigatório para buscar ciclos.') {
-        set({ error: error.message, loading: false });
+        set({ error: error.message, loadingCycles: false });
       } else {
-        set({ loading: false });
+        set({ loadingCycles: false });
       }
     }
   },
@@ -40,16 +40,16 @@ export const useCycleStore = create((set, get) => ({
     set({ loading: true });
     try {
       console.log('[📦] user_id no createCycle:', cycleData.user_id);
-      const newCycle = await createCycleService(cycleData); // chama o service corretamente
+      const newCycle = await createCycleService(cycleData);
       set((state) => ({
         cycles: [...state.cycles, newCycle],
         loading: false,
       }));
-      return newCycle.id; // <<<<<<< ✅ retorna o ID aqui
+      return newCycle.id;
     } catch (error) {
       console.error(error);
       set({ error: error.message, loading: false });
-      throw error; // opcionalmente repassa o erro
+      throw error;
     }
   },
 
@@ -59,7 +59,7 @@ export const useCycleStore = create((set, get) => ({
     try {
       const updatedCycle = await updateCycle(cycleId, updates);
       set((state) => ({
-        cycles: state.cycles.map((cycle) => 
+        cycles: state.cycles.map((cycle) =>
           cycle.id === cycleId ? updatedCycle : cycle
         ),
         loading: false

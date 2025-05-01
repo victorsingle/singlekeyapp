@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CalendarRange, Sparkles, X } from 'lucide-react';
+import RadarLoader from './RadarLoader';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
@@ -19,7 +20,7 @@ import { useAuthStore } from '../stores/authStore';
 export function CycleDashboard() {
   
   //mudou
-  const { cycles, loadCycles, deleteCycle, error } = useCycleStore();
+  const { cycles, loadCycles, deleteCycle, error, loadingCycles } = useCycleStore();
 
   const { loading, fetchUserData } = useAuthStore();
   const { canCreateCycle, canEditCycle, canDeleteCycle } = usePermissions(); 
@@ -27,6 +28,14 @@ export function CycleDashboard() {
   const [selectedCycle, setSelectedCycle] = useState<any>(null);
   const [shouldOpenForm, setShouldOpenForm] = useState(false);
   const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
+
+  const SomeComponent = () => {
+    return (
+      <div className="flex items-center space-x-2">
+        <RadarLoader />
+      </div>
+    );
+  };
 
   const formattedPeriod = (start: string, end: string) => {
     if (!start || !end) return 'Período inválido';
@@ -126,13 +135,13 @@ export function CycleDashboard() {
     navigate(`/cycle/${cycleId}`);
   };
 
-  if (loading) {
+  if (loading || loadingCycles) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Carregando informações do usuário...</p>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <RadarLoader />
       </div>
     );
-  }  
+  }
 
   return (
     <>
@@ -146,7 +155,7 @@ export function CycleDashboard() {
       )}
   
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-10">
-        {cycles && cycles.length > 0 ? (
+        {cycles.length > 0 ? (
           <>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-4 mb-10">
 

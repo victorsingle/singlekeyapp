@@ -3,6 +3,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { maskPhone } from '../../utils/masks';
 import { validateEmail, validatePhone } from '../../utils/validation';
 import { SuccessModal } from './SuccessModal';
+import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { PasswordStrengthSegments } from '../../components/PasswordStrengthSegments';
@@ -56,6 +57,20 @@ export function CompanyForm() {
     const { email, password, companyName, firstName, lastName, phone } = formData;
   
     try {
+      // 1. Verificar se o e-mail já está cadastrado na base
+      const { data: existingUser, error: checkError } = await supabase
+        .from('users') // ou `auth.users` via Admin API
+        .select('id')
+        .eq('email', email)
+        .maybeSingle();
+  
+      if (existingUser) {
+        toast.error('Já existe uma conta com o e-mail informado');
+        setIsLoading(false);
+        return;
+      }
+  
+      // 2. Se passou, segue com o cadastro
       const response = await fetch('/.netlify/functions/register-admin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -69,8 +84,7 @@ export function CompanyForm() {
         }),
       });
   
-      const raw = await response.text(); // 👈 lê o body uma única vez
-  
+      const raw = await response.text();
       let result: any = {};
       try {
         result = JSON.parse(raw);

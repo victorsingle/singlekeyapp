@@ -114,41 +114,52 @@ export function UserTable({ users, loading, onInviteClick, onUserUpdated, setUse
     });
   };
   
-  
   return (
-    <>
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-10">
-        <div>
+    <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-10">
+      {loading ? (
+        <div className="p-6 text-gray-500 text-sm">Carregando usuários...</div>
+      ) : users.length === 0 ? (
+        <div className="flex flex-col items-center justify-center text-center gap-4 py-24 h-[40vh]">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-3"> Nenhum convite enviado</h1>
+          <p className="text-gray-500 text-sm mb-6">Nenhum usuário foi convidado ainda. Clique e começe a montar o seu time.</p>
           <button
             onClick={onInviteClick}
-            className="w-full sm:w-auto flex items-center text-sm justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center text-sm justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            <UserPlus2 className="w-4 h-4" />
-            Convidar Usuário
+            <UserPlus2 className="w-4 h-4 mr-2" />
+            Convide um novo usuário
           </button>
         </div>
-        {loading ? (
-    <div className="p-6 text-gray-500 text-sm">Carregando usuários...</div>
-        ) : users.length === 0 ? (
-          <div className="p-6 text-gray-500 text-sm text-center">Nenhum usuário foi convidado ainda.</div>
-        ) : (
-          <div className="w-full gap-4 py-4">
+      ) : (
+        <>
+          <div className="mb-4">
+            <button
+              onClick={onInviteClick}
+              className="flex items-center text-sm justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <UserPlus2 className="w-4 h-4 mr-2" />
+              Convidar usuário
+            </button>
+          </div>
+  
+          <div className="w-full gap-4 py-4 grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {users.map((user) => (
               <UserCard
                 key={user.id}
                 name={`${user.first_name ?? ''} ${user.last_name ?? ''}`}
                 email={user.email}
                 role={user.role ?? '—'}
-                team="—" // se ainda não estiver implementado
+                team="—"
                 status={user.status === 'active' ? 'ativo' : 'inativo'}
                 onEdit={() => setEditingUserId(user.id)}
                 onDelete={() => handleDelete(user)}
               />
             ))}
           </div>
-        )}
-
-      </div>
-    </>
+        </>
+      )}
+    </div>
   );
+    
+  
 }

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import RadarLoader from '../RadarLoader';
 import { useDashboardStore } from '../../stores/dashboardStore';
 import { useAuthStore } from '../../stores/authStore';
 import { useOKRStore } from '../../stores/okrStore';
@@ -52,6 +53,15 @@ export function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const SomeComponent = () => {
+    return (
+      <div className="flex items-center space-x-2">
+        <RadarLoader />
+      </div>
+    );
+  };
+
+
 // [1] Carrega ciclos e define ciclo selecionado
 useEffect(() => {
   if (!organizationId) return;
@@ -101,6 +111,14 @@ const loadPlacarData = useDashboardStore(state => state.loadPlacarData);
 
   console.log('[Matriz Debug] placarData:', placarData);
   console.log('[Matriz Debug] allDates:', allDates);
+
+  if (!selectedCycle) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <RadarLoader />
+      </div>
+    );
+  }
 
   return (
     <>

@@ -15,26 +15,40 @@ export function ResetPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     if (!email || !validateEmail(email)) {
       setError('Por favor, insira um e-mail válido');
       return;
     }
-
+  
     setLoading(true);
-
+  
     try {
+      // Verifica se o e-mail está cadastrado
+      const { data: user, error } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle();
+  
+      if (!user) {
+        toast.error('Essa conta não encontrada. Verifique o e-mail informado e tente novamente.');
+        setLoading(false);
+        return;
+      }
+  
+      // Envia o link de redefinição de senha
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/update-password`,
       });
-
+  
       if (resetError) {
         console.error('[❌ Erro ao enviar link de recuperação]', resetError);
         toast.error('Erro ao enviar link de recuperação. Tente novamente.');
         setLoading(false);
         return;
       }
-
+  
       toast.success('Link de recuperação enviado com sucesso!');
       setShowSuccessModal(true);
     } catch (err) {
@@ -44,6 +58,7 @@ export function ResetPassword() {
       setLoading(false);
     }
   };
+  
 
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);

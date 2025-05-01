@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Target, Menu, X } from 'lucide-react';
+import RadarLoader from './components/RadarLoader';
 import { Routes, Route, Navigate, useLocation, useNavigate, useParams, Link, NavLink } from 'react-router-dom';
 import { CycleDashboard } from './components/CycleDashboard';
 import { CycleDetailPage } from './components/CycleDetailPage';
@@ -23,11 +24,13 @@ import { TeamDetailPage } from './pages/admin/TeamDetailPage';
 import { AcceptInvitePage } from './components/auth/AcceptInvitePage';
 import { useCycleStore } from './stores/okrCycleStore';
 import { GuidePage } from './pages/GuidePage';
+import { useCurrentCompany } from './hooks/useCurrentCompany';
 
 export function CycleDetailPageWrapper() {
   const { id } = useParams();
   return <CycleDetailPage cycleId={id!} />;
 }
+
 
 function App() {
   //const { fetchCycles } = useOKRStore();
@@ -37,6 +40,15 @@ function App() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const company = useCurrentCompany();
+
+  const SomeComponent = () => {
+    return (
+      <div className="flex items-center space-x-2">
+        <RadarLoader />
+      </div>
+    );
+  };
 
   const publicPaths = [
     '/login',
@@ -172,13 +184,13 @@ useEffect(() => {
 
 
 
-  if (!isAuthChecked) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
+if (!isAuthChecked) {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <RadarLoader />
+    </div>
+  );
+}
 
   console.log('[🔒 Proteção de rota]', {
     session,
@@ -230,6 +242,12 @@ useEffect(() => {
               </button>
             </div>
 
+            {company?.company_name && (
+              <div className='py-2 mb-2'>
+                <span className="font-medium text-gray-400 p-0">{company.company_name}</span>
+              </div>
+            )}
+
             <nav className="flex flex-col space-y-4">
               <NavLink
                 to="/cycles"
@@ -258,27 +276,16 @@ useEffect(() => {
               </NavLink>
 
               <hr className="border-t border-gray-200 my-2" />
-
-              <span className="text-sm text-gray-500 mt-2">Conta</span>
+              <span className="text-gray-400 font-bold mt-2">Conta</span>
 
               <button
                 onClick={() => {
-                  navigate('/profile');
+                  navigate('/admin/users');
                   setShowMobileMenu(false);
                 }}
                 className="text-left text-gray-700 hover:text-blue-600"
               >
-                Meu Perfil
-              </button>
-
-              <button
-                onClick={() => {
-                  navigate('/settings');
-                  setShowMobileMenu(false);
-                }}
-                className="text-left text-gray-700 hover:text-blue-600"
-              >
-                Configurações
+                Usuários
               </button>
 
               <button

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useMemo } from 'react';
+import RadarLoader from './RadarLoader';
 import { useNavigate } from 'react-router-dom';
 import { ReactFlowProvider } from 'reactflow';
 import { format } from 'date-fns';
@@ -51,6 +52,14 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
 
   const { notifications } = useNotificationStore();
 
+  const SomeComponent = () => {
+    return (
+      <div className="flex items-center space-x-2">
+        <RadarLoader />
+      </div>
+    );
+  };
+
   useEffect(() => {
     if (!organizationId || !cycleId) return;
 
@@ -79,8 +88,8 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
 
   if (loading || !cycles.length) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">
-        Carregando ciclo...
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <RadarLoader />
       </div>
     );
   }

@@ -49,7 +49,7 @@ export function KeyResultEditable({ kr }: KeyResultEditableProps) {
   );
 
   return (
-    <div className="bg-gray-50 border rounded-md p-3 relative">
+    <div className="bg-gray-100 border border-gray-400 border-dashed rounded-md p-3 relative">
       {/* Header */}
       <div className="flex items-center absolute right-2 top-2">
       <DropdownMenu
@@ -64,33 +64,33 @@ export function KeyResultEditable({ kr }: KeyResultEditableProps) {
           </DropdownMenuItem>
         </DropdownMenu>
         </div>
-      <div className="flex items-center gap-2 mb-2">
-        <div className="w-full">
-          <label className="text-xs text-gray-500">Título do KR</label>
-          <input
-            className="border rounded px-2 py-1 text-sm w-full"
-            defaultValue={kr.text}
-            onBlur={(e) => handleBlur('text', e.target.value)}
-          />
-        </div>
+        <div className="flex flex-col md:flex-row gap-2 mb-4">
+          <div className="flex-1">
+            <label className="text-xs text-gray-500">Título do KR</label>
+            <input
+              className="border rounded px-2 py-1 text-sm w-full"
+              defaultValue={kr.text}
+              onBlur={(e) => handleBlur('text', e.target.value)}
+            />
+          </div>
 
-        <div>
-        <label className="text-xs text-gray-500">Ambição</label>
-        <select
-            className="border rounded px-2 py-1 text-sm w-32"
-            defaultValue={kr.kr_type || ''}
-            onBlur={(e) => handleBlur('kr_type', e.target.value)}
-        >
-            <option value="">Selecione</option>
-            <option value="roofshot">Roofshot</option>
-            <option value="moonshot">Moonshot</option>
-        </select>
+          <div className="w-full md:w-56">
+            <label className="text-xs text-gray-500">Ambição</label>
+            <select
+              className="border rounded px-2 py-1 text-sm w-full"
+              defaultValue={kr.kr_type || ''}
+              onBlur={(e) => handleBlur('kr_type', e.target.value)}
+            >
+              <option value="">Selecione</option>
+              <option value="roofshot">Roofshot</option>
+              <option value="moonshot">Moonshot</option>
+            </select>
+          </div>
         </div>
-      </div>
 
       {/* Grid */}
       <div className="space-y-2">
-        <div className="grid grid-cols-5 gap-4 text-xs text-gray-500">
+      <div className="hidden md:grid grid-cols-5 gap-4 text-xs text-gray-500">
           <label>Métrica</label>
           <label>Baseline</label>
           <label>Atual</label>
@@ -98,54 +98,58 @@ export function KeyResultEditable({ kr }: KeyResultEditableProps) {
           <label>Confiança</label>
         </div>
 
-        <div className="grid grid-cols-5 gap-4 items-center">
-          <input
-            type="text"
-            className="border rounded px-2 py-1 text-sm w-full"
-            defaultValue={kr.metric || ''}
-            onBlur={(e) => handleBlur('metric', e.target.value)}
-          />
-          <input
-            type="number"
-            className="border rounded px-2 py-1 text-sm w-full"
-            defaultValue={kr.initial_value ?? 0}
-            onBlur={(e) => handleBlur('initial_value', Number(e.target.value))}
-          />
-          <input
-            type="number"
-            className="border rounded px-2 py-1 text-sm w-full"
-            defaultValue={kr.current_value ?? 0}
-            onBlur={(e) => handleBlur('current_value', Number(e.target.value))}
-          />
-          <input
-            type="number"
-            className="border rounded px-2 py-1 text-sm w-full"
-            defaultValue={kr.target_value ?? 0}
-            onBlur={(e) => handleBlur('target_value', Number(e.target.value))}
-          />
-          <div className="flex gap-2 justify-left">
-
-            {/* Bolinhas poderiam vir aqui */}
-            <button
-                className={`w-6 h-6 rounded-full bg-green-400 border ${kr.confidence_flag === 'high' ? 'ring-2 ring-gray-500' : ''}`}
-                onClick={() => handleBlur('confidence_flag', 'high')}
-            />
-            <button
-                className={`w-6 h-6 rounded-full bg-yellow-400 border ${kr.confidence_flag === 'medium' ? 'ring-2 ring-gray-500' : ''}`}
-                onClick={() => handleBlur('confidence_flag', 'medium')}
-            />
-            <button
-                className={`w-6 h-6 rounded-full bg-red-400 border ${kr.confidence_flag === 'low' ? 'ring-2 ring-gray-500' : ''}`}
-                onClick={() => handleBlur('confidence_flag', 'low')}
-            />
-
-          {/* Barra de progresso */}
-          <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden mt-2 ml-2">
-            <div className="h-full bg-blue-400"
-              style={{ width: `${progress ?? 0}%` }}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-start">
+          <div className="flex flex-col">
+            <label className="md:hidden text-xs text-gray-500 mb-1">Métrica</label>
+            <input
+              type="text"
+              className="border rounded px-2 py-1 text-sm w-full"
+              defaultValue={kr.metric || ''}
+              onBlur={(e) => handleBlur('metric', e.target.value)}
             />
           </div>
 
+          <div className="flex flex-col">
+            <label className="md:hidden text-xs text-gray-500 mb-1">Baseline</label>
+            <input
+              type="number"
+              className="border rounded px-2 py-1 text-sm w-full"
+              defaultValue={kr.initial_value ?? 0}
+              onBlur={(e) => handleBlur('initial_value', Number(e.target.value))}
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="md:hidden text-xs text-gray-500 mb-1">Atual</label>
+            <input
+              type="number"
+              className="border rounded px-2 py-1 text-sm w-full"
+              defaultValue={kr.current_value ?? 0}
+              onBlur={(e) => handleBlur('current_value', Number(e.target.value))}
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="md:hidden text-xs text-gray-500 mb-1">Alvo</label>
+            <input
+              type="number"
+              className="border rounded px-2 py-1 text-sm w-full"
+              defaultValue={kr.target_value ?? 0}
+              onBlur={(e) => handleBlur('target_value', Number(e.target.value))}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="md:hidden text-xs text-gray-500 mb-1">Confiança</label>
+            {/* bolinhas + progresso permanecem */}
+            <div className="flex gap-2 items-center">
+              <button className={`w-6 h-6 rounded-full bg-green-400 border ${kr.confidence_flag === 'high' ? 'ring-2 ring-gray-500' : ''}`} onClick={() => handleBlur('confidence_flag', 'high')} />
+              <button className={`w-6 h-6 rounded-full bg-yellow-400 border ${kr.confidence_flag === 'medium' ? 'ring-2 ring-gray-500' : ''}`} onClick={() => handleBlur('confidence_flag', 'medium')} />
+              <button className={`w-6 h-6 rounded-full bg-red-400 border ${kr.confidence_flag === 'low' ? 'ring-2 ring-gray-500' : ''}`} onClick={() => handleBlur('confidence_flag', 'low')} />
+            </div>
+            <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mt-2">
+              <div className="h-full bg-blue-400" style={{ width: `${progress ?? 0}%` }} />
+            </div>
           </div>
         </div>
       </div>

@@ -326,9 +326,8 @@ if (!isAuthChecked) {
       <main  
         className={clsx({
             'pt-[60px]': !isPublicRoute && !checkinNotification,
-            'pt-[96px]': !isPublicRoute && checkinNotification, // aumenta para compensar a notificação
-          })}
-          >
+            'pt-[96px]': !isPublicRoute && checkinNotification,
+          })}>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<AuthTabs />} />

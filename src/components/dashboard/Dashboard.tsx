@@ -15,7 +15,7 @@ import { ptBR } from 'date-fns/locale';
 import { SubHeader } from '../SubHeader';
 import { Sparkles, ChevronDown } from 'lucide-react';
 import { useLocation, useNavigate, NavLink } from 'react-router-dom';
-
+import { usePermissions } from '../../hooks/usePermissions';
 
 export function Dashboard() {
   const {
@@ -39,7 +39,11 @@ export function Dashboard() {
     setPanelTitle(title);
     setPanelOpen(true);
   };
-  
+
+  const { isAdmin, isChampion } = usePermissions();
+
+  console.log('Permissões:', { isAdmin, isChampion });
+
   const { organizationId } = useAuthStore();
 
   const selectedCycle = cycles.find(c => c.id === selectedCycleId);
@@ -53,13 +57,6 @@ export function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const SomeComponent = () => {
-    return (
-      <div className="flex items-center space-x-2">
-        <RadarLoader />
-      </div>
-    );
-  };
 
 
 // [1] Carrega ciclos e define ciclo selecionado
@@ -112,8 +109,6 @@ const loadPlacarData = useDashboardStore(state => state.loadPlacarData);
   console.log('[Matriz Debug] placarData:', placarData);
   console.log('[Matriz Debug] allDates:', allDates);
 
-
-
   return (
     <>
       {selectedCycle && (
@@ -142,14 +137,17 @@ const loadPlacarData = useDashboardStore(state => state.loadPlacarData);
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           {!selectedCycle && (
+            
             <div className="w-full h-[70vh] flex justify-center items-center px-6 text-center">
-              <div className="max-w-md">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-3">
-                  Nenhum ciclo encontrado
+              <div className="w-full max-w-lg">
+
+              {(isAdmin || isChampion) ? (
+                <>
+                <h1 className="w-full text-4xl font-bold text-gray-900 tracking-tight mb-3">
+                  Nenhum <span className="text-blue-600">Ciclo de OKRs</span> para acompanhar no momento.
                 </h1>
                 <p className="text-sm text-gray-500 mb-6">
-                  Comece seu planejamento com a ajuda da KAI. Crie um ciclo de OKRs e defina
-                  os próximos passos com mais clareza e foco.
+                  Comece seu planejamento com a ajuda da <b className="text-blue-600">KAI</b> e construa o próximo ciclo.
                 </p>
                 <button
                   onClick={() => navigate('/')}
@@ -158,6 +156,18 @@ const loadPlacarData = useDashboardStore(state => state.loadPlacarData);
                   <Sparkles className="w-4 h-4 mr-2" />
                  Criar novo ciclo
                 </button>
+                </>
+              ):(
+                <>
+                <h1 className="w-full text-4xl font-bold text-gray-900 tracking-tight mb-3">
+                Nenhum <span className="text-blue-600">Ciclo de OKRs</span> para acompanhar no momento.
+                </h1>
+                <p className="text-sm text-gray-500 mb-6">
+                Assim que seu Champion iniciar um novo ciclo você poderá acompanhar o progresso dos objetivos com mais clareza e foco.
+                </p>
+                </>
+              )}
+
               </div>
             </div>
 
@@ -241,5 +251,5 @@ const loadPlacarData = useDashboardStore(state => state.loadPlacarData);
       </div>
     </>
   );
-  }
+}
 

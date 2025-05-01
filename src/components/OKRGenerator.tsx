@@ -3,6 +3,7 @@ import { Sparkles, Target } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import clsx from 'clsx';
 import { useOKRStore } from '../stores/okrStore';
+import { usePermissions } from '../hooks/usePermissions';
 
 interface OKRGeneratorProps {
   onFinish: (cycleId: string) => void;
@@ -16,6 +17,8 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false, fromLis
   const [loading, setLoading] = useState(false);
   const minChars = 350;
   const { generateFullOKRStructure } = useOKRStore();
+
+const { isAdmin, isChampion } = usePermissions();
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,63 +91,81 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false, fromLis
     <div className="fixed inset-0 bg-gradient-to-b from-white via-[#f5f8ff] to-[#e7effc] flex flex-col items-center justify-center px-6 py-12 z-1 text-center">
     <div className="relative max-w-2xl w-full space-y-10">
       
-      {/* TÍTULO */}
-      <div className="space-y-2">
-        <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
-          Eu sou a <span className="text-blue-600">KAI</span>, sua copiloto de OKRs
-        </h1>
-        <p className="text-sm text-gray-500">
-          Me diga qual é o desafio do próximo ciclo e eu cuido do resto.
-        </p>
-      </div>
+      {(isAdmin || isChampion) ? (
 
-      {/* FORM */}
-        <form onSubmit={handleGenerate} className="space-y-5">
-          <div className="relative">
-            <textarea
-              value={context}
-              onChange={(e) => setContext(e.target.value)}
-              placeholder="Ex: Precisamos expandir nossa atuação no mercado B2B focando em empresas de médio porte. A meta é aumentar 30% da receita nos próximos 3 meses, melhorar a aquisição de clientes, reforçar nossa presença digital, ampliar o time de vendas e reduzir o ciclo de conversão em 20% sem perder qualidade...."
-              className="w-full text-xs h-36 text-sm p-4 rounded-xl bg-white resize-none shadow-[0_20px_50px_rgba(0,0,0,0.07)] focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-            />
-            <div className="absolute bottom-3 right-3 text-[10px] text-gray-400">
-              {context.length} / 350
-              {context.length < 350 && (
-                <span className="text-red-500 ml-2">Mínimo de 350</span>
-              )}
+      <>
+        {/* TÍTULO */}
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+            Eu sou a <span className="text-blue-600">KAI</span>, sua copiloto de OKRs
+          </h1>
+          <p className="text-sm text-gray-500">
+            Me diga qual é o desafio do próximo ciclo e eu cuido do resto.
+          </p>
+        </div>
+
+        {/* FORM */}
+          <form onSubmit={handleGenerate} className="space-y-5">
+            <div className="relative">
+              <textarea
+                value={context}
+                onChange={(e) => setContext(e.target.value)}
+                placeholder="Ex: Precisamos expandir nossa atuação no mercado B2B focando em empresas de médio porte. A meta é aumentar 30% da receita nos próximos 3 meses, melhorar a aquisição de clientes, reforçar nossa presença digital, ampliar o time de vendas e reduzir o ciclo de conversão em 20% sem perder qualidade...."
+                className="w-full text-xs h-36 text-sm p-4 rounded-xl bg-white resize-none shadow-[0_20px_50px_rgba(0,0,0,0.07)] focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+              />
+              <div className="absolute bottom-3 right-3 text-[10px] text-gray-400">
+                {context.length} / 350
+                {context.length < 350 && (
+                  <span className="text-red-500 ml-2">Mínimo de 350</span>
+                )}
+              </div>
             </div>
+
+            {/* Botão principal */}
+            <div className="w-full flex md:justify-center justify-start pt-2">
+            <button 
+              type="submit"
+              disabled={context.length < 350 || loading}
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 hover:shadow-xl transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+            >
+              <Sparkles className="w-4 h-4" />
+              {loading ? "Gerando..." : "Gerar com a KAI"}
+            </button>
           </div>
+          
 
-          {/* Botão principal */}
-          <div className="w-full flex md:justify-center justify-start pt-2">
-          <button 
-            type="submit"
-            disabled={context.length < 350 || loading}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 hover:shadow-xl transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-          >
-            <Sparkles className="w-4 h-4" />
-            {loading ? "Gerando..." : "Gerar com a KAI"}
-          </button>
-        </div>
-        
+          {/* Botão SECUNDÁRIO FORA do form */}
+          <div className="absolute right-2 bottom-2">
+            <button
+              type="button"
+              onClick={() => {
+                if (fromList) {
+                  window.dispatchEvent(new CustomEvent('closeGenerator'));
+                } else {
+                  onManualStart();
+                }
+              }}
+              className="text-xs text-gray-500 hover:text-blue-600 transition"
+            >
+              {fromList ? 'Voltar' : 'Criar Manualmente'} →
+            </button>
+          </div>
+          </form>
+          </>
+          ):(
+            <>
+            {/* TÍTULO */}
+              <div className="space-y-2">
+                <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+                Ainda não há <span className="text-blue-600">ciclos de OKRs</span> disponíveis.
+                </h1>
+                <p className="text-sm text-gray-500">
+                Fique tranquilo, seu Champion está preparando o próximo ciclo. Assim que estiver pronto, você poderá acompanhar os objetivos e contribuir com clareza e foco.
+                </p>
+              </div>
+            </>
+        )}
 
-        {/* Botão SECUNDÁRIO FORA do form */}
-        <div className="absolute right-2 bottom-2">
-          <button
-            type="button"
-            onClick={() => {
-              if (fromList) {
-                window.dispatchEvent(new CustomEvent('closeGenerator'));
-              } else {
-                onManualStart();
-              }
-            }}
-            className="text-xs text-gray-500 hover:text-blue-600 transition"
-          >
-            {fromList ? 'Voltar' : 'Criar Manualmente'} →
-          </button>
-        </div>
-        </form>
     </div>
   </div>
   

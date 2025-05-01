@@ -64,9 +64,11 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
   
   const { isAdmin, isChampion } = usePermissions();
 
+
+
   useEffect(() => {
     if (!organizationId || !cycleId) return;
-
+    
     setSelectedCycleId(cycleId);
 
     const loadEverything = async () => {

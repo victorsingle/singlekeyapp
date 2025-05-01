@@ -18,7 +18,9 @@ import { SubHeader } from '../components/SubHeader';
 import { OkrDetailsView } from '../components/okr/OkrDetailsView';
 import { OKRRelationMap } from './OKRRelationMap';
 
-
+// Btn Checlkin
+import { useNotificationStore } from '../stores/notificationStore'; 
+import { CheckinButton } from '../components/CheckinButton';
 
 interface CycleDetailPageProps {
   cycleId: string;
@@ -45,7 +47,9 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
   const [viewMode, setViewMode] = useState<'list' | 'graph'>('list');
   const [isCreating, setIsCreating] = useState(false); // <- controle de loading do botão
 
-  const organizationId = useAuthStore((s) => s.organizationId);
+  const { user, organizationId } = useAuthStore();
+
+  const { notifications } = useNotificationStore();
 
   useEffect(() => {
     if (!organizationId || !cycleId) return;
@@ -89,6 +93,13 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
       </div>
     );
   }
+  
+  const checkinNotification = notifications.find(
+    (n) =>
+      n.type === 'checkin_reminder' &&
+      !n.read &&
+      n.data?.cycle_id === cycle.id
+  );
 
   const okrsDoCiclo = allOKRs.filter((okr) => okr.cycle_id === cycleId);
   const linksDoCiclo = allLinks.filter((link) => {
@@ -183,7 +194,7 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
       )}
 
       {viewMode === 'graph' && (
-        <div className="fixed inset-0 z-[10] w-screen h-screen bg-white">
+        <div className="fixed inset-0 z-[30] w-screen h-screen bg-white">
           <ReactFlowProvider>
             <OKRRelationMap okrs={okrsDoCiclo} links={linksDoCiclo} />
           </ReactFlowProvider>
@@ -202,14 +213,11 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
           </button>
 
           {okrsDoCiclo.length > 0 && okrsDoCiclo.length > 0 && (
-          <button
-            onClick={() => console.log('Abrir check-in')}
-            disabled
-            className="flex items-center ml-2 px-4 py-2 bg-gray-200 text-gray-400 rounded text-sm cursor-not-allowed"
-          >
-            <Calendar className="w-4 h-4 mr-2" />
-            Realizar Check-in
-          </button>
+          <CheckinButton
+            cycleId={cycle.id}
+            userId={user?.id}
+            checkinNotification={checkinNotification}
+          />
           )}
 
         </div>

@@ -9,9 +9,15 @@ interface HeaderProps {
   session: any;
   onLogout: () => void;
   onMobileMenuOpen: () => void;
+  checkinNotification?: {
+    message: string;
+    data?: {
+      cycle_id: string;
+    };
+  } | null;
 }
 
-export function Header({ session, onLogout, onMobileMenuOpen }: HeaderProps) {
+export function Header({ session, onLogout, onMobileMenuOpen, checkinNotification  }: HeaderProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -45,7 +51,17 @@ export function Header({ session, onLogout, onMobileMenuOpen }: HeaderProps) {
   
   return (
     
-    <header className="w-full fixed z-[9999] backdrop-blur-md bg-white/30bg-white shadow-sm">
+    <header className="w-full fixed z-[20] backdrop-blur-md bg-white/30bg-white shadow-sm">
+      {checkinNotification && (
+        <div className="w-full bg-yellow-100 border-b border-yellow-300 text-yellow-800 px-4 py-2 text-sm font-medium text-center shadow-sm">
+          <Link
+            to={`/cycle/${checkinNotification.data?.cycle_id}`}
+            className="underline hover:text-yellow-600"
+          >
+            {checkinNotification.message}
+          </Link>
+        </div>
+      )}
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-10 py-4">
         
         {/* Logo */}

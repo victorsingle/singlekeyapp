@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useAuthStore } from '../../stores/authStore';
 import { useOKRStore } from '../../stores/okrStore';
 import { CycleProgress } from './CycleProgress';
 import { TypeProgress } from './TypeProgress';
@@ -11,7 +12,7 @@ import { supabase } from '../../lib/supabase';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { SubHeader } from '../SubHeader';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, ChevronDown } from 'lucide-react';
 import { useLocation, useNavigate, NavLink } from 'react-router-dom';
 
 
@@ -20,12 +21,13 @@ export function Dashboard() {
     cycles,
     selectedCycleId,
     setSelectedCycleId,
-    fetchCycles,
+    loadCycles,
+    loadOKRs,
     fetchOKRs,
-    fetchAllOKRs,
     okrs,
     keyResults,
     links,
+    loadAllOKRs,
   } = useOKRStore();
 
   const [panelOpen, setPanelOpen] = useState(false);
@@ -36,6 +38,9 @@ export function Dashboard() {
     setPanelTitle(title);
     setPanelOpen(true);
   };
+  
+  const { organizationId } = useAuthStore();
+
   const selectedCycle = cycles.find(c => c.id === selectedCycleId);
   const breadcrumbItems = [
     { label: 'Ciclos', href: '/cycles' },
@@ -46,39 +51,43 @@ export function Dashboard() {
   ];
   const navigate = useNavigate();
   const location = useLocation();
-  
-  useEffect(() => {
-    const loadCycles = async () => {
-      await fetchCycles();
 
-      const { data: cycles, error } = await supabase
-        .from('okr_cycles')
-        .select('id, start_date')
-        .order('start_date', { ascending: false });
+// [1] Carrega ciclos e define ciclo selecionado
+useEffect(() => {
+  if (!organizationId) return;
 
-      if (error || !cycles || cycles.length === 0) {
-        console.warn('[⚠️ Nenhum ciclo encontrado ou erro na busca]', error);
-        return;
-      }
+  const run = async () => {
+    await loadCycles(organizationId);
+    const freshCycles = useOKRStore.getState().cycles;
+    const first = freshCycles.at(-1);
 
-      if (!selectedCycleId) {
-        setSelectedCycleId(cycles[0].id);
-      }
-    };
-
-    loadCycles();
-  }, []);
-
-  useEffect(() => {
-    if (selectedCycleId) {
-      console.log('[🔁 selectedCycleId detectado no Dashboard]', selectedCycleId);
-      fetchOKRs(selectedCycleId);
+    if (first && !selectedCycleId) {
+      setSelectedCycleId(first.id);
     }
-  }, [selectedCycleId]);
 
-  useEffect(() => {
-    fetchAllOKRs();
-  }, []);
+    if (first) {
+      await loadOKRs(organizationId, first.id);
+    }
+  };
+
+  run();
+}, [organizationId]); // 🔥 reativo, executa somente quando organizationId estiver pronto
+
+
+// [2] Carrega todos os OKRs (usado no gráfico comparativo)
+useEffect(() => {
+  console.log('[🧪 useEffect - tentando carregar todos os OKRs]', { organizationId });
+
+  if (!organizationId) return;
+
+  const run = async () => {
+    console.log('[🧪 Chamando loadAllOKRs...]');
+    await loadAllOKRs(organizationId);
+  };
+
+  run();
+}, [organizationId]);
+
 
 
   // 📊 Matriz do Placar: montar dados e datas
@@ -128,7 +137,6 @@ export function Dashboard() {
               ? `${format(new Date(`${selectedCycle.start_date_text}T00:00:00`), "d 'de' MMMM 'de' yyyy", { locale: ptBR })} até ${format(new Date(`${selectedCycle.end_date_text}T00:00:00`), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}`
               : 'Período inválido'
           }
-          innerClassName="pb-6"
         />
       )}
   
@@ -157,18 +165,20 @@ export function Dashboard() {
           )}
   
           {selectedCycle && (
-            <div className="w-full md:w-auto ml-auto">
-              <select
-                className="border px-4 py-2 rounded-xl w-full md:w-auto"
-                value={selectedCycleId ?? ''}
-                onChange={(e) => setSelectedCycleId(e.target.value)}
-              >
-                <option value="" disabled>Selecione um ciclo</option>
-                {cycles.map(cycle => (
-                  <option key={cycle.id} value={cycle.id}>{cycle.name}</option>
-                ))}
-              </select>
-            </div>
+            <div className="relative w-full md:w-auto">
+            <select
+              className="appearance-none border px-4 py-2 pr-10 rounded-xl w-full"
+              value={selectedCycleId ?? ''}
+              onChange={(e) => setSelectedCycleId(e.target.value)}
+            >
+              <option value="" disabled>Selecione um ciclo</option>
+              {cycles.map(cycle => (
+                <option key={cycle.id} value={cycle.id}>{cycle.name}</option>
+              ))}
+            </select>
+          
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
+          </div>
           )}
         </div>
   

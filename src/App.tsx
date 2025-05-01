@@ -14,6 +14,7 @@ import { AuthCallback } from './components/auth/AuthCallback';
 import { supabase } from './lib/supabase';
 import clsx from 'clsx';
 import { useNotificationStore } from './stores/notificationStore';
+import { createNotificationIfNecessary } from './lib/notifications';
 import { Header } from './components/Header';
 import { UpdatePassword } from './components/auth/UpdatePassword';
 import { UsersPage } from './pages/admin/UsersPage';
@@ -99,64 +100,77 @@ function App() {
 
   useEffect(() => {
     if (session) {
-      console.log('[🆔 SESSION USER ID]', session.user.id);
-  
       useAuthStore.getState().fetchUserData(); // 🚨 Aqui chama para carregar o usuário!
-  
       fetchNotifications(session.user.id);
     }
   }, [session]);
 
-  useEffect(() => {
-    if (!session) return;
+// Checkin Lembrete
+useEffect(() => {
+  if (!session) return;
 
-    const fetchOrCreateCheckinNotification = async () => {
-      const today = new Date().toLocaleDateString('sv-SE');
+  const today = new Date().toLocaleDateString('sv-SE');
 
-      const { data: checkinData } = await supabase
-        .from('okr_checkins')
-        .select('checkin_date, cycle_id, okr_cycles(id, name)')
-        .eq('checkin_date', today)
-        .limit(1)
+  const checkReminder = async () => {
+    const { data: checkins, error } = await supabase
+      .from('okr_checkins')
+      .select('checkin_date, cycle_id')
+      .eq('checkin_date', today)
+      .limit(10);
+
+    if (error) {
+      console.error('[❌ Erro ao buscar check-ins do dia]', error);
+      return;
+    }
+
+    if (!checkins?.length) {
+      console.log('[ℹ️ Nenhum check-in programado para hoje]');
+      return;
+    }
+
+    for (const checkin of checkins) {
+      // Busca manual do ciclo
+      const { data: cycle, error: cycleError } = await supabase
+        .from('okr_cycles')
+        .select('id, name')
+        .eq('id', checkin.cycle_id)
         .maybeSingle();
 
-      if (!checkinData?.okr_cycles) return;
-
-      const cycle = checkinData.okr_cycles;
-
-      const { data: existing } = await supabase
-        .from('user_notifications')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .eq('type', 'checkin_reminder')
-        .eq('read', false);
-
-      const alreadyExists = existing?.some((n) => n.data?.cycle_id === cycle.id);
-
-      const { data: existingCheckins } = await supabase
-        .from('key_result_checkins')
-        .select('id')
-        .eq('user_id', session.user.id)
-        .eq('date', today)
-        .limit(1);
-
-      if (existingCheckins?.length) return;
-
-      if (!alreadyExists) {
-        await supabase.from('user_notifications').insert({
-          user_id: session.user.id,
-          type: 'checkin_reminder',
-          title: 'Lembrete de Check-in',
-          message: `Hoje é dia de Check-in do Ciclo ${cycle.name}. Clique e atualize suas métricas.`,
-          data: { cycle_id: cycle.id },
-          channel: ['app'],
-        });
-        fetchNotifications(session.user.id);
+      if (cycleError) {
+        console.error('[❌ Erro ao buscar ciclo do check-in]', cycleError);
+        continue;
       }
-    };
 
-    fetchOrCreateCheckinNotification();
-  }, [session]);
+      if (!cycle) continue;
+
+      await createNotificationIfNecessary({
+        userId: session.user.id,
+        type: 'checkin_reminder',
+        dataCheckKey: 'cycle_id',
+        cycleId: cycle.id,
+        title: 'Lembrete de Check-in',
+        buildMessage: () =>
+          `Hoje é dia de Check-in do Ciclo ${cycle.name}. Clique e atualize suas métricas.`,
+        checkIfActionDone: async () => {
+          const { data } = await supabase
+            .from('key_result_checkins')
+            .select('id')
+            .eq('user_id', session.user.id)
+            .eq('date', today)
+            .limit(1);
+          return !!data?.length;
+        },
+      });
+    }
+
+    // Atualiza a store com notificações atualizadas
+    useNotificationStore.getState().fetchNotifications(session.user.id);
+  };
+
+  checkReminder();
+}, [session]);
+
+
 
   if (!isAuthChecked) {
     return (
@@ -179,25 +193,20 @@ function App() {
 
  return (
   <>
-    <Toaster position="top-right" reverseOrder={false} />
-    <div className="min-h-screen bg-gray-50">
-      {checkinNotification && (
-        <div className="w-full bg-yellow-100 border-b border-yellow-300 text-yellow-800 px-4 py-2 text-sm font-medium text-center shadow-sm">
-          <Link
-            to={`/cycle/${checkinNotification.data?.cycle_id}`}
-            className="underline hover:text-yellow-600"
-          >
-            {checkinNotification.message}
-          </Link>
-        </div>
-      )}
 
+  <Toaster
+    position="top-right"
+    reverseOrder={false}
+  />
+    <div className="min-h-screen bg-gray-50">
+      
       {!isPublicRoute && (
         <>
           <Header
             session={session}
             onLogout={handleLogout}
             onMobileMenuOpen={() => setShowMobileMenu(true)}
+            checkinNotification={checkinNotification}
           />
 
           <div
@@ -286,7 +295,12 @@ function App() {
         </>
       )}
 
-      <main className={clsx({ 'pt-[60px]': !isPublicRoute })}>
+      <main  
+        className={clsx({
+            'pt-[60px]': !isPublicRoute && !checkinNotification,
+            'pt-[96px]': !isPublicRoute && checkinNotification, // aumenta para compensar a notificação
+          })}
+          >
       <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<AuthTabs />} />

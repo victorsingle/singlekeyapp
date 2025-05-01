@@ -79,7 +79,7 @@ export function CycleCard({
                 </button>
                 }
             >
-                {onView && <DropdownMenuItem onClick={onView}>Visualizar</DropdownMenuItem>}
+                {onView && <DropdownMenuItem onClick={onView}>Visualizar OKRs</DropdownMenuItem>}
                 {canEdit && onEdit && <DropdownMenuItem onClick={onEdit}>Editar</DropdownMenuItem>}
                 {canDelete && onDelete && (
                 <DropdownMenuItem onClick={onDelete} className="text-red-600">

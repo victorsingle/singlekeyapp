@@ -31,12 +31,7 @@ export function DetailPanel({ title, type, onClose }: DetailPanelProps) {
   } else if (['high', 'medium', 'low'].includes(type)) {
     krsToShow = cycleKRs.filter((kr) => {
       const flag = kr.confidence_flag ?? getLatestCheckin(kr)?.confidence_flag ?? null;
-
-      if (type === 'high') return flag === 'green';
-      if (type === 'medium') return flag === 'yellow';
-      if (type === 'low') return flag === 'red';
-
-      return false;
+      return flag === type;
     });
   } else {
     // Exibe todos os KRs se o tipo não for reconhecido
@@ -45,9 +40,9 @@ export function DetailPanel({ title, type, onClose }: DetailPanelProps) {
 
   // Cor baseada na flag de confiança
   const getColorByConfidence = (flag: string | null | undefined) => {
-    if (flag === 'green') return 'bg-green-500';
-    if (flag === 'yellow') return 'bg-yellow-400';
-    if (flag === 'red') return 'bg-red-500';
+    if (flag === 'high') return 'bg-green-500';
+    if (flag === 'medium') return 'bg-yellow-400';
+    if (flag === 'low') return 'bg-red-500';
     return 'bg-gray-300';
   };
 
@@ -61,7 +56,7 @@ export function DetailPanel({ title, type, onClose }: DetailPanelProps) {
 
       {/* Painel lateral */}
       <div className="fixed inset-0 z-50 flex justify-end !mt-0">
-        <div className="h-full w-96 bg-white shadow-lg flex flex-col">
+        <div className="h-[calc(100%-64px)] mt-[64px] w-96 bg-white shadow-lg flex flex-col">
           <div className="flex items-center justify-between border-b border-gray-200 p-4">
             <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
             <button

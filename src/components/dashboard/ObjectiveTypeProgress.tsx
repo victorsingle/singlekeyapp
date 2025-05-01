@@ -36,8 +36,11 @@ export function ObjectiveTypeProgress({ onTypeClick }: ObjectiveTypeProgressProp
 
     // Média dos progressos dos KRs de cada objetivo
     const total = filtered.reduce((sum, okr) => {
-      const krTotal = okr.keyResults.reduce((ksum: number, kr: any) => ksum + (kr.progress ?? 0), 0);
-      const krAvg = okr.keyResults.length > 0 ? krTotal / okr.keyResults.length : 0;
+      const krList = Array.isArray(okr.keyResults) ? okr.keyResults : [];
+    
+      const krTotal = krList.reduce((ksum: number, kr: any) => ksum + (kr.progress ?? 0), 0);
+      const krAvg = krList.length > 0 ? krTotal / krList.length : 0;
+    
       return sum + krAvg;
     }, 0);
 

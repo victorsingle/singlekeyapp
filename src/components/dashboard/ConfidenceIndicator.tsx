@@ -17,9 +17,10 @@ export function ConfidenceIndicator({ onConfidenceClick }: ConfidenceIndicatorPr
     .flatMap(okr => okr.keyResults ?? []);
 
   // Agrupamento direto por confidence_flag (sem usar checkins)
-  const highConfidence = cycleKRs.filter(kr => kr.confidence_flag === 'green').length;
-  const mediumConfidence = cycleKRs.filter(kr => kr.confidence_flag === 'yellow').length;
-  const lowConfidence = cycleKRs.filter(kr => kr.confidence_flag === 'red').length;
+
+  const highConfidence = cycleKRs.filter(kr => kr.confidence_flag === 'high').length;
+  const mediumConfidence = cycleKRs.filter(kr => kr.confidence_flag === 'medium').length;
+  const lowConfidence = cycleKRs.filter(kr => kr.confidence_flag === 'low').length;
 
   const total = highConfidence + mediumConfidence + lowConfidence;
 

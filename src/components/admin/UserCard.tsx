@@ -26,7 +26,7 @@ export function UserCard({
   
     return (
       <div className="relative bg-white rounded-md p-4 shadow-sm border">
-        <div className="flex h-full justify-between items-start">
+        <div className="flex h-full justify-between items-center">
             <div className="flex items-center gap-4">
                 {/* Avatar */}
                 <div className="w-20 h-20 flex items-center justify-center rounded-full bg-blue-100 text-blue-700 font-semibold text-lg uppercase">
@@ -46,12 +46,12 @@ export function UserCard({
             </div>
   
           <div className="flex items-center gap-2">
-            <span className={`text-xs px-2 py-0.5 rounded-full ${statusColor}`}>
+            <span className={`text-xs px-2 rounded-full ${statusColor}`}>
               {status}
             </span>
             <DropdownMenu
               trigger={
-                <button className="text-gray-400 hover:text-gray-600">
+                <button className="text-gray-400 hover:text-gray-600 mt-2">
                   <MoreVertical className="w-5 h-5" />
                 </button>
               }

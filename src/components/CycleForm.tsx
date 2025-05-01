@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/authStore';
+import { clearOutdatedCheckinReminder } from '../lib/notifications';
+
 
 
 //Mudou
@@ -131,6 +133,8 @@ const handleSubmit = async (e: React.FormEvent) => {
         return;
       }
     }
+
+    await clearOutdatedCheckinReminder(cycleId, userId);
 
     onSubmit();
   } catch (error) {

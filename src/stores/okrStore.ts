@@ -32,6 +32,7 @@ export const useOKRStore = create((set, get) => ({
   loading: false,
   error: null,
   selectedCycleId: null,
+  expandedIds: [],
 
 
   // Novo estado de expandido
@@ -105,14 +106,59 @@ export const useOKRStore = create((set, get) => ({
 
   loadOKRs: async (organizationId, cycleId = null) => {
     set({ loading: true });
+  
     try {
       const okrs = await fetchOKRs(organizationId, cycleId);
-      set({ okrs, loading: false });
+  
+      const okrsWithKRs = await Promise.all(okrs.map(async (okr) => {
+        const keyResults = await fetchKeyResults(okr.id);
+        return { ...okr, keyResults };
+      }));
+  
+      set({ okrs: okrsWithKRs, loading: false });
+      console.log('[🧠 set okrs]', okrsWithKRs);
     } catch (error) {
-      console.error(error);
+      console.error('[❌] Erro ao carregar OKRs e seus KRs:', error);
       set({ error: error.message, loading: false });
     }
   },
+
+  loadAllOKRs: async (organizationId) => {
+    if (!organizationId) {
+      console.warn('[❌] Organização não definida.');
+      return;
+    }
+  
+    const { data: okrs, error: okrError } = await supabase
+      .from('okrs')
+      .select('*')
+      .eq('organization_id', organizationId);
+  
+    if (okrError || !okrs?.length) {
+      console.error('[❌] Erro ao buscar OKRs:', okrError?.message);
+      set({ allOkrs: [] });
+      return;
+    }
+  
+    const okrIds = okrs.map(o => o.id);
+  
+    const { data: keyResults, error: krError } = await supabase
+      .from('key_results')
+      .select('*')
+      .in('okr_id', okrIds);
+  
+    if (krError) {
+      console.error('[❌] Erro ao buscar Key Results:', krError.message);
+    }
+  
+    const okrsWithKRs = okrs.map(okr => ({
+      ...okr,
+      keyResults: keyResults?.filter(kr => kr.okr_id === okr.id) ?? [],
+    }));
+  
+    console.log('[✅ allOkrs com KRs]', okrsWithKRs);
+    set({ allOkrs: okrsWithKRs });
+  },  
 
   updateOKR: async (okrId, updates) => {
     const updatedOKR = await updateOKRService(okrId, updates);
@@ -251,7 +297,22 @@ export const useOKRStore = create((set, get) => ({
     }
   },
 
- expandedIds: [] as string[],
+//Acompanhamento
+
+getCycleAverageProgress: (cycleId) => {
+  const okrs = get().okrs.filter(o => o.cycle_id === cycleId);
+  if (!okrs.length) return 0;
+
+  const total = okrs.reduce((okrSum, okr) => {
+    const krList = Array.isArray(okr.keyResults) ? okr.keyResults : [];
+    const krSum = krList.reduce((sum, kr) => sum + (kr.progress ?? 0), 0);
+    const krAvg = krList.length > 0 ? krSum / krList.length : 0;
+    return okrSum + krAvg;
+  }, 0);
+
+  return Math.round(total / okrs.length);
+},
+
 
 toggleExpand: (okrId: string) => set((state) => ({
   expandedIds: state.expandedIds.includes(okrId)
@@ -259,8 +320,7 @@ toggleExpand: (okrId: string) => set((state) => ({
     : [...state.expandedIds, okrId]
 })),
 
-  // 🆕 Novo método correto aqui dentro
-  addOKR: (okr) => set((state) => ({
-    okrs: [...state.okrs, okr],
-  })),
+addOKR: (okr) => set((state) => ({
+  okrs: [...state.okrs, okr],
+}))
 }));

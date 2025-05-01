@@ -116,35 +116,35 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false, fromLis
           </div>
 
           {/* Botão principal */}
-          <div className="flex justify-center pt-2">
-            <button 
-              type="submit"
-              disabled={context.length < 350 || loading}
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 hover:shadow-xl transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-            >
-              <Sparkles className="w-4 h-4" />
-              {loading ? "Gerando..." : "Gerar com a KAI"}
-            </button>
-          </div>
-        </form>
+          <div className="w-full flex md:justify-center justify-start pt-2">
+          <button 
+            type="submit"
+            disabled={context.length < 350 || loading}
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 hover:shadow-xl transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+          >
+            <Sparkles className="w-4 h-4" />
+            {loading ? "Gerando..." : "Gerar com a KAI"}
+          </button>
+        </div>
+        
 
         {/* Botão SECUNDÁRIO FORA do form */}
         <div className="absolute right-2 bottom-2">
-        <button
-          type="button"
-          onClick={() => {
-            if (fromList) {
-              window.dispatchEvent(new CustomEvent('closeGenerator'));
-            } else {
-              onManualStart();
-            }
-          }}
-          className="text-xs text-gray-500 hover:text-blue-600 transition"
-        >
-          {fromList ? 'Voltar' : 'Criar Manualmente'} →
-        </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (fromList) {
+                window.dispatchEvent(new CustomEvent('closeGenerator'));
+              } else {
+                onManualStart();
+              }
+            }}
+            className="text-xs text-gray-500 hover:text-blue-600 transition"
+          >
+            {fromList ? 'Voltar' : 'Criar Manualmente'} →
+          </button>
         </div>
-
+        </form>
     </div>
   </div>
   

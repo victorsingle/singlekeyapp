@@ -135,7 +135,7 @@ export function UpdatePassword() {
           <div className="flex justify-center">
             <Target className="h-12 w-12 text-blue-600 mx-auto" />
           </div>
-          <h2 className="mt-4 text-2xl font-extrabold text-gray-900">SingleKey</h2>
+          <h2 className="mt-4 text-2xl font-extrabold text-gray-900">SingleKey <sup class="text-xs text-gray-400">(Beta)</sup></h2>
           <p className="mt-2 text-xs text-gray-600">
             Insira sua nova senha abaixo
           </p>

@@ -72,7 +72,7 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
         <div className="flex items-center space-x-2">
           <Link to="/" className="flex items-center space-x-2">
             <Target className="w-8 h-8 text-blue-600" />
-            <h1 className="text-lg font-bold text-gray-800">SingleKey</h1>
+            <h1 className="text-lg font-bold text-gray-800">SingleKey <sup class="text-xs text-gray-400">(Beta)</sup></h1>
           </Link>
         </div>
 

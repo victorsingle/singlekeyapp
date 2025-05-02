@@ -16,7 +16,7 @@ export function AuthTabs() {
         <div className="mx-auto w-full max-w-md">
           <div className="flex items-center justify-center mb-6">
             <Target className="h-8 w-8 text-blue-600 -ml-6" />
-            <h1 className="text-2xl font-bold text-gray-900 ml-2">SingleKey</h1>
+            <h1 className="text-2xl font-bold text-gray-900 ml-2">SingleKey <sup class="text-xs text-gray-400 ml-1">(Beta)</sup></h1>
           </div>
           <div className="bg-white px-6 shadow-xl rounded-lg">
             <PersonalForm />
@@ -32,7 +32,7 @@ export function AuthTabs() {
         <div className="mx-auto  max-w-md">
           <div className="flex items-center justify-center bg-gray-50 mb-4">
             <Target className="h-8 w-8 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-900 ml-2">SingleKey</h1>
+            <h1 className="text-2xl font-bold text-gray-900 ml-2">SingleKey <sup class="text-xs text-gray-400">(Beta)</sup></h1>
           </div>
           <div className="max-w-sm flex flex-col justify-center items-center bg-white py-4 px-6 shadow-xl rounded-lg">
             <CompanyForm />

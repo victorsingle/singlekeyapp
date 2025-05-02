@@ -603,6 +603,12 @@ generateFullOKRStructure: async (prompt: string) => {
   await get().loadOKRs(organizationId, cicloId);
   await get().fetchLinks(organizationId);
 
+  // Após carregar os OKRs
+  const novosIds = okrs.map(o => o._generatedId).filter(Boolean);
+  set((state) => ({
+    expandedIds: [...new Set([...state.expandedIds, ...novosIds])]
+  }));
+
   return cicloId;
 },
 

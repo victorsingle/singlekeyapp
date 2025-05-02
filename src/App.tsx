@@ -24,6 +24,7 @@ import { TeamDetailPage } from './pages/admin/TeamDetailPage';
 import { AcceptInvitePage } from './components/auth/AcceptInvitePage';
 import { useCycleStore } from './stores/okrCycleStore';
 import { GuidePage } from './pages/GuidePage';
+import { LandingPage } from './pages/site'; 
 import { useCurrentCompany } from './hooks/useCurrentCompany';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -58,6 +59,7 @@ function App() {
     '/update-password',
     '/auth/callback',
     '/convite',
+    '/site',
   ];
   const isPublicRoute =
     publicPaths.includes(location.pathname) ||
@@ -329,6 +331,7 @@ if (!isAuthChecked) {
             'pt-[96px]': !isPublicRoute && checkinNotification,
           })}>
       <Routes>
+        <Route path="/site" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<AuthTabs />} />
         <Route path="/reset-password" element={<ResetPassword />} />

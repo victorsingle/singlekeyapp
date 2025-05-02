@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 import clsx from 'clsx';
 import { useOKRStore } from '../stores/okrStore';
 import { usePermissions } from '../hooks/usePermissions';
+import { GenerateOKRButton } from './GenerateOKRButton';
 
 interface OKRGeneratorProps {
   onFinish: (cycleId: string) => void;
@@ -14,34 +15,14 @@ interface OKRGeneratorProps {
 
 export function OKRGenerator({ onFinish, onManualStart, isModal = false, fromList = false }: OKRGeneratorProps) {
   const [context, setContext] = useState('');
-  const [loading, setLoading] = useState(false);
   const minChars = 350;
   const { generateFullOKRStructure } = useOKRStore();
 
 const { isAdmin, isChampion } = usePermissions();
 
-  const handleGenerate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const cycleId = await generateFullOKRStructure(context);
-      toast.success('OKRs gerados com sucesso!');
-      setContext('');
-      onFinish(cycleId);
-    } catch (error) {
-      console.error('Erro ao gerar estrutura completa:', error);
-      toast.error('Erro ao gerar OKRs.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // 💡 Controla animação do ícone com base em estado
-  const avatarAnimation = loading
-    ? 'animate-pulse'
-    : context.length === 0
-    ? 'animate-bounce'
-    : '';
+  const avatarAnimation = context.length === 0 ? 'animate-bounce' : '';
 
   return isModal ? (
     <section className="w-full max-w-2xl mx-auto bg-white m-5 mt-0">
@@ -56,7 +37,7 @@ const { isAdmin, isChampion } = usePermissions();
       </div>
       </div>
 
-      <form onSubmit={handleGenerate} className="space-y-4">
+      <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
         <textarea
           value={context}
           onChange={(e) => setContext(e.target.value)}
@@ -105,7 +86,7 @@ const { isAdmin, isChampion } = usePermissions();
         </div>
 
         {/* FORM */}
-          <form onSubmit={handleGenerate} className="space-y-5">
+        <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
             <div className="relative">
               <textarea
                 value={context}
@@ -123,15 +104,17 @@ const { isAdmin, isChampion } = usePermissions();
 
             {/* Botão principal */}
             <div className="w-full flex md:justify-center justify-start pt-2">
-            <button 
-              type="submit"
-              disabled={context.length < 350 || loading}
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 hover:shadow-xl transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-            >
-              <Sparkles className="w-4 h-4" />
-              {loading ? "Gerando..." : "Gerar com a KAI"}
-            </button>
-          </div>
+            <GenerateOKRButton
+                disabled={context.length < minChars}
+                onGenerate={async () => {
+                  const cycleId = await generateFullOKRStructure(context);
+                  toast.success('OKRs gerados com sucesso!');
+                  setContext('');
+                  onFinish(cycleId);
+                }}
+                className="flex items-center justify-center gap-2 py-2.5 px-4 rounded text-white font-medium bg-blue-600 hover:bg-blue-700 transition shadow-md"
+              />
+            </div>
           
 
           {/* Botão SECUNDÁRIO FORA do form */}

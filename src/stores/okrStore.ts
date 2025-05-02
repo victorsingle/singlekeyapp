@@ -5,6 +5,7 @@ import { deleteOKR as deleteOKRService } from '../services/okrService';
 import { useAuthStore } from './authStore'; 
 import OpenAI from 'openai';
 import { toast } from 'react-hot-toast';
+import { Loader2 } from 'lucide-react';
 
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_OPENAI_API_KEY, // ou chave fixa se for teste

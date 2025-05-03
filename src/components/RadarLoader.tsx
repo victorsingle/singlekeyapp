@@ -12,6 +12,9 @@ const LogoBuildLoader = () => {
           style={{
             width: `${size}px`,
             height: `${size}px`,
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
             animationDelay: `${i * 100}ms`,
             animationDuration: '1.8s',
             animationIterationCount: 'infinite',

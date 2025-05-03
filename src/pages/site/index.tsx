@@ -47,7 +47,7 @@ export function LandingPage() {
               Crie e acompanhe OKRs com foco e clareza
             </h2>
             <p className="text-sm text-gray-700 mb-10 leading-relaxed">
-              O SingleKey e KAI, nossa agente de IA, ajudam sua equipe a transformar estratégia em execução.
+              O SingleKey e a KAI, nossa agente de IA, ajudam sua equipe a organizar e materializar sua estratégia.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -91,15 +91,15 @@ export function LandingPage() {
             {[{
               icon: <MessageSquareText className="w-20 h-20 text-blue-600" />,
               title: 'Contexto → Objetivos',
-              description: 'Descreva seu foco e a IA gera objetivos alinhados automaticamente.'
+              description: 'Descreva a necessidade e contexto e a KAI gera os OKRs para seu time.'
             }, {
               icon: <Goal className="w-20 h-20 text-blue-600" />,
               title: 'Resultados-Chave Inteligentes',
-              description: 'Métricas claras, acompanhadas com sugestões e check-ins periódicos.'
+              description: 'Métricas claras, acionáveis e ciclos com controles e check-ins periódicos.'
             }, {
               icon: <Gauge className="w-20 h-20 text-blue-600" />,
               title: 'Acompanhamento fluido',
-              description: 'Dashboard, evolução e histórico em uma interface leve e de fácil navegação.'
+              description: 'Dashboard, evolução e histórico em uma interface leve e de fácil de usar.'
             }].map((item, index) => (
               <motion.div
                 key={index}
@@ -141,17 +141,17 @@ export function LandingPage() {
             }, {
               icon: <Clock className="w-8 h-8 text-blue-600" />,
               title: 'Economia de tempo no planejamento',
-              description: 'Planeje rápido, execute melhor.',
+              description: 'Planeje rápido e mais foco nas iniciatias.',
               color: 'bg-blue-600 text-white'
             }, {
               icon: <Sparkles className="w-8 h-8 text-blue-600" />,
               title: 'IA aplicada à gestão de metas',
-              description: 'Metas inteligentes, sem esforço.',
+              description: 'Indicadores organizados e bem definidas.',
               color: 'bg-blue-600 text-white'
             }, {
               icon: <CheckCircle className="w-8 h-8 text-blue-600" />,
               title: 'Pronto para rodar em minutos',
-              description: 'Sem curva de aprendizado.',
+              description: 'Fácil onboarding e baixa curva de aprendizado.',
               color: 'bg-blue-600 text-white'
             }].map((benefit, index) => (
               <motion.div
@@ -184,9 +184,9 @@ export function LandingPage() {
           className="max-w-4xl mx-auto text-center"
         >
           <h2 className="text-3xl font-bold mb-2 text-white">
-            Pronto aumentar os resultados da sua equipe?
+            Pronto aumentar os resultados da sua empresa?
           </h2>
-          <p className="text-sm text-white mb-10">Clique e leve mais eficiênica e eficácia pra sua empresa.</p>
+          <p className="text-sm text-white mb-10">Clique e leve mais eficiênica e eficácia para o seu time.</p>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link
               to="/register"

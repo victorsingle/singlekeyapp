@@ -99,7 +99,7 @@ export function LandingPage() {
             }, {
               icon: <Gauge className="w-20 h-20 text-blue-600" />,
               title: 'Acompanhamento fluido',
-              description: 'Alertas, progresso e histórico em uma interface leve e contextual.'
+              description: 'Dashboard, evolução e histórico em uma interface leve e de fácil navegação.'
             }].map((item, index) => (
               <motion.div
                 key={index}

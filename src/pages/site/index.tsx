@@ -30,7 +30,7 @@ export function LandingPage() {
   return (
     <div className="min-h-screen bg-white text-gray-900 overflow-hidden">
       {/* Hero Section */}
-      <section className="relative px-6 py-32 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
+      <section className="relative px-6 py-28 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
         <div className="relative max-w-4xl mx-auto text-center">
           <motion.div
             initial="hidden"
@@ -54,7 +54,7 @@ export function LandingPage() {
                 <Link 
                   to="/register"
                   target="_blank"
-                  className="inline-flex items-center px-8 py-4 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl"
+                  className="w-full sm:w-auto sm:max-w-max inline-flex items-center px-8 py-4 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl"
                 >
                   <Target className="w-5 h-5 mr-2" />
                   Criar conta gratuita
@@ -64,7 +64,7 @@ export function LandingPage() {
               <Link 
                   to="/login"
                   target="_blank"
-                  className="inline-flex ml-4 items-center px-8 py-4 bg-gray-100 text-blue-600 rounded-full font-medium hover:bg-blue-200 hover:text-blue-900 transition-all shadow-lg hover:shadow-xl"
+                  className="w-full sm:w-auto sm:max-w-max inline-flex ml-0 sm:ml-4 items-center px-8 py-4 bg-white text-blue-600 rounded-full font-medium hover:bg-blue-200 hover:text-blue-900 transition-all shadow-lg hover:shadow-xl"
                 >
                   Já tenho uma conta
                 </Link>

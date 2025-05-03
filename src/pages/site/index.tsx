@@ -30,7 +30,7 @@ export function LandingPage() {
   return (
     <div className="min-h-screen bg-white text-gray-900 overflow-hidden">
       {/* Hero Section */}
-      <section className="relative px-6 py-28 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
+      <section className="relative px-6 py-20 sm:py-36 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
         <div className="relative max-w-4xl mx-auto text-center">
           <motion.div
             initial="hidden"

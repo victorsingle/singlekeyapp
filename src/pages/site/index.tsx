@@ -292,8 +292,12 @@ export function LandingPage() {
             transition={{ duration: 0.8 }}
             className="text-3xl font-bold mb-12"
           >
-          <h2 className="text-3xl font-bold mb-4">Planos sob medida</h2>
-          <div className="w-24 h-1 bg-blue-600 mx-auto"></div>
+          <h2 className="text-3xl font-bold mb-4">Para você crescer com direção</h2>
+          <div className="max-w-2xl font-normal text-gray-600 text-base md:text-lg py-2 mx-auto text-center">
+            <p>
+              SingleKey é uma ferramenta ideal para negócios que têm metas, gente trabalhando duro e precisam de foco pra avançar. Assine já!
+            </p>
+          </div>
           </motion.h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

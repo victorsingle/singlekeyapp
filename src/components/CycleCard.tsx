@@ -29,15 +29,15 @@ export function CycleCard({
   canDelete = true,
 }: CycleCardProps) {
   const borderColor = {
-    draft: "border-l-yellow-400",
-    active: "border-l-green-500",
-    completed: "border-l-gray-400",
+    draft: "border-l-blue-400",
+    active: "border-l-yellow-500",
+    completed: "border-l-green-400",
   }[status];
 
   const badgeColor = {
-    draft: "bg-yellow-100 text-yellow-800",
-    active: "bg-green-100 text-green-800",
-    completed: "bg-gray-100 text-gray-700",
+    draft: "bg-blue-100 text-blue -800",
+    active: "bg-yellow-100 text-yellow-800",
+    completed: "bg-green-100 text-green-700",
   }[status];
 
   const label = {

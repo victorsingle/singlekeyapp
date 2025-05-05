@@ -37,7 +37,7 @@ export function Modal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4 py-8">
-      <div className={`w-full max-w-lg rounded-lg shadow-xl overflow-hidden ${bg}`}>
+      <div className={`w-full max-w-lg mx-4 rounded-lg shadow-xl overflow-hidden ${bg}`}>
         <div className="px-6 py-5 sm:p-6">
           <div className="flex items-start justify-between">
             <h3 className={`text-lg font-semibold ${titleColor}`}>

@@ -314,7 +314,7 @@ export function LandingPage() {
                 "Dashboard básico",
                 "Uso IA (10 mil unidades texto/mês)"
               ],
-              cta: "Assinar Basic",
+              cta: "Assinar",
               highlighted: false
             }, {
               name: "Premium",
@@ -330,7 +330,7 @@ export function LandingPage() {
                 "Placar de Checkins",
                 "Uso IA (100 mil unidades texto/mês)"
               ],
-              cta: "Assinar Plus",
+              cta: "Assinar",
               highlighted: true
             }, {
               name: "Enterprise",
@@ -347,7 +347,7 @@ export function LandingPage() {
                 "Resultados por Times",
                 "Uso IA (200 mil unidades texto/mês)"
               ],
-              cta: "Assinar Premium",
+              cta: "Assinar",
               highlighted: false
             }].map((plan, index) => (
               <motion.div

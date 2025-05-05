@@ -43,8 +43,8 @@ export function LandingPage() {
             <h1 className="text-5xl !text-black font-bold py-2 mb-10 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
               SingleKey <sup class="text-xs text-gray-400">Beta</sup>
             </h1>
-            <h2 className="text-6xl font-bold bg-clip-text py-3 text-transparent bg-gradient-to-r from-blue-600 to-indigo-900 tracking-tighter">
-              Estratégia agora é simples
+            <h2 className="text-5xl font-bold bg-clip-text py-3 text-transparent bg-gradient-to-r from-blue-600 to-indigo-900 tracking-tighter">
+              Estratégia do jeito simples
             </h2>
             <p className="text-xl text-gray-700 mb-10 leading-relaxed">
              Alinhe seu time e organize seus indicadores de resultados com a KAI, sua IA de gestão.

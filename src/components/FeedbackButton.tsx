@@ -61,7 +61,7 @@ export function FeedbackButton() {
         <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-80 space-y-3">
           <textarea
             className="w-full h-24 p-2 border rounded resize-none text-sm"
-            placeholder="Digite seu feedback..."
+            placeholder="Digite seu feedback e nos diga o que ainda precisamos melhorar ;)"
             maxLength={500}
             value={message}
             onChange={(e) => setMessage(e.target.value)}

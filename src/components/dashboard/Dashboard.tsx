@@ -66,18 +66,20 @@ useEffect(() => {
   const run = async () => {
     await loadCycles(organizationId);
     const freshCycles = useOKRStore.getState().cycles;
-    const first = freshCycles.at(-1);
+
+    // Procura o ciclo ativo primeiro
+    const activeCycle = freshCycles.find(cycle => cycle.status === 'active');
+    const first = activeCycle ?? freshCycles.at(-1);
 
     if (first) {
-      setSelectedCycleId(first.id); // garante que UI responde
-    
-      await loadOKRs(organizationId, first.id);     // carrega OKRs
-      await loadPlacarData(organizationId, first.id); // carrega placar no mesmo fluxo!
+      setSelectedCycleId(first.id);
+      await loadOKRs(organizationId, first.id);
+      await loadPlacarData(organizationId, first.id);
     }
   };
 
   run();
-}, [organizationId]); // 🔥 reativo, executa somente quando organizationId estiver pronto
+}, [organizationId]);
 
 
 // [2] Carrega todos os OKRs (usado no gráfico comparativo)
@@ -94,7 +96,16 @@ useEffect(() => {
   run();
 }, [organizationId]);
 
+useEffect(() => {
+  if (!organizationId || !selectedCycleId) return;
 
+  const run = async () => {
+    await loadOKRs(organizationId, selectedCycleId);       // carrega OKRs do ciclo selecionado
+    await loadPlacarData(organizationId, selectedCycleId); // carrega placar do ciclo selecionado
+  };
+
+  run();
+}, [organizationId, selectedCycleId]);
 
 // 📊 Matriz do Placar: montar dados e datas
 const placarData = useDashboardStore(state => state.placarData);

@@ -34,7 +34,7 @@ export function ConfidenceIndicator({ onConfidenceClick }: ConfidenceIndicatorPr
 
   return (
     <div className="bg-white rounded-2xl shadow-md p-6 h-full">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">Nível de Confiança</h2>
+      <h2 className="text-xl font-semibold text-gray-900 mb-6">Confiança</h2>
 
       <div className="flex justify-around w-full">
         {blocks.map(({ level, label, color, value }) => (

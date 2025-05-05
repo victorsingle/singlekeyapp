@@ -103,7 +103,7 @@ export function ObjectiveTypeProgress({ onTypeClick }: ObjectiveTypeProgressProp
     <div className="bg-white rounded-2xl shadow-md p-6 min-h-[280px]">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold text-gray-900 whitespace-nowrap">
-          Progresso por Tipo
+          Progresso por Nível
         </h2>
       </div>
       <div style={{ height: '180px' }}>

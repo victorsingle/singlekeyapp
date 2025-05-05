@@ -6,6 +6,7 @@ import clsx from 'clsx';
 import { useCycleStore } from '../stores/okrCycleStore'; 
 import { useAuthStore } from '../stores/authStore';
 import { usePermissions } from '../hooks/usePermissions';
+import { useTokenUsage } from "../hooks/useTokenUsage";
 
 interface HeaderProps {
   session: any;
@@ -19,6 +20,15 @@ interface HeaderProps {
   } | null;
 }
 
+interface MobileSidebarProps {
+  tokenUsage: {
+    usado: number;
+    limite: number;
+    percentual: number;
+    isLoading: boolean;
+  };
+}
+
 export function Header({ session, onLogout, onMobileMenuOpen, checkinNotification  }: HeaderProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -29,6 +39,9 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
   const { cycles } = useCycleStore();
   const hasCycles = cycles && cycles.length > 0;
   const { isAdmin, isChampion } = usePermissions();
+
+  const { usado, limite, percentual, isLoading } = useTokenUsage();
+  console.log({ usado, limite, percentual });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -130,37 +143,24 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
                 </div>
               )}
 
+              {/* Uso do Token */}
+              {!isLoading && limite > 0 && (
+              <div className="px-4 py-4 text-[11px] text-gray-600 border-b border-gray-200">
+                <div className="flex justify-between mb-1">
+                  <span className="font-semibold text-gray-400">Uso da IA</span>
+                  <span>{new Intl.NumberFormat('pt-BR').format(usado)} / {new Intl.NumberFormat('pt-BR').format(limite)}</span>
+                </div>
+                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-blue-400 transition-all duration-300"
+                    style={{ width: `${percentual}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
               <ul className="py-1">
           
-                {/* BLOCO: PERFIL 
-                <li>
-                  <button
-                    onClick={() => {
-                      navigate('/profile');
-                      setShowDropdown(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                  >
-                    <User className="w-4 h-4 text-gray-500" />
-                    Meu Perfil
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => {
-                      navigate('/settings');
-                      setShowDropdown(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                  >
-                    <Settings className="w-4 h-4 text-gray-500" />
-                    Configurações
-                  </button>
-                </li>
-          
-                <li><hr className="my-1 border-t border-gray-200" /></li>
-                */}
-
                 {/* BLOCO: ADMINISTRAÇÃO */}
 
                 {(isAdmin) && (
@@ -177,26 +177,7 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
                   </button>
                 </li>
                 )}
-
-                 {/* BLOCO: ADMINISTRAÇÃO 
-                <li>
-                  <button
-                    onClick={() => {
-                      navigate('/admin/teams');
-                      setShowDropdown(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                  >
-                    <LayoutGrid className="w-4 h-4 text-gray-500" />
-                    Times
-                  </button>
-                </li>
-          
-                <li><hr className="my-1 border-t border-gray-200" /></li>
-
-                */}
-          
-                {/* BLOCO: SAIR */}
+                
                 <li>
                   <button
                     onClick={() => {
@@ -217,7 +198,7 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
 
         {/* Mobile: menu toggle */}
         <div className="md:hidden">
-          <button onClick={onMobileMenuOpen} aria-label="Abrir menu">
+        <button onClick={() => onMobileMenuOpen({ usado, limite, percentual, isLoading })} aria-label="Abrir menu">
             <Menu className="w-6 h-6 text-gray-700" />
           </button>
         </div>

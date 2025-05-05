@@ -28,6 +28,8 @@ import { LandingPage } from './pages/site';
 import { useCurrentCompany } from './hooks/useCurrentCompany';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { FeedbackButton } from "./components/FeedbackButton"
+import { useTokenUsage } from './hooks/useTokenUsage';
+
 
 export function CycleDetailPageWrapper() {
   const { id } = useParams();
@@ -44,6 +46,7 @@ function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const company = useCurrentCompany();
+  const tokenUsage = useTokenUsage();
 
   const SomeComponent = () => {
     return (
@@ -269,6 +272,21 @@ if (!isAuthChecked) {
             {company?.company_name && (
               <div className='py-2 mb-2'>
                 <span className="font-medium text-gray-400 p-0">{company.company_name}</span>
+              </div>
+            )}
+
+          {!tokenUsage.isLoading && tokenUsage.limite > 0 && (
+              <div className="px-0 pt-2 pb-4 mb-4 text-[11px] text-gray-600 border-t border-b border-gray-200">
+                <div className="flex justify-between mb-1">
+                  <span className="font-semibold text-gray-400">Uso da IA</span>
+                  <span>{new Intl.NumberFormat('pt-BR').format(tokenUsage.usado)} / {new Intl.NumberFormat('pt-BR').format(tokenUsage.limite)}</span>
+                </div>
+                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-blue-400 transition-all duration-300"
+                    style={{ width: `${tokenUsage.percentual}%` }}
+                  />
+                </div>
               </div>
             )}
 

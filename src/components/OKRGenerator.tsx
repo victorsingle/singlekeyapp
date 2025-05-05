@@ -5,6 +5,9 @@ import clsx from 'clsx';
 import { useOKRStore } from '../stores/okrStore';
 import { usePermissions } from '../hooks/usePermissions';
 import { GenerateOKRButton } from './GenerateOKRButton';
+import { trackTokenUsage } from '../lib/trackTokenUsage';
+import { useTokenUsage } from '../hooks/useTokenUsage';
+
 
 interface OKRGeneratorProps {
   onFinish: (cycleId: string) => void;
@@ -17,8 +20,11 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false, fromLis
   const [context, setContext] = useState('');
   const minChars = 350;
   const { generateFullOKRStructure } = useOKRStore();
+  const { isAdmin, isChampion } = usePermissions();
 
-const { isAdmin, isChampion } = usePermissions();
+
+  const { usado, limite, percentual, refetch, isLoading } = useTokenUsage();
+  const limiteAtingido = limite > 0 && usado >= limite;
 
 
   // 💡 Controla animação do ícone com base em estado
@@ -77,6 +83,9 @@ const { isAdmin, isChampion } = usePermissions();
       <>
         {/* TÍTULO */}
         <div className="space-y-2">
+        <span className="inline-flex items-center justify-center w-16 h-16 bg-blue-50 rounded-full animate-pulse">
+          <Target className="w-16 h-16 text-blue-600" />
+        </span>
           <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
             Eu sou a <span className="text-blue-600">KAI</span>, sua copiloto de OKRs
           </h1>
@@ -88,6 +97,11 @@ const { isAdmin, isChampion } = usePermissions();
         {/* FORM */}
         <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
             <div className="relative">
+                {limiteAtingido && (
+                  <p className="p-4 bg-red-100 text-red-800 text-sm rounded -mt-4 mb-2">
+                    Limite de uso da IA atingido neste mês. Aguarde renovação!
+                  </p>
+                )}
               <textarea
                 value={context}
                 onChange={(e) => setContext(e.target.value)}
@@ -105,15 +119,15 @@ const { isAdmin, isChampion } = usePermissions();
             {/* Botão principal */}
             <div className="w-full flex md:justify-center justify-start pt-2">
             <GenerateOKRButton
-                disabled={context.length < minChars}
-                onGenerate={async () => {
-                  const cycleId = await generateFullOKRStructure(context);
-                  toast.success('OKRs gerados com sucesso!');
-                  setContext('');
-                  onFinish(cycleId);
-                }}
-                className="flex items-center justify-center gap-2 py-2.5 px-4 rounded text-white font-medium bg-blue-600 hover:bg-blue-700 transition shadow-md"
-              />
+              disabled={context.length < minChars || limiteAtingido}
+              onGenerate={async () => {
+                const cycleId = await generateFullOKRStructure(context);
+                toast.success('OKRs gerados com sucesso!');
+                refetch(); // força atualização do uso
+                setContext('');
+                onFinish(cycleId);
+              }}
+            />
             </div>
           
 

@@ -438,6 +438,46 @@ generateFullOKRStructure: async (prompt: string) => {
   });
 
   const raw = completion.choices[0].message.content;
+  const totalTokens = completion.usage?.total_tokens ?? 0;
+
+
+  const hoje = new Date();
+  const mesReferencia = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-01`;
+
+  if (organizationId && totalTokens > 0) {
+    const { data: rowExistente, error: erroExistente } = await supabase
+      .from('usage_tokens')
+      .select('id, tokens_utilizados')
+      .eq('account_id', organizationId)
+      .eq('mes_referencia', mesReferencia)
+      .maybeSingle();
+  
+    if (erroExistente) {
+      console.warn('[❌ Erro ao verificar uso existente]', erroExistente);
+    }
+  
+    if (rowExistente) {
+      await supabase
+        .from('usage_tokens')
+        .update({
+          tokens_utilizados: rowExistente.tokens_utilizados + totalTokens
+        })
+        .eq('id', rowExistente.id);
+    } else {
+      await supabase.rpc('criar_usage_tokens', {
+        p_account_id: organizationId,
+        p_mes: mesReferencia,
+        p_tokens: totalTokens
+      });
+    }
+  
+    console.log('[🔢 Tokens registrados com sucesso]', {
+      organizationId,
+      mesReferencia,
+      totalTokens
+    });
+  }
+
   if (!raw) throw new Error('Resposta da IA veio vazia');
 
   let parsed;
@@ -469,7 +509,6 @@ generateFullOKRStructure: async (prompt: string) => {
   }
 
   // Verifica e ajusta datas do ciclo se necessário
-  const hoje = new Date();
   const existingCycles = get().cycles;
   const latestCycle = existingCycles.length > 0
     ? existingCycles.reduce((prev, curr) => {

@@ -27,6 +27,7 @@ import { GuidePage } from './pages/GuidePage';
 import { LandingPage } from './pages/site'; 
 import { useCurrentCompany } from './hooks/useCurrentCompany';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { FeedbackButton } from "./components/FeedbackButton"
 
 export function CycleDetailPageWrapper() {
   const { id } = useParams();
@@ -362,6 +363,7 @@ if (!isAuthChecked) {
       </main>
 
       <ModalContainer />
+      {!isPublicRoute && <FeedbackButton />}
     </div>
   </>
 );

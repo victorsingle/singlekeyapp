@@ -34,8 +34,8 @@ export function CompanyForm() {
     if (!formData.lastName) newErrors.lastName = 'Sobrenome é obrigatório';
     if (!formData.phone || !validatePhone(formData.phone)) newErrors.phone = 'Telefone inválido';
     if (!formData.email || !validateEmail(formData.email)) newErrors.email = 'E-mail inválido';
-    if (!formData.password || formData.password.length < 6) {
-      newErrors.password = 'Senha deve ter no mínimo 6 caracteres';
+    if (!formData.password || formData.password.length < 8) {
+      newErrors.password = 'Senha deve ter no mínimo 8 caracteres';
     }
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'As senhas não coincidem';

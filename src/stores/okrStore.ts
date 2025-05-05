@@ -40,7 +40,8 @@ export const useOKRStore = create((set, get) => ({
   error: null,
   selectedCycleId: null,
   expandedIds: [],
-
+  context: '',
+  setContext: (value: string) => set({ context: value }),
 
   // Novo estado de expandido
   expandedOKRs: new Set(),

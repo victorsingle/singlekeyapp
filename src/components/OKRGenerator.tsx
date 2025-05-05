@@ -17,9 +17,8 @@ interface OKRGeneratorProps {
 }
 
 export function OKRGenerator({ onFinish, onManualStart, isModal = false, fromList = false }: OKRGeneratorProps) {
-  const [context, setContext] = useState('');
+  const { context, setContext, generateFullOKRStructure } = useOKRStore();
   const minChars = 350;
-  const { generateFullOKRStructure } = useOKRStore();
   const { isAdmin, isChampion } = usePermissions();
 
 

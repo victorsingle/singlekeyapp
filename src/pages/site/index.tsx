@@ -238,7 +238,7 @@ export function LandingPage() {
 
 <section className="py-24 px-6 bg-gray-50" id="okr">
   <div className="max-w-6xl mx-auto text-center mb-16">
-    <h2 className="text-3xl font-bold mb-4 tracking-tight">Utilizamos ORKs para simplificar o seu plano</h2>
+    <h2 className="text-3xl font-bold mb-4 tracking-tight">Utilizamos ORKs para otmizar o seu plano</h2>
     <p className="text-gray-600 max-w-2xl mx-auto text-base md:text-lg">
       Não se preocupe com a sigla. Pense em uma forma simples de saber onde quer chegar — e como medir se está no caminho.
     </p>

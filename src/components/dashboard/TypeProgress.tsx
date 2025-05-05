@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
+import { InfoTooltip } from '../../components/InfoTooltip';
 import { useOKRStore } from '../../stores/okrStore';
 
 interface TypeProgressProps {
@@ -27,12 +28,14 @@ export function TypeProgress({ onTypeClick }: TypeProgressProps) {
 
   return (
     <div className="bg-white rounded-2xl shadow-md p-6 h-auto md:min-h-[160px]">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">Progresso por Ambição</h2>
-      
+      <div className="flex items-center justify-between">
+      <h2 className="text-xl font-semibold text-gray-900 mb-6">Tipo</h2>
+      <div className='-mt-4'><InfoTooltip content="Indica a proporção de KRs Ambiciosos versus Factíveis."  className="justfy-end" /></div>
+      </div>
       <div className="space-y-6 pb-5">
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-600">Moonshots</span>
+            <span className="text-sm font-medium text-gray-600">Ambicioso</span>
             <button
               onClick={() => onTypeClick('moonshot')}
               className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
@@ -51,7 +54,7 @@ export function TypeProgress({ onTypeClick }: TypeProgressProps) {
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-600">Roofshots</span>
+            <span className="text-sm font-medium text-gray-600">Factível</span>
             <button
               onClick={() => onTypeClick('roofshot')}
               className="text-sm text-blue-600 hover:text-blue-800 flex items-center"

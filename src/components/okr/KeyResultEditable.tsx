@@ -81,15 +81,15 @@ export function KeyResultEditable({ kr }: KeyResultEditableProps) {
           </div>
 
           <div className="w-full md:w-56">
-            <label className="text-xs text-gray-500">Ambição</label>
+            <label className="text-xs text-gray-500">Tipo</label>
             <select
               className="border rounded px-2 py-1 text-sm w-full"
               defaultValue={kr.kr_type || ''}
               onBlur={(e) => handleBlur('kr_type', e.target.value)}
             >
               <option value="">Selecione</option>
-              <option value="roofshot">Roofshot</option>
-              <option value="moonshot">Moonshot</option>
+              <option value="roofshot">Factível</option>
+              <option value="moonshot">Ambicioso</option>
             </select>
           </div>
         </div>

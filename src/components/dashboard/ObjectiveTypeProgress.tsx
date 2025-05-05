@@ -1,6 +1,7 @@
 import React from 'react';
 import { Bar } from 'react-chartjs-2';
 import { ArrowRight } from 'lucide-react';
+import { InfoTooltip } from '../../components/InfoTooltip';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -99,12 +100,21 @@ export function ObjectiveTypeProgress({ onTypeClick }: ObjectiveTypeProgressProp
     },
   };
 
+  const handleClick = (_: any, elements: any) => {
+    if (elements.length > 0) {
+      const index = elements[0].index;
+      const types = ['strategic', 'tactical', 'operational'];
+      onTypeClick(types[index] as any);
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-md p-6 min-h-[280px]">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold text-gray-900 whitespace-nowrap">
-          Progresso por Nível
+          Nível
         </h2>
+        <div><InfoTooltip content="Exibe quantos KRs são estratégicos, táticos ou operacionais dentro do ciclo."  className="justfy-end mt-2" /></div>
       </div>
       <div style={{ height: '180px' }}>
         <Bar
@@ -115,6 +125,7 @@ export function ObjectiveTypeProgress({ onTypeClick }: ObjectiveTypeProgressProp
             indexAxis: 'y', // gráfico horizontal
             responsive: true,
           }}
+          onClick={handleClick}
         />
       </div>
     </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { InfoTooltip } from '../../components/InfoTooltip';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -119,9 +120,10 @@ export function CycleComparison() {
 
   return (
     <div className="bg-white rounded-2xl shadow-md p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">
-        Comparação entre Ciclos
-      </h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">Comparação de Ciclos</h2>
+        <div className='-mt-4'><InfoTooltip content="Compara o progresso médio dos resultados-chave entre ciclos ativos e anteriores."  className="justfy-end" /></div>
+      </div>
       <div style={{ height: `${sortedCycles.length * 80 + 130}px` }}>
         <Bar data={data} options={options} />
       </div>

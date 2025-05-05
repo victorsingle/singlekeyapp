@@ -33,11 +33,13 @@ export function DetailPanel({ title, type, onClose }: DetailPanelProps) {
       const flag = kr.confidence_flag ?? getLatestCheckin(kr)?.confidence_flag ?? null;
       return flag === type;
     });
+  } else if (['strategic', 'tactical', 'operational'].includes(type)) {
+    krsToShow = cycleOKRs
+      .filter((okr) => okr.type === type)
+      .flatMap((okr) => okr.keyResults ?? []);
   } else {
-    // Exibe todos os KRs se o tipo não for reconhecido
     krsToShow = cycleKRs;
   }
-
   // Cor baseada na flag de confiança
   const getColorByConfidence = (flag: string | null | undefined) => {
     if (flag === 'high') return 'bg-green-500';

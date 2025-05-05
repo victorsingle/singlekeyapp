@@ -1,6 +1,7 @@
 import React from 'react';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import { ArrowRight } from 'lucide-react';
+import { InfoTooltip } from '../../components/InfoTooltip';
 import { useOKRStore } from '../../stores/okrStore';
 import 'react-circular-progressbar/dist/styles.css';
 
@@ -34,7 +35,10 @@ export function ConfidenceIndicator({ onConfidenceClick }: ConfidenceIndicatorPr
 
   return (
     <div className="bg-white rounded-2xl shadow-md p-6 h-full">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">Confiança</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">Confiança</h2>
+        <div className='-mt-4'><InfoTooltip content="Aponta o nível médio de confiança atribuído aos resultados-chave pelos responsáveis."  className="justfy-end" /></div>
+      </div>
 
       <div className="flex justify-around w-full">
         {blocks.map(({ level, label, color, value }) => (

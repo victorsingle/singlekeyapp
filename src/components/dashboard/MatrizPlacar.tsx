@@ -1,4 +1,5 @@
 import React from 'react';
+import { InfoTooltip } from '../../components/InfoTooltip';
 import clsx from 'clsx';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -42,7 +43,10 @@ export function MatrizPlacar({ data, dates }: MatrizPlacarProps) {
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6 w-full overflow-auto">
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">Placar de OKRs</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">Placar de OKRs</h2>
+        <div className='-mt-4'><InfoTooltip content="Exibe o hitórico de checkins realizados no ciclo."  className="justfy-end" /></div>
+      </div>
 
       <table className="min-w-full text-xs text-left">
         <thead>

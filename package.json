@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@floating-ui/react": "^0.27.8",
+    "@floating-ui/react-dom": "^2.1.2",
     "@radix-ui/react-collapsible": "^1.0.3",
     "@reactflow/node-resizer": "^2.2.11",
     "@supabase/supabase-js": "^2.39.7",

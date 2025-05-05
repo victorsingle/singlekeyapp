@@ -22,15 +22,15 @@ export function CycleProgress() {
   if (!selectedCycle) return null;
 
   return (
-    <div className="relative bg-white rounded-2xl shadow-md p-6">
+    <div className="relative bg-white rounded-2xl shadow-md p-6 overflow-visible">
       
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-4 relative z-0">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">
             Visão Geral
           </h2>
         </div>
-        <div><InfoTooltip content="Mostra o progresso médio dos resultados-chave no ciclo atual."  className="justfy-end mt-2" /></div>
+        <InfoTooltip content="Mostra o progresso médio dos resultados-chave no ciclo atual."  className="mt-2" />
       </div>
       
       <div className="flex justify-center">

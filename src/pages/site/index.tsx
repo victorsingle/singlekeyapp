@@ -83,8 +83,14 @@ export function LandingPage() {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl font-bold mb-4">Como funciona</h2>
-            <div className="w-24 h-1 bg-blue-600 mx-auto"></div>
+            <h2 className="text-3xl font-bold mb-4">Falta de foco custa caro. Mas dá pra mudar.</h2>
+            <div className="max-w-2xl text-gray-600 text-base md:text-lg py-2 mx-auto text-center">
+              <p>
+                Se o time trabalha muito e entrega pouco, o problema não é esforço — é direção.
+                Veja como o SingleKey transforma confusão em clareza com poucos cliques.
+              </p>
+            </div>
+            
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-12 py-4">
@@ -132,15 +138,15 @@ export function LandingPage() {
             Veja o SingleKey em ação
           </motion.h2>
           <p className="text-gray-600 text-base md:text-lg mb-8">
-            Crie Ciclos de Planejamento e acompanhe suas evoluções com visual claro e direto.
+            Sem metas claras, sem acompanhamento e sem organização, a empresa se perde. Mesmo ofertando bons produtos e serviços e com funcionários e clientes satisfeitos.
           </p>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link
               to="/register"
               target='_blank'
-              className="inline-flex items-center px-8 py-4 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 transition-all shadow-md"
+              className="inline-flex items-center px-8 py-4 bg-blue-600 mb-4 md:-mb-4 text-white rounded-full font-medium hover:bg-blue-700 transition-all shadow-md"
             >
-              Experimente Agora
+              Faça do jeito certo!
             </Link>
           </motion.div>
         </div>
@@ -148,27 +154,27 @@ export function LandingPage() {
         {/* Container de imagens */}
         <div className="relative z-20 max-w-6xl mx-auto flex flex-col md:flex-row gap-6 justify-center items-center">
           {[
-            { src: "/mockups/1.png", alt: "Geraçao Automática com IA" },
-            { src: "/mockups/3.png", alt: "Dashboard de Acompanhamento de Resultados" },
-            { src: "/mockups/2.png", alt: "Gestão de Ciclos de Planejamento" },
+            { src: "/mockups/5.png", alt: "Dashboard de Acompanhamento de Resultados" },
           ].map((img, i) => (
+            <div key={i} className="relative">
             <motion.img
               key={i}
               src={img.src}
               alt={img.alt}
-              className="rounded-xl shadow-xl border border-gray-200 w-full max-w-[400px] lg:max-w-[600px] aspect-video object-cover"
+              className="w-full max-w-[400px] lg:max-w-[800px] aspect-video object-cover0"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
             />
+            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-[80%] h-6 rounded-full bg-blue-900/50 blur-xl z-0" />
+            </div>
           ))}
         </div>
 
         {/* Fundo inferior de transição */}
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-white to-transparent z-0" />
+        
+        <div className="absolute inset-x-0 bottom-0 h-80 bg-blue-100" />
       </section>
-
-
 
       {/* Benefícios */}
       <section ref={benefitsRef} className="py-24 px-6 bg-gradient-to-b from-gray-50 to-white">
@@ -179,8 +185,12 @@ export function LandingPage() {
             transition={{ duration: 0.8 }}
             className="text-center mb-16 "
           >
-            <h2 className="text-3xl font-bold mb-4">Benefícios</h2>
-            <div className="w-24 h-1 bg-blue-600 mx-auto"></div>
+            <h2 className="text-3xl font-bold mb-4">Simplifique sem esforço</h2>
+            <div className="max-w-2xl text-gray-600 text-base md:text-lg py-2 mx-auto text-center">
+              <p>
+                SingleKey é uma ferramenta simples e de fácil utilização. Com nossa inteligência artificial, te ajudamos a definir, organizar e manter todos na mesma direção.
+              </p>
+            </div>
           </motion.div>
 
           <div className="grid md:grid-cols-2 gap-8">
@@ -192,16 +202,16 @@ export function LandingPage() {
             }, {
               icon: <Clock className="w-8 h-8 text-blue-600" />,
               title: 'Economia de tempo no planejamento',
-              description: 'Planeje rápido e mais foco nas iniciatias.',
+              description: 'Organize sua empresa e sua equipe em minutos.',
               color: 'bg-blue-600 text-white'
             }, {
               icon: <Sparkles className="w-8 h-8 text-blue-600" />,
               title: 'IA aplicada à gestão de metas',
-              description: 'Indicadores organizados e bem definidas.',
+              description: 'Indicadores de resultados claros e bem definidas.',
               color: 'bg-blue-600 text-white'
             }, {
               icon: <CheckCircle className="w-8 h-8 text-blue-600" />,
-              title: 'Pronto para rodar em minutos',
+              title: 'Pronto para rodar',
               description: 'Fácil onboarding e baixa curva de aprendizado.',
               color: 'bg-blue-600 text-white'
             }].map((benefit, index) => (
@@ -226,6 +236,53 @@ export function LandingPage() {
         </div>
       </section>
 
+<section className="py-24 px-6 bg-gray-50" id="okr">
+  <div className="max-w-6xl mx-auto text-center mb-16">
+    <h2 className="text-3xl font-bold mb-4 tracking-tight">Utilizamos ORKs para simplificar o seu plano</h2>
+    <p className="text-gray-600 max-w-2xl mx-auto text-base md:text-lg">
+      Não se preocupe com a sigla. Pense em uma forma simples de saber onde quer chegar — e como medir se está no caminho.
+    </p>
+  </div>
+
+    {/* Cards explicativos */}
+    <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+      <div className="border border-gray-300 p-8 rounded-2xl text-left">
+        <h3 className="text-xl font-semibold text-blue-700 mb-4">Objetivo</h3>
+        <p className="text-gray-700 mb-6">
+          Onde você quer chegar ou algo importante que precisa ser alcançado.
+        </p>
+        <h4 className="text-sm font-semibold text-blue-700 mb-4">Exemplos:</h4>
+        <ul className="text-gray-600 space-y-2 list-disc list-inside text-sm">
+          <li>Ser referência em atendimento</li>
+          <li>Construir uma comunidade fiel</li>
+          <li>Dominar o mercado digital</li>
+        </ul>
+      </div>
+
+      <div className="border border-gray-300 p-8 rounded-3xl text-left">
+        <h3 className="text-xl font-semibold text-indigo-700 mb-4">Resultado-Chave</h3>
+        <p className="text-gray-700 mb-6">
+          São formas de medir se está funcionando. Métricas claras e mensuráveis.
+        </p>
+        <h4 className="text-sm font-semibold text-blue-700 mb-4">Exemplos:</h4>
+        <ul className="text-gray-600 space-y-2 list-disc list-inside text-sm">
+          <li>Aumentar o ticket médio em 15%</li>
+          <li>Ter 50 avaliações 5 estrelas</li>
+          <li>Gerar 30 orçamentos por semana</li>
+        </ul>
+      </div>
+    </div>
+
+    {/* Rodapé com validação social */}
+    <div className="max-w-4xl mx-auto mt-20 text-center bg-blue-700 rounded-2xl p-4 shadow-xl">
+      <p className="text-xl text-white mb-2">Empresas que usam OKRs</p>
+      <p className="text-md font-semibold text-white mb-2">
+        Google, Netflix, Nubank, iFood, Amazon, Microsoft e muitas outras.
+      </p>
+      <p className="text-white text-sm">E agora, negócios como o seu também.</p>
+    </div>
+</section>
+
       {/* Planos */}
       <section className="py-24 px-6 bg-gray-100" id="planos">
         <div className="max-w-6xl mx-auto text-center">
@@ -241,7 +298,7 @@ export function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[{
-              name: "Basic",
+              name: "Standard",
               price: "R$ 29,90",
               suffixText: "/ mês",
               suffixColor: "text-gray-400",
@@ -251,13 +308,13 @@ export function LandingPage() {
                 "Criação de até 2 ciclos",
                 "Alerta de Checkins",
                 "Dashboard básico",
-                "Até 10.000,00/Mês Tokens"
+                "Uso IA (10 mil unidades texto/mês)"
               ],
               cta: "Assinar Basic",
               highlighted: false
             }, {
-              name: "Standard",
-              price: "R$ 69,90",
+              name: "Premium",
+              price: "R$ 79,90",
               suffixText: "/ mês",
               suffixColor: "text-white",
               description: "Preferido pelos pequenos times e negócios.",
@@ -267,13 +324,13 @@ export function LandingPage() {
                 "Criação de até 4 ciclos",
                 "Alerta de Checkins",
                 "Placar de Checkins",
-                "Até 80.000,00/Mês Tokens"
+                "Uso IA (100 mil unidades texto/mês)"
               ],
               cta: "Assinar Plus",
               highlighted: true
             }, {
-              name: "Premium",
-              price: "R$ 129,90",
+              name: "Enterprise",
+              price: "R$ 229,90",
               suffixText: "/ mês",
               suffixColor: "text-gray-400",
               description: "Para empresas grandes com visão e escala.",
@@ -284,7 +341,7 @@ export function LandingPage() {
                 "Alerta de Checkins",
                 "Placar de Checkins",
                 "Resultados por Times",
-                "Até 200.000,00/Mês Tokens"
+                "Uso IA (200 mil unidades texto/mês)"
               ],
               cta: "Assinar Premium",
               highlighted: false
@@ -301,7 +358,7 @@ export function LandingPage() {
                 }`}
               >
                 <div className="px-8 py-8 text-left">
-                  <h3 className={`text-3xl  font-semibold font-light mb-4 ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
+                  <h3 className={`text-3xl font-light mb-4 ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
                     {plan.name}
                   </h3>
                   <p className={`text-4xl tracking-tighter font-bold mb-1 ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
@@ -339,8 +396,6 @@ export function LandingPage() {
           </div>
         </div>
       </section>
-
-
 
       {/* Call to Action */}
       <section className="py-24 px-6 bg-gradient-to-tl from-blue-600 to-indigo-900">

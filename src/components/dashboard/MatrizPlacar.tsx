@@ -44,16 +44,21 @@ export function MatrizPlacar({ data, dates }: MatrizPlacarProps) {
   return (
     <div className="bg-white rounded-xl shadow-md p-6 w-full overflow-auto">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Placar de OKRs</h2>
-        <div className='-mt-4'><InfoTooltip content="Exibe o hitórico de checkins realizados no ciclo."  className="justfy-end" /></div>
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900">Placar de OKRs</h2>
+          <p className="text-sm text-gray-500 mt-1 mb-6">Acompanhe por aqui o histórico de confiança no placar de checkins desse ciclo.</p>
+        </div>
+        <div className="-mt-4">
+          <InfoTooltip content="Exibe o hitórico de checkins realizados no ciclo." className="justify-end" />
+        </div>
       </div>
 
       <table className="min-w-full text-xs text-left">
         <thead>
           <tr className="bg-gray-100">
             <th className="p-2 text-gray-600 font-medium text-sm font-bold">Key Result</th>
-            {dates.map(date => (
-              <th key={date} className="p-2 text-gray-600 font-medium text-center text-sm font-bold">
+            {dates.map((date, i) => (
+              <th key={`${date}-${i}`} className="p-2 text-gray-600 font-medium text-center text-sm font-bold">
                 {format(new Date(`${date}T00:00:00`), 'dd/MM/yyyy', { locale: ptBR })}
               </th>
             ))}
@@ -65,9 +70,11 @@ export function MatrizPlacar({ data, dates }: MatrizPlacarProps) {
             grouped[type]?.map((kr, idx) => (
               <tr key={`${type}-${idx}`} className="border-t border-gray-200">
                 <td className="p-2 text-gray-800">{kr.kr_text}</td>
-                {dates.map(date => (
-                  <td key={date} className="p-2 text-center">
-                    <div className={getFlagColor(kr.checkins[date] ?? null)} />
+                {dates.map((date, i) => (
+                  <td key={`${date}-${i}`} className="p-2 text-center">
+                    {kr.checkins[date] ? (
+                      <div className={getFlagColor(kr.checkins[date])} />
+                    ) : null}
                   </td>
                 ))}
                 <td className="p-2 text-right">

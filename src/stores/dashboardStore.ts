@@ -19,59 +19,89 @@ interface KRCheckin {
     allDates: [],
   
     loadPlacarData: async (organizationId, cycleId) => {
-        console.log('[🔥 VIEW] Carregando dados da view placar_checkins_completos');
-      
-        const { data, error } = await supabase
-          .from('placar_checkins_completos')
-          .select('*')
-          .eq('cycle_id', cycleId);
-      
-        if (error) {
-          console.error('[❌ Erro na view placar_checkins_completos]', error);
-          return;
-        }
-      
-        console.log('[✅ VIEW] Dados recebidos:', data);
-      
-        const grouped = new Map<string, {
-          kr_text: string;
-          okr_type: 'strategic' | 'tactical' | 'operational';
-          progress: number;
-          checkins: Record<string, 'green' | 'yellow' | 'red' | null>;
-        }>();
-      
-        const datesSet = new Set<string>();
-      
-        for (const row of data) {
-          const date = row.date.split('T')[0];
-          datesSet.add(date);
-      
-          if (!grouped.has(row.key_result_id)) {
-            grouped.set(row.key_result_id, {
-              kr_text: row.kr_text,
-              okr_type: row.okr_type,
-              progress: row.progress,
-              checkins: {}
-            });
-          }
-      
-          grouped.get(row.key_result_id)!.checkins[date] = row.confidence_flag;
-        }
-      
-        const placarData = Array.from(grouped.values());
-        const allDates = Array.from(datesSet).sort();
-      
-        console.log('[✅ VIEW] placarData FINAL:', placarData);
-        console.log('[✅ VIEW] allDates FINAL:', allDates);
-      
-        set({
-          placarData,
-          allDates
-        });
-
-        console.log('[🚨 STORE SETADA] placarData.length:', placarData.length);
-        console.log('[🚨 STORE SETADA] allDates.length:', allDates.length);
+      console.log('[🔁] Carregando dados de placar...');
+    
+      // 1. Buscar as datas de check-in do ciclo
+      const { data: checkinDatesRaw, error: checkinDatesError } = await supabase
+        .from('okr_checkins')
+        .select('checkin_date')
+        .eq('cycle_id', cycleId);
+    
+      if (checkinDatesError) {
+        console.error('Erro ao buscar okr_checkins', checkinDatesError);
+        return;
       }
-      
+    
+      const allDates = (checkinDatesRaw ?? [])
+        .map((row) => row.checkin_date.split('T')[0])
+        .sort();
+    
+      // 2. Buscar todos os OKRs do ciclo
+      const { data: okrsRaw, error: okrsError } = await supabase
+        .from('okrs')
+        .select('id, type, cycle_id')
+        .eq('cycle_id', cycleId);
+    
+      if (okrsError) {
+        console.error('Erro ao buscar okrs', okrsError);
+        return;
+      }
+    
+      const okrMap = new Map(okrsRaw.map((okr) => [okr.id, okr]));
+    
+      // 3. Buscar todos os KRs
+      const { data: keyResultsRaw, error: keyResultsError } = await supabase
+        .from('key_results')
+        .select('id, text, progress, okr_id');
+    
+      if (keyResultsError) {
+        console.error('Erro ao buscar key_results', keyResultsError);
+        return;
+      }
+    
+      // 4. Filtrar apenas os KRs que pertencem ao ciclo atual
+      const keyResults = keyResultsRaw.filter((kr) => {
+        const okr = okrMap.get(kr.okr_id);
+        return okr?.cycle_id === cycleId;
+      });
+    
+      // 5. Buscar check-ins realizados nos KRs
+      const { data: krCheckinsRaw, error: krCheckinsError } = await supabase
+        .from('key_result_checkins')
+        .select('key_result_id, date, confidence_flag')
+        .in('key_result_id', keyResults.map((kr) => kr.id));
+    
+      if (krCheckinsError) {
+        console.error('Erro ao buscar key_result_checkins', krCheckinsError);
+        return;
+      }
+    
+      const checkinMap = new Map<string, Record<string, 'green' | 'yellow' | 'red' | null>>();
+    
+      for (const checkin of krCheckinsRaw ?? []) {
+        const date = checkin.date.split('T')[0];
+        if (!checkinMap.has(checkin.key_result_id)) {
+          checkinMap.set(checkin.key_result_id, {});
+        }
+        checkinMap.get(checkin.key_result_id)![date] = checkin.confidence_flag;
+      }
+    
+      // 6. Montar placarData
+      const placarData = keyResults.map((kr) => {
+        const okr = okrMap.get(kr.okr_id);
+        return {
+          kr_text: kr.text,
+          okr_type: okr?.type ?? 'operational',
+          progress: kr.progress,
+          checkins: checkinMap.get(kr.id) ?? {}
+        };
+      });
+    
+      console.log('[✅ FINAL] placarData:', placarData);
+      console.log('[✅ FINAL] allDates:', allDates);
+    
+      set({ placarData, allDates });
+    }
+    
 
   }));

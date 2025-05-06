@@ -155,6 +155,13 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
             ? 'Concluído'
             : 'Rascunho'
         }
+        badgeClassName={
+          cycle.status === 'active'
+            ? 'bg-yellow-100 text-yellow-800'
+            : cycle.status === 'completed'
+            ? 'bg-green-100 text-green-700'
+            : 'bg-blue-100 text-blue-800'
+        }
         subtitle={cycle.strategicTheme || undefined}
         period={
           cycle?.start_date && cycle?.end_date

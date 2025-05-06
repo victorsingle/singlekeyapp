@@ -12,13 +12,14 @@ interface SubHeaderProps {
   title: string;
   subtitle?: string;
   badge?: string;
+  badgeClassName?: string;
   period?: string;
   actions?: React.ReactNode;
   className?: string;
   innerClassName?: string;
 }
 
-export function SubHeader({ breadcrumb, title, subtitle, badge, period, actions, className, innerClassName }: SubHeaderProps) {
+export function SubHeader({ breadcrumb, title, subtitle, badge, period, actions, className, innerClassName, badgeClassName }: SubHeaderProps) {
   return (
     <div className="w-full bg-gray-100 py-6 border-b">
       <div className={clsx("max-w-7xl mx-auto px-4 sm:px-6 lg:px-10", innerClassName)}>
@@ -40,7 +41,7 @@ export function SubHeader({ breadcrumb, title, subtitle, badge, period, actions,
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-medium text-gray-700 pt-2 mb-0">{title}</h1>
           {badge && (
-            <span className="px-2 text-sm font-normal rounded-full text-gray-600 bg-gray-200 ml-auto">
+            <span className={clsx("px-2 text-sm font-normal rounded-full ml-auto", badgeClassName ?? "text-gray-600 bg-gray-200")}>
               {badge}
             </span>
           )}

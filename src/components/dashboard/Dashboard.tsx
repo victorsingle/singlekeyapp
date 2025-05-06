@@ -238,7 +238,7 @@ const loadPlacarData = useDashboardStore(state => state.loadPlacarData);
             </div>
   
            {/* Linha 2: Matriz do Placar */}
-           {placarData.length > 0 && allDates.length > 0 && (
+           {allDates.length > 0 && (
               <div className="grid grid-cols-1">
                 <MatrizPlacar data={placarData} dates={allDates} />
               </div>

@@ -63,7 +63,7 @@ export function CycleCard({
             </div>
             
             {strategicTheme && (
-            <p className="text-blue-600 text-sm font-medium py-2 line-clamp-3 sm:line-clamp-2">{strategicTheme}</p>
+            <p className="text-blue-600 text-sm font-medium py-2 line-clamp-3 sm:line-clamp-2 cursor-pointer" onClick={onView}>{strategicTheme}</p>
             )}
 
             <div className="flex items-center text-xs text-gray-500">

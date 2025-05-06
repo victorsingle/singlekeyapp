@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { MoreHorizontal, MoreVertical } from 'lucide-react';
 import { useOKRStore } from '../../stores/okrStore';
 import { DropdownMenu, DropdownMenuItem } from '../../components/DropdownMenu';
@@ -19,7 +19,25 @@ interface KeyResultEditableProps {
   kr: KeyResult;
 }
 
+//Responsividade Título Objetivo
+
+function useIsMobile(breakpoint = 640) {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [breakpoint])
+
+  return isMobile
+}
+
 export function KeyResultEditable({ kr }: KeyResultEditableProps) {
+ 
+  const isMobile = useIsMobile();
+ 
   const { updateKeyResult, deleteKeyResult } = useOKRStore();
   
   const { isAdmin, isChampion } = usePermissions();
@@ -73,11 +91,29 @@ export function KeyResultEditable({ kr }: KeyResultEditableProps) {
         <div className="flex flex-col md:flex-row gap-2 mb-4">
           <div className="flex-1">
             <label className="text-xs text-gray-500">Título do KR</label>
-            <input
+
+            {isMobile ? (
+              <textarea
+                className="border text-sm rounded py-2 pl-2 pr-2 resize-none overflow-hidden leading-snug min-h-[2.5rem] sm:py-1 sm:min-h-0 box-content w-[calc(100%-1rem)] whitespace-pre-wrap break-words"
+                defaultValue={kr.text}
+                rows={1}
+                onInput={(e) => {
+                  const target = e.currentTarget
+                  target.style.height = 'auto'
+                  target.style.height = `${target.scrollHeight}px`
+                }}
+                onBlur={(e) => handleBlur('text', e.target.value)}
+              />
+            ) : (
+              <input
               className="border rounded px-2 py-1 text-sm w-full"
               defaultValue={kr.text}
               onBlur={(e) => handleBlur('text', e.target.value)}
-            />
+             />
+            )}
+
+            
+
           </div>
 
           <div className="w-full md:w-56">

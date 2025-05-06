@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { MoreHorizontal, MoreVertical, Eye, EyeOff } from 'lucide-react';
 import { useOKRStore } from '../stores/okrStore';
 import { DropdownMenu, DropdownMenuItem } from '../components/DropdownMenu';
@@ -27,6 +27,21 @@ interface OKRCardEditableProps {
   indentLevel?: number;
 }
 
+//Responsividade Título Objetivo
+
+function useIsMobile(breakpoint = 640) {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [breakpoint])
+
+  return isMobile
+}
+
 function OKRCardEditableComponent({
   id,
   type,
@@ -37,6 +52,9 @@ function OKRCardEditableComponent({
   onToggleExpand,
   indentLevel = 0 
 }: OKRCardEditableProps) {
+
+  const isMobile = useIsMobile();
+
   const { updateOKR, deleteOKR, createKeyResults } = useOKRStore();
 
   const { isAdmin, isChampion } = usePermissions();
@@ -133,13 +151,30 @@ function OKRCardEditableComponent({
             <span className="text-xs text-gray-500">{prefix}</span>
 
             <div className="flex flex-col md:flex-row md:items-center gap-2 mt-1">
+            
+            {isMobile ? (
+              <textarea
+                className="border text-sm rounded py-2 pl-2 pr-2 resize-none overflow-hidden leading-snug min-h-[2.5rem] sm:py-1 sm:min-h-0 box-content w-[calc(100%-1rem)]"
+                defaultValue={objective}
+                placeholder="Título do Objetivo"
+                rows={1}
+                onInput={(e) => {
+                  const target = e.currentTarget
+                  target.style.height = 'auto'
+                  target.style.height = `${target.scrollHeight}px`
+                }}
+                onBlur={(e) => handleObjectiveBlur(e.target.value)}
+              />
+            ) : (
               <input
+                type="text"
                 className="border text-sm rounded px-2 py-1 w-full"
                 defaultValue={objective}
                 placeholder="Título do Objetivo"
                 onBlur={(e) => handleObjectiveBlur(e.target.value)}
               />
-
+            )}
+            
               <select
                 className="border text-sm rounded px-2 py-1 w-full md:w-40"
                 defaultValue={type}

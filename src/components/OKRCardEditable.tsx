@@ -96,7 +96,7 @@ function OKRCardEditableComponent({
   let prefix = '';
 
   if (indentLevel === 1) prefix = '✦ ';
-  else if (indentLevel === 2) prefix = '⮞ ';
+  else if (indentLevel === 2) prefix = '● ';
   else if (type === 'strategic') prefix = '★ ';
 
   prefix +=

@@ -193,10 +193,23 @@ useEffect(() => {
             const { data } = await supabase
               .from('key_result_checkins')
               .select('id')
-              .eq('user_id', userId)
+              .eq('cycle_id', checkin.cycle_id)
               .eq('date', today)
               .limit(1);
-            return !!data?.length;
+          
+            const jaFoiFeito = !!data?.length;
+          
+            // ⬇️ Limpa notificações antigas se o check-in da org já foi feito
+            if (jaFoiFeito) {
+              await supabase
+                .from('user_notifications')
+                .delete()
+                .eq('type', 'checkin_reminder')
+                .eq('read', false)
+                .eq('user_id', userId);
+            }
+          
+            return jaFoiFeito;
           },
         });
       }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreVertical } from 'lucide-react';
 import { DropdownMenu, DropdownMenuItem } from '../DropdownMenu';
 
 interface TeamMember {
@@ -22,8 +22,8 @@ export function TeamCard({ name, description, members, leader, onManage, onAddMe
     <div className="relative bg-white rounded-md p-4 shadow-sm border flex justify-between items-center">
       <div>
         <h4 className="text-xl text-base font-semibold text-gray-800">{name}</h4>
-        {description && <p className="text-sm text-gray-500 py-2">{description}</p>}
-        <div className="text-sm text-gray-500 mt-1">
+        {description && <p className="text-xs text-gray-500 py-1">{description}</p>}
+        <div className="text-xs text-gray-500 mt-1">
           <span className='font-semibold text-black'>{members.length}</span> membros <span className="mx-2">|</span> Líder: <span className='font-semibold text-black'>{leader}</span>
         </div>
       </div>
@@ -54,7 +54,7 @@ export function TeamCard({ name, description, members, leader, onManage, onAddMe
         <DropdownMenu
           trigger={
             <button className="text-gray-400 hover:text-gray-600">
-              <MoreHorizontal className="w-5 h-5" />
+              <MoreVertical className="w-5 h-5" />
             </button>
           }
         >

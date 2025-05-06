@@ -31,54 +31,38 @@ export function CheckinButton({ cycleId, userId, checkinNotification }: CheckinB
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!userId || !cycleId) {
-      console.warn('[⚠️ Check-in] userId ou cycleId ausente', { userId, cycleId });
+    if (!cycleId) {
+      console.warn('[⚠️ Check-in] cycleId ausente', { cycleId });
       return;
     }
   
     const today = new Date().toISOString().slice(0, 10);
-    console.log('[🔁 Verificando elegibilidade de check-in]', { userId, cycleId, today });
+    console.log('[🔁 Verificando elegibilidade global de check-in]', { cycleId, today });
   
     const check = async () => {
       try {
-        const { data: agendamentos, error: agendamentoError } = await supabase
-          .from('okr_checkins')
-          .select('id')
-          .eq('cycle_id', cycleId)
-          .eq('checkin_date', today);
-  
-        if (agendamentoError) {
-          console.error('[❌ Erro ao buscar agendamentos]', agendamentoError);
-          return;
-        }
-  
-        const agendado = (agendamentos?.length ?? 0) > 0;
-        if (!agendado) {
-          console.log('[ℹ️ Nenhum check-in agendado para hoje]');
-          setIsEligible(false);
-          return;
-        }
-  
-        const { data: checkins, error: checkinError } = await supabase
+        // Verifica se já houve algum check-in hoje para esse ciclo
+        const { data: checkins, error } = await supabase
           .from('key_result_checkins')
           .select('id')
-          .eq('user_id', userId)
-          .eq('date', today);
+          .eq('cycle_id', cycleId) // você precisa adicionar esse campo em `key_result_checkins`, se não existir
+          .eq('date', today)
+          .limit(1);
   
-        if (checkinError) {
-          console.error('[❌ Erro ao verificar check-ins]', checkinError);
+        if (error) {
+          console.error('[❌ Erro ao verificar check-ins da organização]', error);
           return;
         }
   
-        const jaFez = (checkins?.length ?? 0) > 0;
-        setIsEligible(!jaFez);
+        const jaTemCheckinHoje = (checkins?.length ?? 0) > 0;
+        setIsEligible(!jaTemCheckinHoje);
       } catch (err) {
-        console.error('[❌ Erro inesperado ao verificar elegibilidade]', err);
+        console.error('[❌ Erro inesperado na verificação global]', err);
       }
     };
   
     check();
-  }, [userId, cycleId]); // <--- essa linha é essencial
+  }, [cycleId]);
   
 
   const handleCheckin = async () => {
@@ -120,6 +104,7 @@ export function CheckinButton({ cycleId, userId, checkinNotification }: CheckinB
         progress: 0,
         confidence_flag: mapConfidence(kr.confidence_flag),
         created_at: new Date().toISOString(),
+        cycle_id: cycleId,
       }));
 
       const { error: insertError } = await supabase

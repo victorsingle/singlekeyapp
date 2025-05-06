@@ -29,15 +29,15 @@ export function UserCard({
         <div className="flex h-full justify-between items-center">
             <div className="flex items-center gap-4">
                 {/* Avatar */}
-                <div className="w-20 h-20 flex items-center justify-center rounded-full bg-blue-100 text-blue-700 font-semibold text-lg uppercase">
+                <div className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-100 text-blue-700 font-semibold text-lg uppercase">
                     {name.charAt(0)}
                 </div>
 
                 {/* Informações do usuário */}
-                <div className="space-y-1">
+                <div className="space-y-0">
                   <p className="font-medium text-gray-900">{name}</p>
-                  <p className="text-sm text-gray-500">{email}</p>
-                  <div className="flex gap-2 text-sm text-gray-600">
+                  <p className="text-xs text-gray-500">{email}</p>
+                  <div className="flex gap-2 text-xs text-gray-600">
                     <span>{role}</span>
                     <span className="text-gray-400">|</span>
                     <span>{team}</span>

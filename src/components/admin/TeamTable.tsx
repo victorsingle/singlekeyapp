@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus } from 'lucide-react';
+import { UserPlus2 } from 'lucide-react';
 import { TeamCard } from './TeamCard';
 import { useTeams } from '../../hooks/useTeams';
 import { useModalStore } from '../../stores/modalStore';
@@ -78,7 +78,7 @@ export function TeamTable({ teams, loading, onTeamUpdated }: TeamTableProps) {
             onClick={handleCreateClick}
             className="flex items-center text-sm justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <UserPlus2 className="w-4 h-4 mr-2" />
             Criar novo time
           </button>
         </div>
@@ -89,7 +89,7 @@ export function TeamTable({ teams, loading, onTeamUpdated }: TeamTableProps) {
               onClick={handleCreateClick}
               className="flex items-center text-sm justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <UserPlus2 className="w-4 h-4 mr-2" />
               Novo Time
             </button>
           </div>

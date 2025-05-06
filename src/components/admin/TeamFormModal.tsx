@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
+import { useUsers } from '../../hooks/useUsers';
 
 interface TeamFormModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSave?: (data: { id?: string; name: string; description: string; leader: string }) => void;
   team?: {
     id: string;
     name: string;
@@ -12,12 +14,57 @@ interface TeamFormModalProps {
   };
 }
 
-export function TeamFormModal({ isOpen, onClose, team }: TeamFormModalProps) {
-  const [name, setName] = useState(team?.name || '');
-  const [description, setDescription] = useState(team?.description || '');
-  const [leader, setLeader] = useState(team?.leader || '');
+export function TeamFormModal({ isOpen, onClose, onSave, team }: TeamFormModalProps) {
+  const { users } = useUsers();
+  const activeUsers = users.filter((u) => u.status === 'active');
+
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [leader, setLeader] = useState('');
+  const [leaderName, setLeaderName] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const filtered = activeUsers.filter((u) =>
+    `${u.first_name} ${u.last_name}`.toLowerCase().includes(leaderName.toLowerCase())
+  );
+
+  useEffect(() => {
+    if (team) {
+      setName(team.name);
+      setDescription(team.description);
+      setLeader(team.leader);
+
+      const leaderUser = users.find((u) => u.id === team.leader);
+      if (leaderUser) {
+        setLeaderName(`${leaderUser.first_name} ${leaderUser.last_name}`);
+      } else {
+        setLeaderName('');
+      }
+    } else {
+      setName('');
+      setDescription('');
+      setLeader('');
+      setLeaderName('');
+    }
+  }, [team, users]);
 
   if (!isOpen) return null;
+
+  const handleSubmit = () => {
+    if (!name || !description || !leader) {
+      alert('Preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    onSave?.({
+      id: team?.id,
+      name,
+      description,
+      leader,
+    });
+
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -33,9 +80,7 @@ export function TeamFormModal({ isOpen, onClose, team }: TeamFormModalProps) {
 
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nome do Time
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Time</label>
             <input
               type="text"
               value={name}
@@ -46,9 +91,7 @@ export function TeamFormModal({ isOpen, onClose, team }: TeamFormModalProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Descrição
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -58,20 +101,43 @@ export function TeamFormModal({ isOpen, onClose, team }: TeamFormModalProps) {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Líder do Time
-            </label>
-            <select
-              value={leader}
-              onChange={(e) => setLeader(e.target.value)}
+          <div className="relative">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Líder do Time</label>
+            <input
+              type="text"
+              value={leaderName}
+              onChange={(e) => {
+                const val = e.target.value;
+                setLeaderName(val);
+                setShowSuggestions(true);
+
+                const match = activeUsers.find(
+                  (u) =>
+                    `${u.first_name} ${u.last_name}`.toLowerCase() === val.toLowerCase()
+                );
+                if (match) setLeader(match.id);
+              }}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+              placeholder="Digite para buscar um líder"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Selecione um líder</option>
-              <option value="1">João Silva</option>
-              <option value="2">Maria Santos</option>
-              <option value="3">Pedro Oliveira</option>
-            </select>
+            />
+            {showSuggestions && filtered.length > 0 && (
+              <ul className="absolute left-0 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-52 overflow-auto z-10">
+                {filtered.map((u) => (
+                  <li
+                    key={u.id}
+                    onClick={() => {
+                      setLeader(u.id);
+                      setLeaderName(`${u.first_name} ${u.last_name}`);
+                      setShowSuggestions(false);
+                    }}
+                    className="px-4 py-2 hover:bg-blue-100 cursor-pointer text-sm"
+                  >
+                    {u.first_name} {u.last_name}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
 
@@ -83,10 +149,7 @@ export function TeamFormModal({ isOpen, onClose, team }: TeamFormModalProps) {
             Cancelar
           </button>
           <button
-            onClick={() => {
-              // Handle save logic here
-              onClose();
-            }}
+            onClick={handleSubmit}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
           >
             {team ? 'Salvar Alterações' : 'Criar Time'}

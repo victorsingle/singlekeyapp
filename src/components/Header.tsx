@@ -163,19 +163,33 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
           
                 {/* BLOCO: ADMINISTRAÇÃO */}
 
-                {(isAdmin) && (
-                <li>
-                  <button
-                    onClick={() => {
-                      navigate('/admin/users');
-                      setShowDropdown(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                  >
-                    <Users className="w-4 h-4 text-gray-500" />
-                    Usuários
-                  </button>
-                </li>
+                {isAdmin && (
+                  <>
+                    <li>
+                      <button
+                        onClick={() => {
+                          navigate('/admin/users');
+                          setShowDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                      >
+                        <User className="w-4 h-4 text-gray-500" />
+                        Usuários
+                      </button>
+                    </li>
+                    <li>
+                      <button
+                        onClick={() => {
+                          navigate('/admin/teams');
+                          setShowDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                      >
+                        <Users className="w-4 h-4 text-gray-500" />
+                        Times
+                      </button>
+                    </li>
+                  </>
                 )}
                 
                 <li>

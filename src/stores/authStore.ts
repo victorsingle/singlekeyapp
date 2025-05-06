@@ -89,6 +89,14 @@ export const useAuthStore = create<AuthState>()(
               loading: false,
               error: null,
             });
+
+            console.log('[✅ fetchUserData] organizationId salvo:', invitedUser.organizationId);
+
+            setTimeout(() => {
+              console.log('[🧪 organizationId no store após 2s]', useAuthStore.getState().organizationId);
+            }, 2000);
+
+            
           } else {
             throw new Error('Usuário não encontrado nas tabelas de perfil.');
           }
@@ -98,5 +106,6 @@ export const useAuthStore = create<AuthState>()(
         set({ error: error.message, loading: false });
       }
     }
+
   }), { name: 'AuthStore' })
 );

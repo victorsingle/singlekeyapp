@@ -94,7 +94,7 @@ export function KeyResultEditable({ kr }: KeyResultEditableProps) {
 
             {isMobile ? (
               <textarea
-                className="border text-sm rounded py-2 pl-2 pr-2 resize-none overflow-hidden leading-snug min-h-[2.5rem] sm:py-1 sm:min-h-0 box-content w-[calc(100%-1rem)] whitespace-pre-wrap break-words"
+                className="border text-sm rounded py-2 pl-2 pr-2 resize-none overflow-hidden leading-snug min-h-[3.5rem] sm:py-1 sm:min-h-0 box-content w-[calc(100%-1rem)] whitespace-pre-wrap break-words"
                 defaultValue={kr.text}
                 rows={1}
                 onInput={(e) => {

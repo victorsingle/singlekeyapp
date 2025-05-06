@@ -5,8 +5,8 @@ import { useNotificationStore } from '../stores/notificationStore';
 import toast from 'react-hot-toast';
 
 interface CheckinButtonProps {
-  cycleId: string;
-  userId: string;
+  cycleId?: string;
+  userId?: string; // sempre o ID do Supabase Auth, vindo de users ou invited_users
   checkinNotification?: {
     id: string;
   };
@@ -21,7 +21,7 @@ const mapConfidence = (value: string): 'green' | 'yellow' | 'red' => {
     case 'low':
       return 'red';
     default:
-      return 'yellow'; // fallback seguro
+      return 'yellow';
   }
 };
 
@@ -29,34 +29,66 @@ export function CheckinButton({ cycleId, userId, checkinNotification }: CheckinB
   const { markAsRead, fetchNotifications } = useNotificationStore();
   const [isEligible, setIsEligible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
 
   useEffect(() => {
-    const today = new Date().toLocaleDateString('sv-SE');
+    if (!userId || !cycleId) {
+      console.warn('[⚠️ Check-in] userId ou cycleId ausente', { userId, cycleId });
+      return;
+    }
+  
+    const today = new Date().toISOString().slice(0, 10);
+    console.log('[🔁 Verificando elegibilidade de check-in]', { userId, cycleId, today });
+  
     const check = async () => {
-      const { data, error } = await supabase
-        .from('okr_checkins')
-        .select('id')
-        .eq('cycle_id', cycleId)
-        .eq('checkin_date', today)
-        .limit(1);
-
-      if (error) {
-        console.error('[❌ Erro ao verificar elegibilidade do check-in]', error);
-        return;
+      try {
+        const { data: agendamentos, error: agendamentoError } = await supabase
+          .from('okr_checkins')
+          .select('id')
+          .eq('cycle_id', cycleId)
+          .eq('checkin_date', today);
+  
+        if (agendamentoError) {
+          console.error('[❌ Erro ao buscar agendamentos]', agendamentoError);
+          return;
+        }
+  
+        const agendado = (agendamentos?.length ?? 0) > 0;
+        if (!agendado) {
+          console.log('[ℹ️ Nenhum check-in agendado para hoje]');
+          setIsEligible(false);
+          return;
+        }
+  
+        const { data: checkins, error: checkinError } = await supabase
+          .from('key_result_checkins')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('date', today);
+  
+        if (checkinError) {
+          console.error('[❌ Erro ao verificar check-ins]', checkinError);
+          return;
+        }
+  
+        const jaFez = (checkins?.length ?? 0) > 0;
+        setIsEligible(!jaFez);
+      } catch (err) {
+        console.error('[❌ Erro inesperado ao verificar elegibilidade]', err);
       }
-
-      setIsEligible(!!data?.length);
     };
-
+  
     check();
-  }, [cycleId]);
+  }, [userId, cycleId]); // <--- essa linha é essencial
+  
 
   const handleCheckin = async () => {
+    if (!userId || !cycleId) return;
+
     setLoading(true);
     const today = new Date().toLocaleDateString('sv-SE');
 
     try {
+      // Busca os OKRs do ciclo
       const { data: okrs, error: okrError } = await supabase
         .from('okrs')
         .select('id')
@@ -64,12 +96,12 @@ export function CheckinButton({ cycleId, userId, checkinNotification }: CheckinB
 
       if (okrError || !okrs?.length) {
         toast.error('Erro ao buscar OKRs');
-        console.error('[❌ Erro ao buscar OKRs]', okrError);
         return;
       }
 
       const okrIds = okrs.map((okr) => okr.id);
 
+      // Busca os KRs vinculados
       const { data: keyResults, error: krError } = await supabase
         .from('key_results')
         .select('id, confidence_flag')
@@ -77,10 +109,10 @@ export function CheckinButton({ cycleId, userId, checkinNotification }: CheckinB
 
       if (krError || !keyResults?.length) {
         toast.error('Erro ao buscar KRs');
-        console.error('[❌ Erro ao buscar KRs]', krError);
         return;
       }
 
+      // Monta o payload dos check-ins
       const payload = keyResults.map((kr) => ({
         key_result_id: kr.id,
         user_id: userId,
@@ -95,18 +127,19 @@ export function CheckinButton({ cycleId, userId, checkinNotification }: CheckinB
         .insert(payload);
 
       if (insertError) {
-        toast.error('Erro ao registrar check-ins');
         console.error('[❌ Erro ao inserir check-ins]', insertError);
+        toast.error('Erro ao registrar check-ins');
         return;
       }
 
+      // Marca notificação como lida (se existir)
       if (checkinNotification?.id) {
         await markAsRead(checkinNotification.id);
         await fetchNotifications(userId);
       }
 
       toast.success('Check-in realizado com sucesso!');
-      setDone(true);
+      setIsEligible(false);
     } catch (err) {
       console.error('[❌ Erro inesperado no check-in]', err);
       toast.error('Erro inesperado ao fazer check-in');
@@ -115,7 +148,10 @@ export function CheckinButton({ cycleId, userId, checkinNotification }: CheckinB
     }
   };
 
-  const disabled = !isEligible || loading || done;
+  const disabled = !isEligible || loading;
+  const alreadyCheckedIn = !isEligible && !loading;
+  
+  console.log('[💡 Props recebidas no botão]', { userId, cycleId });
 
   return (
     <button
@@ -128,7 +164,7 @@ export function CheckinButton({ cycleId, userId, checkinNotification }: CheckinB
       }`}
     >
       <Calendar className="w-4 h-4 mr-2" />
-      {loading ? 'Enviando...' : done ? 'Check-in Realizado' : 'Realizar Check-in'}
+      {loading ? 'Enviando...' : alreadyCheckedIn ? 'Check-in Realizado' : 'Realizar Check-in'}
     </button>
   );
 }

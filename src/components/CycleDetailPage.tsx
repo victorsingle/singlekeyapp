@@ -20,6 +20,7 @@ import { OkrDetailsView } from '../components/okr/OkrDetailsView';
 import { OKRRelationMap } from './OKRRelationMap';
 
 // Btn Checlkin
+import { supabase } from '../lib/supabase';
 import { useNotificationStore } from '../stores/notificationStore'; 
 import { CheckinButton } from '../components/CheckinButton';
 
@@ -50,7 +51,22 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
   const [viewMode, setViewMode] = useState<'list' | 'graph'>('list');
   const [isCreating, setIsCreating] = useState(false); // <- controle de loading do botão
 
-  const { user, organizationId } = useAuthStore();
+  const { userId: storeUserId, organizationId } = useAuthStore();
+  const [fallbackUserId, setFallbackUserId] = useState<string | null>(null);
+  
+  useEffect(() => {
+    if (!storeUserId) {
+      console.warn('[⏳] Aguardando authStore.userId... tentando fallback via Supabase');
+      supabase.auth.getUser().then(({ data }) => {
+        if (data?.user?.id) {
+          console.log('[✅] Fallback userId recuperado do Supabase:', data.user.id);
+          setFallbackUserId(data.user.id);
+        }
+      });
+    }
+  }, [storeUserId]);
+  
+  const userId = storeUserId ?? fallbackUserId ?? '';
 
   const { notifications } = useNotificationStore();
 
@@ -239,7 +255,7 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
             {okrsDoCiclo.length > 0 && okrsDoCiclo.length > 0 && (
             <CheckinButton
               cycleId={cycle.id}
-              userId={user?.id}
+              userId={userId}
               checkinNotification={checkinNotification}
             />
             )}

@@ -1,6 +1,7 @@
 import { Calendar, MoreVertical } from "lucide-react";
 import { DropdownMenu, DropdownMenuItem } from "../components/DropdownMenu";
 import { usePermissions } from '../hooks/usePermissions'; 
+import { Link } from "react-router-dom";
 import clsx from "clsx";
 
 type CycleCardProps = {
@@ -58,9 +59,9 @@ export function CycleCard({
       <div className="flex h-full items-center justify-between">
         <div className="w-full">
             <div className="flex items-center justify-between">
-                <h4 className="text-lg font-semibold text-gray-800">{title}</h4>
+              <h4 className="text-lg font-semibold text-gray-800 cursor-pointer" onClick={onView}>{title}</h4>
             </div>
-
+            
             {strategicTheme && (
             <p className="text-blue-600 text-sm font-medium py-2 line-clamp-3 sm:line-clamp-2">{strategicTheme}</p>
             )}

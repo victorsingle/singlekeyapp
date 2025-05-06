@@ -319,7 +319,9 @@ if (!isAuthChecked) {
 
               <hr className="border-t border-gray-200 my-2" />
               <span className="text-gray-400 font-bold mt-2">Conta</span>
-
+              
+              {useAuthStore.getState().role === 'admin' && (
+                <>
               <button
                 onClick={() => {
                   navigate('/admin/users');
@@ -329,7 +331,17 @@ if (!isAuthChecked) {
               >
                 Usuários
               </button>
-
+              <button
+                onClick={() => {
+                  navigate('/admin/teams');
+                  setShowMobileMenu(false);
+                }}
+                className="text-left text-gray-700 hover:text-blue-600"
+              >
+                Times
+              </button>
+              </>
+              )}
               <button
                 onClick={() => {
                   handleLogout();
@@ -368,11 +380,11 @@ if (!isAuthChecked) {
         />
         <Route
           path="/admin/teams"
-          element={<ProtectedRoute requireChampion element={<TeamsPage />} />}
+          element={<ProtectedRoute requireAdmin element={<TeamsPage />} />}
         />
         <Route
           path="/admin/teams/:id"
-          element={<ProtectedRoute requireChampion element={<TeamDetailPage />} />}
+          element={<ProtectedRoute requireAdmin element={<TeamDetailPage />} />}
         />
 
         <Route path="*" element={<Navigate to="/" />} />

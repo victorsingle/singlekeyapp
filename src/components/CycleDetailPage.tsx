@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import RadarLoader from './RadarLoader';
 import { useNavigate } from 'react-router-dom';
 import { ReactFlowProvider } from 'reactflow';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar, List, Network } from 'lucide-react';
 
@@ -158,7 +158,7 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
         subtitle={cycle.strategicTheme || undefined}
         period={
           cycle?.start_date && cycle?.end_date
-            ? `${format(new Date(cycle.start_date), "d 'de' MMMM 'de' yyyy", { locale: ptBR })} até ${format(new Date(cycle.end_date), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}`
+            ? `${format(addDays(new Date(cycle.start_date), 1), "d 'de' MMMM 'de' yyyy", { locale: ptBR })} até ${format(addDays(new Date(cycle.end_date), 1), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}`
             : 'Período inválido'
         }
       />

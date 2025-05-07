@@ -378,6 +378,8 @@ generateFullOKRStructure: async (prompt: string) => {
           - Exemplo 1: 2 Objetivos Estratégicos, 3 Táticos e 5 Operacionais
           - Exemplo 2: 2 Objetivos Estratégicos com 2 KRs cada
           - Exemplo 3: 3 Objetivos Táticos com 3 KRs cada 
+
+        6. NUNCA CRIE KRs BINÁRIOS (0 ou 1, feito ou não feito). Use sempre métricas contínuas e progressivas.
         ---
         
         🎯 Objetivos Devem ser:

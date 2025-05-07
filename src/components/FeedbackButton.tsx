@@ -56,7 +56,7 @@ export function FeedbackButton() {
   };
 
   return (
-    <div className="fixed bottom-6 right-4 z-50">
+    <div className="fixed bottom-6 left-4 z-50">
       {open ? (
         <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-80 space-y-3">
           <textarea
@@ -88,7 +88,7 @@ export function FeedbackButton() {
       ) : (
         <button
           onClick={() => setOpen(true)}
-          className="inline-flex items-center py-2 px-4 bg-blue-700 text-white text-sm rounded-full font-medium hover:bg-blue-900 transition-all shadow-lg hover:shadow-xl"
+          className="inline-flex items-center py-2 px-4 bg-blue-600 text-white text-sm rounded-full font-medium hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl"
           title="Enviar feedback"
         >
           <MessageCircle className="w-4 h-4 mr-2" />

@@ -156,7 +156,7 @@ export function CycleDashboard() {
         />
       )}
   
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-10">
+      <div className="max-w-7xl mx-auto pb-20 px-4 py-8 sm:px-6 lg:px-10">
         {cycles.length > 0 ? (
           <>
             {(isAdmin || isChampion) && (

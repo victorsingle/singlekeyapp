@@ -1,266 +1,199 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { Routes, Route, Navigate, useLocation, useNavigate, useParams, NavLink } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { Target, Menu, X } from 'lucide-react';
+import clsx from 'clsx';
+
+// Componentes visuais e containers principais
 import RadarLoader from './components/RadarLoader';
-import { Routes, Route, Navigate, useLocation, useNavigate, useParams, Link, NavLink } from 'react-router-dom';
+import { Header } from './components/Header';
+import { ModalContainer } from './components/ModalContainer';
+import { FeedbackButton } from './components/FeedbackButton';
+
+// Páginas principais
 import { CycleDashboard } from './components/CycleDashboard';
 import { CycleDetailPage } from './components/CycleDetailPage';
 import { Dashboard } from './components/dashboard/Dashboard';
-import { ModalContainer } from './components/ModalContainer';
-import { useAuthStore } from './stores/authStore';
-import { Toaster } from 'react-hot-toast';
-import { AuthTabs } from './components/auth/AuthTabs';
-import { Login } from './components/auth/Login';
-import { ResetPassword } from './components/auth/ResetPassword';
-import { AuthCallback } from './components/auth/AuthCallback';
-import { supabase } from './lib/supabase';
-import clsx from 'clsx';
-import { useNotificationStore } from './stores/notificationStore';
-import { createNotificationIfNecessary } from './lib/notifications';
-import { Header } from './components/Header';
-import { UpdatePassword } from './components/auth/UpdatePassword';
 import { UsersPage } from './pages/admin/UsersPage';
 import { TeamsPage } from './pages/admin/TeamsPage';
 import { TeamDetailPage } from './pages/admin/TeamDetailPage';
-import { AcceptInvitePage } from './components/auth/AcceptInvitePage';
-import { useCycleStore } from './stores/okrCycleStore';
 import { GuidePage } from './pages/GuidePage';
-import { LandingPage } from './pages/site'; 
+import { LandingPage } from './pages/site';
+
+// Autenticação
+import { AuthTabs } from './components/auth/AuthTabs';
+import { Login } from './components/auth/Login';
+import { ResetPassword } from './components/auth/ResetPassword';
+import { UpdatePassword } from './components/auth/UpdatePassword';
+import { AcceptInvitePage } from './components/auth/AcceptInvitePage';
+import { AuthCallback } from './components/auth/AuthCallback';
+
+// Libs, stores e hooks
+import { supabase } from './lib/supabase';
+import { useAuthStore } from './stores/authStore';
+import { useCycleStore } from './stores/okrCycleStore';
+import { useNotificationStore } from './stores/notificationStore';
 import { useCurrentCompany } from './hooks/useCurrentCompany';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import { FeedbackButton } from "./components/FeedbackButton"
 import { useTokenUsage } from './hooks/useTokenUsage';
+import { useOrgCheckinStatus } from './hooks/useOrgCheckinStatus';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
-
+// Componente auxiliar para rotas dinâmicas de ciclo
 export function CycleDetailPageWrapper() {
   const { id } = useParams();
   return <CycleDetailPage cycleId={id!} />;
 }
 
-
 function App() {
-  //const { fetchCycles } = useOKRStore();
-  const { loadCycles } = useCycleStore();
+  // --- Estados principais de controle ---
   const [session, setSession] = useState<Session | null>(null);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const location = useLocation();
+  const [cyclesReady, setCyclesReady] = useState(false);
+  const [dataReady, setDataReady] = useState(false);
+
   const navigate = useNavigate();
-  const company = useCurrentCompany();
-  const tokenUsage = useTokenUsage();
-
-  const SomeComponent = () => {
-    return (
-      <div className="flex items-center space-x-2">
-        <RadarLoader />
-      </div>
-    );
-  };
-
-  const publicPaths = [
-    '/login',
-    '/register',
-    '/reset-password',
-    '/update-password',
-    '/auth/callback',
-    '/convite',
-    '/site',
-  ];
-  const isPublicRoute =
-    publicPaths.includes(location.pathname) ||
-    location.pathname.startsWith('/auth/callback');
-
-  const { notifications, markAsRead, fetchNotifications } = useNotificationStore();
-  const checkinNotification = notifications.find(
-    (n) => n.type === 'checkin_reminder' && !n.read
-  );
-
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (!error) navigate('/login');
-  };
-
-  const [showDropdown, setShowDropdown] = useState(false);
+  const location = useLocation();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowDropdown(false);
-      }
-    };
+  // --- Stores e hooks derivados ---
+  const company = useCurrentCompany();
+  const tokenUsage = useTokenUsage();
+  
+  const selectedCycleId = useCycleStore(state => state.selectedCycleId);
+  const loadCycles = useCycleStore(state => state.loadCycles);
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const organizationId = useAuthStore((state) => state.organizationId);
+  const { notifications, fetchNotifications } = useNotificationStore();
 
+  // --- Caminhos públicos ---
+  const publicPaths = ['/login','/register','/reset-password','/update-password','/auth/callback','/convite','/site'];
+  const isPublicRoute = publicPaths.includes(location.pathname) || location.pathname.startsWith('/auth/callback');
+
+  // --- Notificação de check-in ---
+
+  console.log('[🛠️ Debug CheckinStatus]', {
+    cyclesReady,
+    selectedCycleId,
+    organizationId,
+  });
+
+  const checkinNotification = notifications.find(n => n.type === 'checkin_reminder' && !n.read);
+
+  const shouldCheck = cyclesReady && selectedCycleId && organizationId;
+  const rawCheckinStatus = useOrgCheckinStatus(shouldCheck ? selectedCycleId : undefined);
+  
+  const checkinStatus = shouldCheck
+    ? rawCheckinStatus
+    : {
+        orgHasCheckedInToday: false,
+        hasValidCheckinReminderToday: false,
+        reminderMessage: null,
+        loading: true
+      };
+
+  // --- 1. Bootstrap inicial: autenticação, sessão, ciclos, organização ---
   useEffect(() => {
     const init = async () => {
+      // 1. Sessão
       const { data: { session }, error } = await supabase.auth.getSession();
-      if (!error) setSession(session);
+      if (error || !session) {
+        setIsAuthChecked(true);
+        return;
+      }
+  
+      setSession(session);
+  
+      // 2. Dados do usuário
+      await useAuthStore.getState().fetchUserData();
+
+      // Aguarda até que organizationId esteja disponível
+      let organizationId = useAuthStore.getState().organizationId;
+      let attempts = 0;
+
+      while (!organizationId && attempts < 10) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        organizationId = useAuthStore.getState().organizationId;
+        attempts++;
+      }
+
+      if (!organizationId) {
+        console.warn('[⛔] Falha ao obter organizationId após múltiplas tentativas.');
+        setIsAuthChecked(true);
+        return;
+      }
+  
+      // 3. Ciclos da organização
+      const cycles = await loadCycles(organizationId);
+      if (cycles?.length) {
+        const sorted = cycles.sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
+        const current = sorted.find((c) => c.status === 'active') ?? sorted[0];
+        if (current) {
+          useCycleStore.getState().setSelectedCycleId(current.id);
+          setDataReady(true);
+        }
+      }
+  
+      setCyclesReady(true);
       setIsAuthChecked(true);
     };
-
+  
     init();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('[🔄 Auth State Changed]', { event, session });
-
-      if (session) {
-        setSession(session);
-      }
-
-      if (event === 'PASSWORD_RECOVERY') {
-        navigate('/update-password');
-      }
+  
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) setSession(session);
+      if (event === 'PASSWORD_RECOVERY') navigate('/update-password');
     });
-
-    return () => authListener.subscription.unsubscribe();
+  
+    return () => listener.subscription.unsubscribe();
   }, []);
+  
 
+  // --- 2. Carregar dados do usuário e notificações ---
   useEffect(() => {
     if (session) {
-      useAuthStore.getState().fetchUserData(); // 🚨 Aqui chama para carregar o usuário!
+      useAuthStore.getState().fetchUserData();
       fetchNotifications(session.user.id);
     }
   }, [session]);
 
-// Checkin Lembrete
-useEffect(() => {
-  if (!session) return;
-
-  const today = new Date().toLocaleDateString('sv-SE');
-
-  const checkReminder = async () => {
-    // 🔍 1. Buscar check-ins programados para hoje
-    const { data: checkins, error } = await supabase
-      .from('okr_checkins')
-      .select('checkin_date, cycle_id')
-      .eq('checkin_date', today)
-      .limit(10);
-
-    if (error || !checkins?.length) {
-      console.log('[ℹ️ Nenhum check-in programado ou erro]');
-      return;
-    }
-
-    // 🔍 2. Buscar organization_id e role do usuário logado
-    const userData = useAuthStore.getState();
-    const orgId = userData.organizationId;
-    const role = userData.role;
-
-    if (!orgId) {
-      console.warn('[⚠️] Organização não encontrada para usuário logado.');
-      return;
-    }
-
-    // 🔍 3. Buscar todos os champions da organização
-    const { data: champions, error: championError } = await supabase
-      .from('invited_users')
-      .select('user_id')
-      .eq('organization_id', orgId)
-      .eq('role', 'champion');
-
-    if (championError) {
-      console.error('[❌ Erro ao buscar champions da organização]', championError);
-      return;
-    }
-
-    // ✅ 4. Inclui o próprio usuário somente se for admin ou champion
-    const includeSelf = role === 'admin' || role === 'champion';
-    const allUserIds = [
-      ...(champions?.map(c => c.user_id) ?? []),
-      ...(includeSelf ? [session.user.id] : [])
-    ];
-
-    for (const checkin of checkins) {
-      const { data: cycle, error: cycleError } = await supabase
-        .from('okr_cycles')
-        .select('id, name')
-        .eq('id', checkin.cycle_id)
-        .maybeSingle();
-
-      if (cycleError || !cycle) continue;
-
-      // 🔁 5. Criar notificação para cada user relevante
-      for (const userId of allUserIds) {
-        await createNotificationIfNecessary({
-          userId,
-          cycleId: cycle.id,
-          title: 'Lembrete de Check-in',
-          buildMessage: () =>
-            `Hoje é dia de Check-in do Ciclo ${cycle.name}. Clique e atualize suas métricas.`,
-          checkIfActionDone: async () => {
-            const { data } = await supabase
-              .from('key_result_checkins')
-              .select('id')
-              .eq('cycle_id', checkin.cycle_id)
-              .eq('date', today)
-              .limit(1);
-          
-            const jaFoiFeito = !!data?.length;
-          
-            // ⬇️ Limpa notificações antigas se o check-in da org já foi feito
-            if (jaFoiFeito) {
-              await supabase
-                .from('user_notifications')
-                .delete()
-                .eq('type', 'checkin_reminder')
-                .eq('read', false)
-                .eq('user_id', userId);
-            }
-          
-            return jaFoiFeito;
-          },
-        });
+  // --- 5. Dropdown fora do menu ---
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowMobileMenu(false);
       }
-    }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-    // ✅ 6. Atualiza a store com as notificações novas (apenas para o logado)
-    useNotificationStore.getState().fetchNotifications(session.user.id);
-  };
+  // --- Redirecionamento para login se necessário ---
+  if (!isAuthChecked) return <RadarLoader />;
+  if (!session && !isPublicRoute) return <Navigate to="/login" replace />;
 
-  checkReminder();
-}, [session]);
-
-
-
-if (!isAuthChecked) {
+  // --- Render principal ---
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <RadarLoader />
-    </div>
-  );
-}
+    <>
+      <Toaster position="top-right" reverseOrder={false} />
+      <div className="min-h-screen bg-gray-50">
 
-  console.log('[🔒 Proteção de rota]', {
-    session,
-    isPublicRoute,
-    pathname: location.pathname,
-  });
-
-  if (!session && !isPublicRoute) {
-    return <Navigate to="/login" replace />;
-  }
-
-
- return (
-  <>
-
-  <Toaster
-    position="top-right"
-    reverseOrder={false}
-  />
-    <div className="min-h-screen bg-gray-50">
-      
-      {!isPublicRoute && (
-        <>
+        {/* Header e Menu lateral */}
+        {!isPublicRoute && dataReady && (
           <Header
             session={session}
-            onLogout={handleLogout}
+            onLogout={async () => {
+              const { error } = await supabase.auth.signOut();
+              if (!error) navigate('/login');
+            }}
             onMobileMenuOpen={() => setShowMobileMenu(true)}
-            checkinNotification={checkinNotification}
-          />
+            checkinStatus={checkinStatus}
+            selectedCycleId={selectedCycleId}
 
+          />
+        )}
+
+        {/* Overlay escurecido */}
           <div
             className={clsx(
               "fixed inset-0 z-40 bg-black bg-opacity-40 transition-opacity duration-300 md:hidden",
@@ -269,6 +202,7 @@ if (!isAuthChecked) {
             onClick={() => setShowMobileMenu(false)}
           />
 
+          {/* Menu lateral */}
           <div
             className={clsx(
               "fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50 p-4 transition-transform duration-300 ease-in-out md:hidden",
@@ -288,129 +222,72 @@ if (!isAuthChecked) {
               </div>
             )}
 
-          {!tokenUsage.isLoading && tokenUsage.limite > 0 && (
+            {!tokenUsage.isLoading && tokenUsage.limite > 0 && (
               <div className="px-0 pt-2 pb-4 mb-4 text-[11px] text-gray-600 border-t border-b border-gray-200">
                 <div className="flex justify-between mb-1">
                   <span className="font-semibold text-gray-400">Uso da IA</span>
                   <span>{new Intl.NumberFormat('pt-BR').format(tokenUsage.usado)} / {new Intl.NumberFormat('pt-BR').format(tokenUsage.limite)}</span>
                 </div>
                 <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-blue-400 transition-all duration-300"
-                    style={{ width: `${tokenUsage.percentual}%` }}
-                  />
+                  <div className="h-full bg-blue-400 transition-all duration-300" style={{ width: `${tokenUsage.percentual}%` }} />
                 </div>
               </div>
             )}
 
             <nav className="flex flex-col space-y-4">
-              <NavLink
-                to="/cycles"
-                onClick={() => setShowMobileMenu(false)}
-                className={({ isActive }) =>
-                  clsx(
-                    'text-left text-base',
-                    isActive ? 'text-blue-600 font-medium' : 'text-gray-700 hover:text-blue-600'
-                  )
-                }
-              >
-                Ciclos
-              </NavLink>
+              <NavLink to="/cycles" onClick={() => setShowMobileMenu(false)} className={({ isActive }) =>
+                clsx('text-left text-base', isActive ? 'text-blue-600 font-medium' : 'text-gray-700 hover:text-blue-600')}>Ciclos</NavLink>
 
-              <NavLink
-                to="/dashboard"
-                onClick={() => setShowMobileMenu(false)}
-                className={({ isActive }) =>
-                  clsx(
-                    'text-left text-base',
-                    isActive ? 'text-blue-600 font-medium' : 'text-gray-700 hover:text-blue-600'
-                  )
-                }
-              >
-                Acompanhamento
-              </NavLink>
+              <NavLink to="/dashboard" onClick={() => setShowMobileMenu(false)} className={({ isActive }) =>
+                clsx('text-left text-base', isActive ? 'text-blue-600 font-medium' : 'text-gray-700 hover:text-blue-600')}>Acompanhamento</NavLink>
 
               <hr className="border-t border-gray-200 my-2" />
               <span className="text-gray-400 font-bold mt-2">Conta</span>
-              
+
               {useAuthStore.getState().role === 'admin' && (
                 <>
-              <button
-                onClick={() => {
-                  navigate('/admin/users');
-                  setShowMobileMenu(false);
-                }}
-                className="text-left text-gray-700 hover:text-blue-600"
-              >
-                Usuários
-              </button>
-              <button
-                onClick={() => {
-                  navigate('/admin/teams');
-                  setShowMobileMenu(false);
-                }}
-                className="text-left text-gray-700 hover:text-blue-600"
-              >
-                Times
-              </button>
-              </>
+                  <button onClick={() => { navigate('/admin/users'); setShowMobileMenu(false); }} className="text-left text-gray-700 hover:text-blue-600">Usuários</button>
+                  <button onClick={() => { navigate('/admin/teams'); setShowMobileMenu(false); }} className="text-left text-gray-700 hover:text-blue-600">Times</button>
+                </>
               )}
-              <button
-                onClick={() => {
-                  handleLogout();
-                  setShowMobileMenu(false);
-                }}
-                className="text-left text-red-600 hover:text-red-400"
-              >
-                Sair
-              </button>
+
+              <button onClick={async () => {
+                await supabase.auth.signOut();
+                setShowMobileMenu(false);
+                navigate('/login');
+              }} className="text-left text-red-600 hover:text-red-400">Sair</button>
             </nav>
           </div>
-        </>
-      )}
 
-      <main  
-        className={clsx({
-            'pt-[60px]': !isPublicRoute && !checkinNotification,
-            'pt-[96px]': !isPublicRoute && checkinNotification,
-          })}>
-      <Routes>
-        <Route path="/site" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<AuthTabs />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/update-password" element={<UpdatePassword />} />
-        <Route path="/convite" element={<AcceptInvitePage />} />
-        <Route path="/auth/callback" element={<AuthCallback />} />
-        <Route path="/" element={<CycleDashboard />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/cycle/:id" element={<CycleDetailPageWrapper />} />
+        {/* Espaço para rotas protegidas */}
+        <main className={clsx({
+          'pt-[60px]': !isPublicRoute && !checkinStatus.reminderMessage,
+          'pt-[96px]': !isPublicRoute && !!checkinStatus.reminderMessage,
+        })}>
+          <Routes>
+            <Route path="/site" element={<LandingPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<AuthTabs />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/update-password" element={<UpdatePassword />} />
+            <Route path="/convite" element={<AcceptInvitePage />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/" element={<CycleDashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/cycle/:id" element={<CycleDetailPageWrapper />} />
+            <Route path="/admin/users" element={<ProtectedRoute requireAdmin element={<UsersPage />} />} />
+            <Route path="/admin/teams" element={<ProtectedRoute requireAdmin element={<TeamsPage />} />} />
+            <Route path="/admin/teams/:id" element={<ProtectedRoute requireAdmin element={<TeamDetailPage />} />} />
+            <Route path="/guide" element={<GuidePage />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </main>
 
-        {/* 🔐 Protegidas por papel */}
-        <Route
-          path="/admin/users"
-          element={<ProtectedRoute requireAdmin element={<UsersPage />} />}
-        />
-        <Route
-          path="/admin/teams"
-          element={<ProtectedRoute requireAdmin element={<TeamsPage />} />}
-        />
-        <Route
-          path="/admin/teams/:id"
-          element={<ProtectedRoute requireAdmin element={<TeamDetailPage />} />}
-        />
-
-        <Route path="*" element={<Navigate to="/" />} />
-        <Route path="/guide" element={<GuidePage />} />
-      </Routes>
-      </main>
-
-      <ModalContainer />
-      {!isPublicRoute && <FeedbackButton />}
-    </div>
-  </>
-);
-
+        <ModalContainer />
+        {!isPublicRoute && <FeedbackButton />}
+      </div>
+    </>
+  );
 }
 
 export default App;

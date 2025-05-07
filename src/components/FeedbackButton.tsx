@@ -88,10 +88,11 @@ export function FeedbackButton() {
       ) : (
         <button
           onClick={() => setOpen(true)}
-          className="inline-flex items-center py-2 px-2 bg-blue-700 text-white text-sm rounded-full font-medium hover:bg-blue-900 transition-all shadow-lg hover:shadow-xl"
+          className="inline-flex items-center py-2 px-4 bg-blue-700 text-white text-sm rounded-full font-medium hover:bg-blue-900 transition-all shadow-lg hover:shadow-xl"
           title="Enviar feedback"
         >
-          <MessageCircle className="w-4 h-4" />
+          <MessageCircle className="w-4 h-4 mr-2" />
+          Feedback
         </button>
       )}
     </div>

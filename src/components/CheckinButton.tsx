@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Calendar } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNotificationStore } from '../stores/notificationStore';
+import { useOrgCheckinStatus } from '../hooks/useOrgCheckinStatus';
 import toast from 'react-hot-toast';
 
 interface CheckinButtonProps {
@@ -27,43 +28,8 @@ const mapConfidence = (value: string): 'green' | 'yellow' | 'red' => {
 
 export function CheckinButton({ cycleId, userId, checkinNotification }: CheckinButtonProps) {
   const { markAsRead, fetchNotifications } = useNotificationStore();
-  const [isEligible, setIsEligible] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!cycleId) {
-      console.warn('[⚠️ Check-in] cycleId ausente', { cycleId });
-      return;
-    }
-  
-    const today = new Date().toISOString().slice(0, 10);
-    console.log('[🔁 Verificando elegibilidade global de check-in]', { cycleId, today });
-  
-    const check = async () => {
-      try {
-        // Verifica se já houve algum check-in hoje para esse ciclo
-        const { data: checkins, error } = await supabase
-          .from('key_result_checkins')
-          .select('id')
-          .eq('cycle_id', cycleId) // você precisa adicionar esse campo em `key_result_checkins`, se não existir
-          .eq('date', today)
-          .limit(1);
-  
-        if (error) {
-          console.error('[❌ Erro ao verificar check-ins da organização]', error);
-          return;
-        }
-  
-        const jaTemCheckinHoje = (checkins?.length ?? 0) > 0;
-        setIsEligible(!jaTemCheckinHoje);
-      } catch (err) {
-        console.error('[❌ Erro inesperado na verificação global]', err);
-      }
-    };
-  
-    check();
-  }, [cycleId]);
-  
+  const { orgHasCheckedInToday, loading: checkLoading } = useOrgCheckinStatus(cycleId);
 
   const handleCheckin = async () => {
     if (!userId || !cycleId) return;
@@ -72,7 +38,6 @@ export function CheckinButton({ cycleId, userId, checkinNotification }: CheckinB
     const today = new Date().toLocaleDateString('sv-SE');
 
     try {
-      // Busca os OKRs do ciclo
       const { data: okrs, error: okrError } = await supabase
         .from('okrs')
         .select('id')
@@ -85,7 +50,6 @@ export function CheckinButton({ cycleId, userId, checkinNotification }: CheckinB
 
       const okrIds = okrs.map((okr) => okr.id);
 
-      // Busca os KRs vinculados
       const { data: keyResults, error: krError } = await supabase
         .from('key_results')
         .select('id, confidence_flag')
@@ -96,7 +60,6 @@ export function CheckinButton({ cycleId, userId, checkinNotification }: CheckinB
         return;
       }
 
-      // Monta o payload dos check-ins
       const payload = keyResults.map((kr) => ({
         key_result_id: kr.id,
         user_id: userId,
@@ -117,14 +80,12 @@ export function CheckinButton({ cycleId, userId, checkinNotification }: CheckinB
         return;
       }
 
-      // Marca notificação como lida (se existir)
       if (checkinNotification?.id) {
         await markAsRead(checkinNotification.id);
         await fetchNotifications(userId);
       }
 
       toast.success('Check-in realizado com sucesso!');
-      setIsEligible(false);
     } catch (err) {
       console.error('[❌ Erro inesperado no check-in]', err);
       toast.error('Erro inesperado ao fazer check-in');
@@ -133,9 +94,9 @@ export function CheckinButton({ cycleId, userId, checkinNotification }: CheckinB
     }
   };
 
-  const disabled = !isEligible || loading;
-  const alreadyCheckedIn = !isEligible && !loading;
-  
+  const disabled = orgHasCheckedInToday || loading || checkLoading;
+  const alreadyCheckedIn = orgHasCheckedInToday && !loading;
+
   console.log('[💡 Props recebidas no botão]', { userId, cycleId });
 
   return (

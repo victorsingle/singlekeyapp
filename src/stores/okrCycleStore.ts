@@ -9,24 +9,39 @@ import {
 export const useCycleStore = create((set, get) => ({
   // Estado
   cycles: [],
-  loading: false,          // usado para criar/editar/excluir ciclos
-  loadingCycles: false,    // usado apenas para carregar ciclos
+  selectedCycleId: null, // <-- ADICIONAR AQUI
+  loading: false,
+  loadingCycles: false,
   error: null,
+
+  // Setter para ciclo selecionado
+  setSelectedCycleId: (id) => set({ selectedCycleId: id }), // <-- ADICIONAR AQUI
 
   // Carregar ciclos da organização
   loadCycles: async (organizationId) => {
+
+    console.group('[🧩 loadCycles]');
+    console.log('organizationId recebido:', organizationId);
+    console.trace();
+    console.groupEnd();
+
     if (!organizationId) {
       console.warn('[⚠️] loadCycles: organizationId ausente, não buscar ciclos.');
       return;
     }
-    console.log('[📦] Buscando ciclos para organizationId:', organizationId);
+
     set({ loadingCycles: true });
+
     try {
       const cycles = await fetchCycles(organizationId);
+      
+      console.log('[✅ loadCycles] Ciclos carregados:', cycles);
+      
       set({ cycles, loadingCycles: false });
+
+      return cycles;
     } catch (error) {
       console.error('[❌] Erro ao carregar ciclos:', error);
-
       if (error.message !== 'ID da organização é obrigatório para buscar ciclos.') {
         set({ error: error.message, loadingCycles: false });
       } else {

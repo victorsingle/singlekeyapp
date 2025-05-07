@@ -90,7 +90,7 @@ export const useAuthStore = create<AuthState>()(
               error: null,
             });
 
-            console.log('[✅ fetchUserData] organizationId salvo:', invitedUser.organizationId);
+            console.log('[✅ fetchUserData] organizationId salvo:', userProfile.organizationId);
 
             setTimeout(() => {
               console.log('[🧪 organizationId no store após 2s]', useAuthStore.getState().organizationId);

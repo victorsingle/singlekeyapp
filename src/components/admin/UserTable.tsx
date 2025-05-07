@@ -149,7 +149,7 @@ export function UserTable({ users, loading, onInviteClick, onUserUpdated, setUse
                 name={`${user.first_name ?? ''} ${user.last_name ?? ''}`}
                 email={user.email}
                 role={user.role ?? '—'}
-                team="—"
+                team={user.team ?? 'Sem time'}
                 status={user.status === 'active' ? 'ativo' : 'inativo'}
                 onEdit={() => setEditingUserId(user.id)}
                 onDelete={() => handleDelete(user)}

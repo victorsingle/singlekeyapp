@@ -40,7 +40,7 @@ export function UserCard({
                   <div className="flex gap-2 text-xs text-gray-600">
                     <span>{role}</span>
                     <span className="text-gray-400">|</span>
-                    <span>{team}</span>
+                    <span>{team || 'Sem time'}</span>
                   </div>
                   <span className={`inline-block text-xs px-2 rounded-full ${statusColor}`}>
                     {status}
@@ -56,7 +56,6 @@ export function UserCard({
                 </button>
               }
             >
-              {onEdit && <DropdownMenuItem onClick={onEdit}>Editar</DropdownMenuItem>}
               {onDelete && (
                 <DropdownMenuItem onClick={onDelete} className="text-red-600">
                   Excluir

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { useUsers } from '../../hooks/useUsers';
+import { supabase } from '../../lib/supabase';
 
 interface TeamFormModalProps {
   isOpen: boolean;
@@ -23,30 +24,35 @@ export function TeamFormModal({ isOpen, onClose, onSave, team }: TeamFormModalPr
   const [leader, setLeader] = useState('');
   const [leaderName, setLeaderName] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [excludedIds, setExcludedIds] = useState<Set<string>>(new Set());
 
   const filtered = activeUsers.filter((u) =>
-    `${u.first_name} ${u.last_name}`.toLowerCase().includes(leaderName.toLowerCase())
+    `${u.first_name} ${u.last_name}`.toLowerCase().includes(leaderName.toLowerCase()) &&
+    !excludedIds.has(u.id)
   );
 
   useEffect(() => {
-    if (team) {
-      setName(team.name);
-      setDescription(team.description);
-      setLeader(team.leader);
-
-      const leaderUser = users.find((u) => u.id === team.leader);
-      if (leaderUser) {
-        setLeaderName(`${leaderUser.first_name} ${leaderUser.last_name}`);
-      } else {
-        setLeaderName('');
+    const fetchExcludedUsers = async () => {
+      const [leadersRes, membersRes] = await Promise.all([
+        supabase.from('teams').select('leader_id'),
+        supabase.from('team_members').select('user_id'),
+      ]);
+  
+      const leaderIds = new Set((leadersRes.data ?? []).map((t) => t.leader_id));
+      const memberIds = new Set((membersRes.data ?? []).map((m) => m.user_id));
+  
+      // Se estiver editando, mantém o líder atual
+      if (team?.leader) {
+        leaderIds.delete(team.leader);
       }
-    } else {
-      setName('');
-      setDescription('');
-      setLeader('');
-      setLeaderName('');
+  
+      setExcludedIds(new Set([...leaderIds, ...memberIds]));
+    };
+  
+    if (isOpen) {
+      fetchExcludedUsers();
     }
-  }, [team, users]);
+  }, [isOpen, team]);
 
   if (!isOpen) return null;
 

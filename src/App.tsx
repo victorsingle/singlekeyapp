@@ -169,7 +169,13 @@ function App() {
   }, []);
 
   // --- Redirecionamento para login se necessário ---
-  if (!isAuthChecked) return <RadarLoader />;
+  if (!isAuthChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <RadarLoader />
+      </div>
+    );
+  }
   if (!session && !isPublicRoute) return <Navigate to="/login" replace />;
 
   // --- Render principal ---

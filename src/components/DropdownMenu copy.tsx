@@ -3,14 +3,12 @@ import React, { useState, useRef, useEffect } from 'react';
 interface DropdownMenuProps {
   trigger: React.ReactNode;
   children: React.ReactNode;
-  disabled?: boolean;
 }
 
-export function DropdownMenu({ trigger, children, disabled = false }: DropdownMenuProps) {
+export function DropdownMenu({ trigger, children }: DropdownMenuProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fecha ao clicar fora
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -23,26 +21,14 @@ export function DropdownMenu({ trigger, children, disabled = false }: DropdownMe
     };
   }, []);
 
-  // Fecha quando ficar desabilitado
-  useEffect(() => {
-    if (disabled) {
-      setShowDropdown(false);
-    }
-  }, [disabled]);
-
   return (
     <div className="relative inline-block text-left" ref={dropdownRef}>
-      <div
-        onClick={() => {
-          if (!disabled) setShowDropdown((prev) => !prev);
-        }}
-        className={disabled ? 'cursor-default opacity-50' : 'cursor-pointer'}
-      >
+      <div onClick={() => setShowDropdown(prev => !prev)} className="cursor-pointer">
         {trigger}
       </div>
 
       {showDropdown && (
-        <div className="absolute right-0 z-[60] mt-2 w-48 origin-top-right rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+        <div className="absolute right-0 z-20 mt-2 w-48 origin-top-right rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
           <div className="py-1">
             {children}
           </div>

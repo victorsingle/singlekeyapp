@@ -197,6 +197,7 @@ export function CycleDashboard() {
                   onDelete={() => handleDelete(cycle.id)}
                   canEdit={canEditCycle}
                   canDelete={canDeleteCycle}
+                  isFormOpen={isFormOpen}
                 />
               ))}
             </div>
@@ -220,9 +221,8 @@ export function CycleDashboard() {
       </div>
       
       {isFormOpen && (
-       
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full">
+        <div className="fixed inset-0 z-[9999] bg-black bg-opacity-40 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <CycleForm
               cycle={selectedCycle}
               onClose={handleFormClose}
@@ -230,7 +230,6 @@ export function CycleDashboard() {
             />
           </div>
         </div>
-        
       )}
   
       {isGeneratorOpen && (

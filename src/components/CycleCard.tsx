@@ -1,4 +1,5 @@
 import { Calendar, MoreVertical } from "lucide-react";
+import React, { useEffect } from 'react';
 import { DropdownMenu, DropdownMenuItem } from "../components/DropdownMenu";
 import { usePermissions } from '../hooks/usePermissions'; 
 import { Link } from "react-router-dom";
@@ -15,6 +16,7 @@ type CycleCardProps = {
   onDelete?: () => void;
   canEdit?: boolean;
   canDelete?: boolean;
+  isFormOpen?: boolean; 
 };
 
 export function CycleCard({
@@ -28,12 +30,14 @@ export function CycleCard({
   onDelete,
   canEdit = true,
   canDelete = true,
+  isFormOpen,
 }: CycleCardProps) {
   const borderColor = {
     draft: "border-l-blue-400",
     active: "border-l-yellow-500",
     completed: "border-l-green-400",
   }[status];
+
 
   const badgeColor = {
     draft: "bg-blue-100 text-blue -800",
@@ -48,6 +52,7 @@ export function CycleCard({
   }[status];
   
   const { isAdmin, isChampion } = usePermissions();
+
 
   return (
     <div
@@ -76,21 +81,23 @@ export function CycleCard({
             {label}
         </span>
             
-            <DropdownMenu
-                trigger={
-                <button className="text-gray-400 hover:text-gray-600 ml-2">
-                    <MoreVertical className="w-5 h-5 mt-2" />
-                </button>
-                }
-            >
-              <DropdownMenuItem onClick={onView}>Visualizar OKRs</DropdownMenuItem>
-                {(isAdmin || isChampion) && (
-                  <>
-                  <DropdownMenuItem onClick={onEdit}>Editar</DropdownMenuItem>
-                  <DropdownMenuItem onClick={onDelete} className="text-red-600">Excluir</DropdownMenuItem>
-                  </>
-                )}
-            </DropdownMenu>
+        <DropdownMenu
+          key={isFormOpen ? 'menu-disabled' : 'menu-enabled'} // <- força recriação
+          disabled={isFormOpen}
+          trigger={
+            <button className="text-gray-400 hover:text-gray-600 ml-2">
+              <MoreVertical className="w-5 h-5 mt-2" />
+            </button>
+          }
+        >
+          <DropdownMenuItem onClick={onView}>Visualizar OKRs</DropdownMenuItem>
+          {(isAdmin || isChampion) && (
+            <>
+              <DropdownMenuItem onClick={onEdit}>Editar</DropdownMenuItem>
+              <DropdownMenuItem onClick={onDelete} className="text-red-600">Excluir</DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenu>
         </div>
         </div>
     </div>

@@ -83,7 +83,7 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
   });
 
   return (
-    <header className="w-full fixed z-[20] backdrop-blur-md bg-white/30bg-white shadow-sm">
+    <header className="w-full fixed z-[10] backdrop-blur-md bg-white/30bg-white shadow-sm">
       {breadcrumb && (
         <div className="w-full bg-gray-100 border-b border-gray-200 text-gray-600 text-sm px-4 py-2">
           <nav className="max-w-7xl mx-auto flex items-center space-x-1 text-xs" aria-label="Breadcrumb">

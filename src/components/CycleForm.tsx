@@ -150,7 +150,7 @@ export function CycleForm({ cycle, onClose, onSubmit }: CycleFormProps) {
   };
 
   return (
-    <div className="p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl bg-white shadow-xl relative">
+    <div id="cycle-form-modal" className="p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl bg-white shadow-xl relative">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-gray-900">
           {cycle ? 'Editar Ciclo' : 'Novo Ciclo'}
@@ -205,7 +205,7 @@ export function CycleForm({ cycle, onClose, onSubmit }: CycleFormProps) {
           {isMobile ? (
             <textarea
               id="strategic_theme"
-              className="w-full border text-sm rounded py-2 px-2 resize-none overflow-hidden leading-snug min-h-[3.5rem] box-content whitespace-pre-wrap break-words"
+              className="w-[calc(100%-1rem)] border text-sm rounded py-2 px-2 resize-none overflow-hidden leading-snug min-h-[3.5rem] box-content whitespace-pre-wrap break-words"
               value={formData.strategic_theme}
               rows={1}
               onInput={(e) => {

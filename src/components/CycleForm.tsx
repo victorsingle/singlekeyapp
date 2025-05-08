@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, CalendarPlus, Trash2 } from 'lucide-react';
+import { X, CalendarPlus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/authStore';
 import { clearOutdatedCheckinReminder } from '../lib/notifications';
@@ -248,7 +248,7 @@ export function CycleForm({ cycle, onClose, onSubmit }: CycleFormProps) {
                     onClick={() => setCheckins(checkins.filter((_, i) => i !== index))}
                     className="text-red-400 hover:text-red-600"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
               ))}

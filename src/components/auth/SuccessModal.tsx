@@ -17,8 +17,8 @@ export function SuccessModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full text-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 px-4">
+      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
         <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
         <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
         <p className="mt-2 text-sm text-gray-600">{message}</p>

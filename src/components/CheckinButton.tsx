@@ -29,7 +29,7 @@ const mapConfidence = (value: string): 'green' | 'yellow' | 'red' => {
 export function CheckinButton({ cycleId, userId, checkinNotification }: CheckinButtonProps) {
   const { markAsRead, fetchNotifications } = useNotificationStore();
   const [loading, setLoading] = useState(false);
-  const { orgHasCheckedInToday, loading: checkLoading } = useOrgCheckinStatus(cycleId);
+  const { orgHasCheckedInToday, hasValidCheckinReminderToday, loading: checkLoading } = useOrgCheckinStatus(cycleId);
 
   const handleCheckin = async () => {
     if (!userId || !cycleId) return;
@@ -94,7 +94,7 @@ export function CheckinButton({ cycleId, userId, checkinNotification }: CheckinB
     }
   };
 
-  const disabled = orgHasCheckedInToday || loading || checkLoading;
+  const disabled = !hasValidCheckinReminderToday || orgHasCheckedInToday || loading || checkLoading;
   const alreadyCheckedIn = orgHasCheckedInToday && !loading;
 
   console.log('[💡 Props recebidas no botão]', { userId, cycleId });

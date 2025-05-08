@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/authStore';
 
+
 export function useOrgCheckinStatus(cycleId?: string) {
   const [orgHasCheckedInToday, setOrgHasCheckedInToday] = useState(false);
   const [loading, setLoading] = useState(true);
   const [hasValidCheckinReminderToday, setHasValidCheckinReminderToday] = useState(false);
   const [reminderMessage, setReminderMessage] = useState<string | null>(null);
-
   const organizationId = useAuthStore(state => state.organizationId);
+  console.log('[HOOK] OrgCheckinStatus: organizationId:', organizationId, 'cycleId:', cycleId);
 
   useEffect(() => {
     if (!cycleId || !organizationId) return;
@@ -25,8 +26,7 @@ export function useOrgCheckinStatus(cycleId?: string) {
           .select('checkin_date')
           .eq('cycle_id', cycleId);
 
-        if (datesError || !scheduledDates || scheduledDates.length === 0) {
-          // 👉 Não há check-ins programados: botão e alerta desabilitados
+        if (datesError || !scheduledDates?.length) {
           setOrgHasCheckedInToday(false);
           setHasValidCheckinReminderToday(false);
           setReminderMessage(null);
@@ -34,16 +34,17 @@ export function useOrgCheckinStatus(cycleId?: string) {
           return;
         }
 
-        // 2. Filtrar datas no passado ou hoje
         const validDates = scheduledDates
-          .map((item) => item.checkin_date)
-          .filter((d) => new Date(d) <= today)
-          .sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+        .map((item) => item.checkin_date)
+        .filter((d) => {
+            const checkinDate = new Date(d);
+            return checkinDate <= today;
+        })
+        .sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
 
         const lastDueDate = validDates[validDates.length - 1];
 
         if (!lastDueDate) {
-          // 👉 Nenhuma data vencida (isso só ocorre se todas forem futuras)
           setOrgHasCheckedInToday(false);
           setHasValidCheckinReminderToday(false);
           setReminderMessage(null);
@@ -51,7 +52,7 @@ export function useOrgCheckinStatus(cycleId?: string) {
           return;
         }
 
-        // 3. Verificar se já houve check-in na última data vencida
+        // 2. Verifica se já houve check-in nessa data
         const { data: checkins, error: checkinError } = await supabase
           .from('key_result_checkins')
           .select('id')
@@ -60,21 +61,16 @@ export function useOrgCheckinStatus(cycleId?: string) {
           .limit(1);
 
         const checkedIn = checkins?.length > 0;
+
         setOrgHasCheckedInToday(checkedIn);
+        
+        const isTodayScheduled = lastDueDate === todayStr;
 
-        const isToday = lastDueDate === todayStr;
-        const shouldShowReminder = !checkedIn;
+        setHasValidCheckinReminderToday(isTodayScheduled && !checkedIn);
+        setReminderMessage(isTodayScheduled && !checkedIn ? 'Você tem um check-in pendente para hoje' : null);
 
-        setHasValidCheckinReminderToday(shouldShowReminder);
-        setReminderMessage(
-          shouldShowReminder
-            ? isToday
-              ? 'Você tem um check-in pendente para hoje'
-              : 'Você tem um check-in atrasado pendente'
-            : null
-        );
       } catch (err) {
-        console.error('[❌ Erro ao verificar status de check-in]', err);
+        console.error('[❌ Erro inesperado ao verificar status da organização]', err);
         setOrgHasCheckedInToday(false);
         setHasValidCheckinReminderToday(false);
         setReminderMessage(null);

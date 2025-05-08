@@ -111,7 +111,7 @@ export function AddTeamMemberModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center px-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-800">Adicionar membros</h2>
@@ -125,7 +125,7 @@ export function AddTeamMemberModal({
             {selectedUsers.map((user) => (
               <div
                 key={user.id}
-                className="flex items-center bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full"
+                className="flex items-center bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full"
               >
                 {user.first_name} {user.last_name}
                 <button

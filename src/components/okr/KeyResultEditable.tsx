@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { MoreHorizontal, MoreVertical } from 'lucide-react';
 import { useOKRStore } from '../../stores/okrStore';
 import { DropdownMenu, DropdownMenuItem } from '../../components/DropdownMenu';
-import { usePermissions } from '../../hooks/usePermissions'; 
+import { usePermissions } from '../../hooks/usePermissions';
+import { TeamAssignment } from '../../components/TeamAssignment';
+
 
 interface KeyResult {
   id: string;
@@ -41,6 +43,7 @@ export function KeyResultEditable({ kr }: KeyResultEditableProps) {
   const { updateKeyResult, deleteKeyResult } = useOKRStore();
   
   const { isAdmin, isChampion } = usePermissions();
+
 
   const handleBlur = (field: string, value: any) => {
     if (value === undefined || value === '') return;
@@ -194,6 +197,7 @@ export function KeyResultEditable({ kr }: KeyResultEditableProps) {
             </div>
           </div>
         </div>
+        <TeamAssignment krId={kr.id} />
       </div>
     </div>
   );

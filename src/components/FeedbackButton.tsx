@@ -56,7 +56,7 @@ export function FeedbackButton() {
   };
 
   return (
-    <div className="fixed bottom-6 left-4 z-50">
+    <div className="fixed bottom-6 right-4 z-50">
       {open ? (
         <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-80 space-y-3">
           <textarea

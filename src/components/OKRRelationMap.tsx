@@ -288,7 +288,7 @@ export function OKRRelationMap({ okrs, links }: { okrs: any[], links: any[] }) {
         }}
       >
         <Background gap={10} />
-        <Controls className="top-4 right-4  bg-transparent shadow-none border-none" />
+        <Controls />
       </ReactFlow>
     </div>
   );

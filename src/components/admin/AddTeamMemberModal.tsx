@@ -146,18 +146,24 @@ export function AddTeamMemberModal({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            {filteredUsers.length > 0 && (
-              <ul className="absolute z-10 bg-white border border-gray-200 rounded-md shadow max-h-48 overflow-y-auto mt-1 w-full">
-                {filteredUsers.map((user) => (
-                  <li
-                    key={user.id}
-                    onClick={() => handleSelectUser(user)}
-                    className="px-4 py-2 hover:bg-blue-100 cursor-pointer text-sm"
-                  >
-                    {user.first_name} {user.last_name}
-                  </li>
-                ))}
-              </ul>
+           {searchTerm && (
+              filteredUsers.length > 0 ? (
+                <ul className="absolute z-10 bg-white border border-gray-200 rounded-md shadow max-h-48 overflow-y-auto mt-1 w-full">
+                  {filteredUsers.map((user) => (
+                    <li
+                      key={user.id}
+                      onClick={() => handleSelectUser(user)}
+                      className="px-4 py-2 hover:bg-blue-100 cursor-pointer text-sm"
+                    >
+                      {user.first_name} {user.last_name}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow px-4 py-2 text-sm text-gray-500">
+                  Usuário não encontrado
+                </div>
+              )
             )}
           </div>
         </div>

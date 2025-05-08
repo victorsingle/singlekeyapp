@@ -127,23 +127,31 @@ export function TeamFormModal({ isOpen, onClose, onSave, team }: TeamFormModalPr
               placeholder="Digite para buscar um líder"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {showSuggestions && filtered.length > 0 && (
-              <ul className="absolute left-0 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-52 overflow-auto z-10">
-                {filtered.map((u) => (
-                  <li
-                    key={u.id}
-                    onClick={() => {
-                      setLeader(u.id);
-                      setLeaderName(`${u.first_name} ${u.last_name}`);
-                      setShowSuggestions(false);
-                    }}
-                    className="px-4 py-2 hover:bg-blue-100 cursor-pointer text-sm"
-                  >
-                    {u.first_name} {u.last_name}
-                  </li>
-                ))}
-              </ul>
+           
+           {showSuggestions && (
+              filtered.length > 0 ? (
+                <ul className="absolute left-0 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-52 overflow-auto z-10">
+                  {filtered.map((u) => (
+                    <li
+                      key={u.id}
+                      onClick={() => {
+                        setLeader(u.id);
+                        setLeaderName(`${u.first_name} ${u.last_name}`);
+                        setShowSuggestions(false);
+                      }}
+                      className="px-4 py-2 hover:bg-blue-100 cursor-pointer text-sm"
+                    >
+                      {u.first_name} {u.last_name}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="absolute left-0 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg px-4 py-2 text-sm text-gray-500 z-10">
+                  Usuário não encontrado
+                </div>
+              )
             )}
+
           </div>
         </div>
 

@@ -31,6 +31,19 @@ export function TeamFormModal({ isOpen, onClose, onSave, team }: TeamFormModalPr
     !excludedIds.has(u.id)
   );
 
+
+  useEffect(() => {
+    if (isOpen && team) {
+      setName(team.name || '');
+      setDescription(team.description || '');
+      setLeader(team.leader || '');
+  
+      // tenta buscar o nome completo do líder baseado no ID
+      const leaderUser = activeUsers.find((u) => u.id === team.leader);
+      setLeaderName(leaderUser ? `${leaderUser.first_name} ${leaderUser.last_name}` : '');
+    }
+  }, [isOpen, team]);
+
   useEffect(() => {
     const fetchExcludedUsers = async () => {
       const [leadersRes, membersRes] = await Promise.all([

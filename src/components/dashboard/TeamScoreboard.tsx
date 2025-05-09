@@ -21,6 +21,19 @@ interface TeamScoreboardProps {
   data: TeamData[];
 }
 
+function traduzirNivel(nivel: string): string {
+  switch (nivel) {
+    case 'strategic':
+      return 'Estratégico';
+    case 'tactical':
+      return 'Tático';
+    case 'operational':
+      return 'Operacional';
+    default:
+      return '-';
+  }
+}
+
 export function TeamScoreboard({ data }: TeamScoreboardProps) {
   return (
     <div className="bg-white rounded-xl shadow-md p-6 w-full overflow-auto">
@@ -65,7 +78,7 @@ export function TeamScoreboard({ data }: TeamScoreboardProps) {
                 {team.keyResults.map((kr) => (
                   <tr key={kr.id}>
                     <td className="px-6 py-2 text-xs text-gray-900">{kr.texto}</td>
-                    <td className="px-6 py-2 text-xs text-gray-700">{kr.nivel}</td>
+                    <td className="px-6 py-2 text-xs text-gray-700">{traduzirNivel(kr.nivel)}</td>
                     <td className="px-6 py-2 text-xs text-center text-gray-700">{kr.baseline || '-'}</td>
                     <td className="px-6 py-2 text-xs text-center text-gray-700">{kr.target || '-'}</td>
                     <td className={clsx("px-6 py-2 text-xs text-center text-blue-700 font-semibold", {

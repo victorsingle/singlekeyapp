@@ -108,6 +108,8 @@ export function CycleForm({ cycle, onClose, onSubmit }: CycleFormProps) {
         await updateCycle(cycle.id, payload);
       } else {
         cycleId = await createCycle(payload);
+        // ✅ Define o ciclo recém-criado como selecionado
+       useCycleStore.getState().setSelectedCycleId(cycleId);
       }
 
       await supabase.from('okr_checkins').delete().eq('cycle_id', cycleId);

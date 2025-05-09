@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation, useNavigate, useParams, NavLink }
 import { Toaster } from 'react-hot-toast';
 import { Target, Menu, X } from 'lucide-react';
 import clsx from 'clsx';
+import { shallow } from 'zustand/shallow';
 
 // Componentes visuais e containers principais
 import RadarLoader from './components/RadarLoader';
@@ -60,7 +61,16 @@ function App() {
   const company = useCurrentCompany();
   const tokenUsage = useTokenUsage();
   
-  const selectedCycleId = useCycleStore(state => state.selectedCycleId);
+  //const selectedCycleId = useCycleStore(state => state.selectedCycleId);
+  
+  const { selectedCycleId, cycles } = useCycleStore(
+    state => ({
+      selectedCycleId: state.selectedCycleId,
+      cycles: state.cycles,
+    }),
+    shallow
+  );
+
   const loadCycles = useCycleStore(state => state.loadCycles);
 
   const organizationId = useAuthStore((state) => state.organizationId);
@@ -148,6 +158,13 @@ function App() {
     return () => listener.subscription.unsubscribe();
   }, []);
   
+// ⚠️ Libera o Header se um ciclo for criado manualmente após o carregamento
+useEffect(() => {
+  if (!dataReady && cyclesReady && cycles.length > 0 && selectedCycleId) {
+    console.log('[🟢 Header renderizado após ciclo criado manualmente]');
+    setDataReady(true);
+  }
+}, [dataReady, cyclesReady, cycles.length, selectedCycleId]);
 
   // --- 2. Carregar dados do usuário e notificações ---
   useEffect(() => {

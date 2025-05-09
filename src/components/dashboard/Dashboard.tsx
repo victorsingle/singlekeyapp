@@ -16,6 +16,7 @@ import { SubHeader } from '../SubHeader';
 import { Sparkles, ChevronDown } from 'lucide-react';
 import { useLocation, useNavigate, NavLink } from 'react-router-dom';
 import { usePermissions } from '../../hooks/usePermissions';
+import { TeamScoreboard } from './TeamScoreboard';
 
 export function Dashboard() {
   const {
@@ -29,6 +30,7 @@ export function Dashboard() {
     keyResults,
     links,
     loadAllOKRs,
+    teams,
   } = useOKRStore();
 
   const [panelOpen, setPanelOpen] = useState(false);
@@ -58,7 +60,6 @@ export function Dashboard() {
   const location = useLocation();
 
 
-
 // [1] Carrega ciclos e define ciclo selecionado
 useEffect(() => {
   if (!organizationId) return;
@@ -81,6 +82,10 @@ useEffect(() => {
   run();
 }, [organizationId]);
 
+useEffect(() => {
+  if (!organizationId) return;
+  useOKRStore.getState().loadTeams(organizationId);
+}, [organizationId]);
 
 // [2] Carrega todos os OKRs (usado no gráfico comparativo)
 useEffect(() => {
@@ -100,8 +105,15 @@ useEffect(() => {
   if (!organizationId || !selectedCycleId) return;
 
   const run = async () => {
-    await loadOKRs(organizationId, selectedCycleId);       // carrega OKRs do ciclo selecionado
-    await loadPlacarData(organizationId, selectedCycleId); // carrega placar do ciclo selecionado
+    await loadOKRs(organizationId, selectedCycleId);
+
+    // 🔧 Adiciona carregamento manual dos Key Results
+    const okrs = useOKRStore.getState().okrs;
+    for (const okr of okrs) {
+      await useOKRStore.getState().loadKeyResults(okr.id);
+    }
+
+    await loadPlacarData(organizationId, selectedCycleId);
   };
 
   run();
@@ -117,9 +129,64 @@ const loadPlacarData = useDashboardStore(state => state.loadPlacarData);
     loadPlacarData(organizationId, selectedCycleId);
   }, [organizationId, selectedCycleId]);
 
-  console.log('[Matriz Debug] placarData:', placarData);
-  console.log('[Matriz Debug] allDates:', allDates);
 
+  // Agrupamento manual de KRs por time
+const teamsMap = new Map(); // team_id → { id, name }
+const teamKRMap = new Map(); // team_id → [keyResults[]]
+
+if (!Array.isArray(keyResults) || !Array.isArray(okrs) || !Array.isArray(teams)) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <RadarLoader />
+    </div>
+  );
+}
+
+keyResults.forEach((kr) => {
+  const { id, text, initial_value, target_value, progress, unit, okr_id } = kr;
+  const team_ids = kr.team_ids ?? []; // <-- extrai aqui com fallback
+
+  const okr = okrs.find(o => o.id === okr_id && o.cycle_id === selectedCycleId);
+  const nivel = okr?.type ?? '-';
+
+  team_ids.forEach((teamId) => {
+    if (!teamKRMap.has(teamId)) teamKRMap.set(teamId, []);
+    teamKRMap.get(teamId).push({
+      id,
+      texto: text,
+      nivel,
+      baseline: initial_value?.toString() ?? '-',
+      target: target_value?.toString() ?? '-',
+      progresso: parseFloat((progress ?? 0).toFixed(1)),
+    });
+  });
+});
+
+console.log('[DEBUG] keyResults sample', keyResults.map(kr => ({
+  id: kr.id,
+  text: kr.text,
+  team_ids: kr.team_ids
+})));
+
+console.log('[DEBUG] Comparando times e team_ids dos KRs:', {
+  timesNaStore: teams.map(t => t.id),
+  timesNosKRs: keyResults.flatMap(k => k.team_ids)
+});
+
+// Mapeia os times válidos com nome
+teams.forEach((team) => {
+  if (teamKRMap.has(team.id)) {
+    teamsMap.set(team.id, team.name);
+  }
+});
+
+// Gera estrutura final para <TeamScoreboard />
+const teamScoreboardData = Array.from(teamKRMap.entries()).map(([teamId, keyResults]) => ({
+  teamName: teamsMap.get(teamId) ?? 'Sem time',
+  keyResults,
+}));
+
+console.log('[🧪 DEBUG] Dados do placar por time (teamScoreboardData):', teamScoreboardData);
   return (
     <>
       {selectedCycle && (
@@ -236,14 +303,21 @@ const loadPlacarData = useDashboardStore(state => state.loadPlacarData);
                 />
               </div>
             </div>
-  
+          
            {/* Linha 2: Matriz do Placar */}
            {allDates.length > 0 && (
               <div className="grid grid-cols-1">
                 <MatrizPlacar data={placarData} dates={allDates} />
               </div>
             )}
-  
+           
+           {/* Linha 2.1: Matriz de Time */}
+           {teamScoreboardData.length > 0 && (
+              <div className="grid grid-cols-1">
+                <TeamScoreboard data={teamScoreboardData} />
+              </div>
+            )}
+
             {/* Linha 3: gráfico comparativo */}
             <div className="grid grid-cols-1">
               <CycleComparison />

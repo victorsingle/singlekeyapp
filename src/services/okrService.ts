@@ -251,16 +251,20 @@ export async function createInitialCheckins(okrId, keyResults) {
 
   const { data, error } = await supabase
     .from('key_results')
-    .select('*')
+    .select('*, team_key_results(team_id)')
     .eq('okr_id', okrId)
-    .order('created_at', { ascending: true }); // ordem do mais antigo para o mais novo
+    .order('created_at', { ascending: true });
 
   if (error) {
     throw new Error(`Erro ao buscar Key Results: ${error.message}`);
   }
 
-  return data || [];
+  return (data ?? []).map(kr => ({
+    ...kr,
+    team_ids: kr.team_key_results?.map(t => t.team_id) ?? [],
+  }));
 }
+
 
 /**
  * Cria múltiplos Key Results para um OKR.
@@ -375,4 +379,36 @@ export async function createManualOKR(cycleId: string) {
     console.error('Erro ao criar OKR:', error);
     throw error;
   }
+}
+
+/**
+ * Busca todos os times de uma organização.
+ * Utilizado para montar placares por time, atribuições e filtros no dashboard.
+ * @param organizationId - ID da organização para buscar os times.
+ * @returns Lista de times associados à organização.
+ */
+
+export async function fetchTeams(organizationId: string) {
+  const { data, error } = await supabase
+    .from('teams')
+    .select('*')
+    .eq('organization_id', organizationId);
+
+  if (error) {
+    throw new Error(`Erro ao buscar times: ${error.message}`);
+  }
+
+  return data || [];
+}
+
+
+
+export async function fetchKRTeamLinks(krIds: string[]) {
+  const { data, error } = await supabase
+    .from('team_key_results')
+    .select('key_result_id, team_id')
+    .in('key_result_id', krIds);
+
+  if (error) throw new Error(`Erro ao buscar vínculos KR x Team: ${error.message}`);
+  return data;
 }

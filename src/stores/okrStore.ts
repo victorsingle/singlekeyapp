@@ -27,7 +27,9 @@ import {
   fetchKeyResults,
   fetchOKRLinks,
   createOKRLink,
-  deleteOKRLink 
+  deleteOKRLink,
+  fetchKRTeamLinks,
+  fetchTeams 
 } from '../services/okrService';
 
 export const useOKRStore = create((set, get) => ({
@@ -36,6 +38,7 @@ export const useOKRStore = create((set, get) => ({
   okrs: [],
   keyResults: [],
   links: [], 
+  teams: [],
   loading: false,
   error: null,
   selectedCycleId: null,
@@ -120,7 +123,19 @@ export const useOKRStore = create((set, get) => ({
   
       const okrsWithKRs = await Promise.all(okrs.map(async (okr) => {
         const keyResults = await fetchKeyResults(okr.id);
-        return { ...okr, keyResults };
+      
+        // 🔽 Novo trecho: enriquecendo com team_ids
+        const krIds = keyResults.map(kr => kr.id);
+        const teamLinks = krIds.length > 0 ? await fetchKRTeamLinks(krIds) : [];
+      
+        const keyResultsWithTeams = keyResults.map(kr => ({
+          ...kr,
+          team_ids: teamLinks
+            .filter(link => link.key_result_id === kr.id)
+            .map(link => link.team_id)
+        }));
+      
+        return { ...okr, keyResults: keyResultsWithTeams };
       }));
   
       set({ okrs: okrsWithKRs, loading: false });
@@ -304,6 +319,18 @@ export const useOKRStore = create((set, get) => ({
       set({ error });
     }
   },
+
+
+// Times
+loadTeams: async (organizationId) => {
+  try {
+    const teams = await fetchTeams(organizationId);
+    set({ teams });
+  } catch (error) {
+    console.error('[❌ Erro ao carregar teams]', error);
+    set({ error: error.message });
+  }
+},
 
 //Acompanhamento
 

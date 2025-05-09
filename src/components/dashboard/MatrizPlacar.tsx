@@ -45,7 +45,7 @@ export function MatrizPlacar({ data, dates }: MatrizPlacarProps) {
     <div className="bg-white rounded-xl shadow-md p-6 w-full overflow-auto">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Placar de OKRs</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Placar de Resultados</h2>
           <p className="text-sm text-gray-500 mt-1 mb-6">Acompanhe por aqui o histórico de confiança no placar de checkins desse ciclo.</p>
         </div>
         <div className="-mt-4">

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useUsers } from '../../hooks/useUsers';
 import { supabase } from '../../lib/supabase';
 
@@ -70,8 +71,8 @@ export function TeamFormModal({ isOpen, onClose, onSave, team }: TeamFormModalPr
   if (!isOpen) return null;
 
   const handleSubmit = () => {
-    if (!name || !description || !leader) {
-      alert('Preencha todos os campos obrigatórios.');
+    if (!name || !description) {
+      toast.error('Preencha todos os campos obrigatórios.');
       return;
     }
 
@@ -79,7 +80,7 @@ export function TeamFormModal({ isOpen, onClose, onSave, team }: TeamFormModalPr
       id: team?.id,
       name,
       description,
-      leader,
+      leader: leader || null,
     });
 
     onClose();

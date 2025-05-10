@@ -354,7 +354,7 @@ getCycleAverageProgress: (cycleId) => {
 
 generateFullOKRStructure: async (prompt: string) => {
   const { userId, organizationId } = useAuthStore.getState();
-  await logKaiPrompt(prompt);
+  
   const dataAtual = new Date();
 
   const dataAtualFormatada = dataAtual.toLocaleDateString('pt-BR', {
@@ -525,6 +525,8 @@ generateFullOKRStructure: async (prompt: string) => {
   }
   
   const { ciclo, okrs, links } = parsed;
+
+  await logKaiPrompt(prompt, ciclo.temaEstratégico);
 
   if (Array.isArray(parsed.ciclo)) {
     throw new Error('A IA gerou múltiplos ciclos. Refine o prompt para gerar apenas um ciclo por vez.');

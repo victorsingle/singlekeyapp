@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { Target, Menu, X } from 'lucide-react';
 import clsx from 'clsx';
 import { shallow } from 'zustand/shallow';
+import { logKaiPrompt } from './lib/ai/logKaiPrompt';
 
 // Componentes visuais e containers principais
 import RadarLoader from './components/RadarLoader';
@@ -214,6 +215,7 @@ useEffect(() => {
             selectedCycleId={selectedCycleId}
 
           />
+          
         )}
 
         {/* Overlay escurecido */}

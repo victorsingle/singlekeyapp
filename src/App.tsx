@@ -167,6 +167,14 @@ useEffect(() => {
   }
 }, [dataReady, cyclesReady, cycles.length, selectedCycleId]);
 
+  // ⚠️ Detecta ciclo recém-selecionado (ex: após gerar via KAI)
+useEffect(() => {
+  if (!dataReady && cyclesReady && selectedCycleId) {
+    console.log('[🟢 Header liberado após geração automática via KAI]');
+    setDataReady(true);
+  }
+}, [selectedCycleId, cyclesReady, dataReady]);
+
   // --- 2. Carregar dados do usuário e notificações ---
   useEffect(() => {
     if (session) {
@@ -195,6 +203,8 @@ useEffect(() => {
     );
   }
   if (!session && !isPublicRoute) return <Navigate to="/login" replace />;
+
+
 
   // --- Render principal ---
   return (

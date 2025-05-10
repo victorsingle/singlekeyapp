@@ -77,6 +77,8 @@ function App() {
   const organizationId = useAuthStore((state) => state.organizationId);
   const { notifications, fetchNotifications } = useNotificationStore();
 
+  const [checkinRefreshVersion, setCheckinRefreshVersion] = useState(0);
+
   // --- Caminhos públicos ---
   const publicPaths = ['/login','/register','/reset-password','/update-password','/auth/callback','/convite','/site'];
   const isPublicRoute = publicPaths.includes(location.pathname) || location.pathname.startsWith('/auth/callback');
@@ -92,16 +94,8 @@ function App() {
   const checkinNotification = notifications.find(n => n.type === 'checkin_reminder' && !n.read);
 
   const shouldCheck = cyclesReady && selectedCycleId && organizationId;
-  const rawCheckinStatus = useOrgCheckinStatus(shouldCheck ? selectedCycleId : undefined);
-  
-  const checkinStatus = shouldCheck
-    ? rawCheckinStatus
-    : {
-        orgHasCheckedInToday: false,
-        hasValidCheckinReminderToday: false,
-        reminderMessage: null,
-        loading: true
-      };
+  const checkinStatus = useOrgCheckinStatus(shouldCheck ? selectedCycleId : undefined, checkinRefreshVersion);
+ 
 
   // --- 1. Bootstrap inicial: autenticação, sessão, ciclos, organização ---
   useEffect(() => {
@@ -186,6 +180,18 @@ useEffect(() => {
   return () => window.removeEventListener('kai:tokens:updated', handler);
 }, []);
 
+// --- Atualiza estado do Checkin ---
+
+useEffect(() => {
+  const handler = () => {
+    console.log('[♻️ REFETCH disparado]');
+    setCheckinRefreshVersion(v => v + 1);
+  };
+
+  window.addEventListener('kai:checkin:updated', handler);
+  return () => window.removeEventListener('kai:checkin:updated', handler);
+}, []);
+
   // --- 2. Carregar dados do usuário e notificações ---
   useEffect(() => {
     if (session) {
@@ -234,6 +240,7 @@ useEffect(() => {
             onMobileMenuOpen={() => setShowMobileMenu(true)}
             checkinStatus={checkinStatus}
             selectedCycleId={selectedCycleId}
+            checkinRefreshVersion={checkinRefreshVersion}
 
           />
           
@@ -307,8 +314,8 @@ useEffect(() => {
 
         {/* Espaço para rotas protegidas */}
         <main className={clsx({
-          'pt-[60px]': !isPublicRoute && !checkinStatus.reminderMessage,
-          'pt-[96px]': !isPublicRoute && !!checkinStatus.reminderMessage,
+          'pt-[60px]': !isPublicRoute && !checkinStatus.reminderMessage?.trim(),
+          'pt-[96px]': !isPublicRoute && !!checkinStatus.reminderMessage?.trim(),
         })}>
           <Routes>
             <Route path="/site" element={<LandingPage />} />

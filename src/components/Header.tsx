@@ -23,6 +23,7 @@ interface HeaderProps {
     label: string;
     href?: string;
   }[];
+  checkinRefreshVersion?: number;
 }
 
 interface MobileSidebarProps {
@@ -34,7 +35,7 @@ interface MobileSidebarProps {
   };
 }
 
-export function Header({ session, onLogout, onMobileMenuOpen, checkinNotification, selectedCycleId, breadcrumb }: HeaderProps) {
+export function Header({ session, onLogout, onMobileMenuOpen, checkinNotification, selectedCycleId, breadcrumb, checkinRefreshVersion }: HeaderProps) {
   
   const cycleIdToCheck = selectedCycleId;
 
@@ -42,7 +43,7 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
     orgHasCheckedInToday,
     hasValidCheckinReminderToday,
     reminderMessage,
-  } = useOrgCheckinStatus(cycleIdToCheck);
+  } = useOrgCheckinStatus(cycleIdToCheck, checkinRefreshVersion);
 
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);

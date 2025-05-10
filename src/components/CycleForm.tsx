@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, CalendarPlus } from 'lucide-react';
+import { addDays, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale'
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/authStore';
 import { clearOutdatedCheckinReminder } from '../lib/notifications';
@@ -138,18 +140,25 @@ export function CycleForm({ cycle, onClose, onSubmit }: CycleFormProps) {
     setShowCheckinModal(true);
   };
 
-  const handleSaveCheckin = () => {
-    const updated = [...checkins];
-    if (editingIndex !== null) {
-      updated[editingIndex] = tempDate;
-    } else {
-      updated.push(tempDate);
-    }
-    setCheckins(updated);
-    setShowCheckinModal(false);
-    setTempDate('');
-    setEditingIndex(null);
-  };
+ const [showValidationError, setShowValidationError] = useState(false);
+
+const handleSaveCheckin = () => {
+  if (!tempDate) {
+    setShowValidationError(true);
+    return;
+  }
+  const updated = [...checkins];
+  if (editingIndex !== null) {
+    updated[editingIndex] = tempDate;
+  } else {
+    updated.push(tempDate);
+  }
+  setCheckins(updated);
+  setShowCheckinModal(false);
+  setTempDate('');
+  setEditingIndex(null);
+  setShowValidationError(false); // limpa erro ao salvar
+};
 
   return (
     <div id="cycle-form-modal" className="p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl bg-white shadow-xl relative">
@@ -243,7 +252,7 @@ export function CycleForm({ cycle, onClose, onSubmit }: CycleFormProps) {
               {checkins.map((date, index) => (
                 <div key={index} className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full text-xs">
                   <span onClick={() => openCheckinEditor(index)} className="cursor-pointer">
-                    {new Intl.DateTimeFormat('pt-BR').format(new Date(date))}
+                    {format(addDays(new Date(date), 1), 'dd/MM/yyyy', { locale: ptBR })}
                   </span>
                   <button
                     type="button"
@@ -294,13 +303,35 @@ export function CycleForm({ cycle, onClose, onSubmit }: CycleFormProps) {
             <input
               type="date"
               value={tempDate}
-              onChange={(e) => setTempDate(e.target.value)}
+              onChange={(e) => {
+                setTempDate(e.target.value);
+                if (e.target.value) setShowValidationError(false);
+              }}
               onFocus={(e) => e.target.showPicker?.()}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+              className={`w-full px-3 py-2 border rounded-md shadow-sm ${
+                showValidationError ? 'border-red-400' : 'border-gray-300'
+              }`}
             />
+            {showValidationError && (
+              <p className="text-xs text-red-500 mt-1">Por favor, selecione uma data válida.</p>
+            )}
+
             <div className="mt-4 flex justify-end gap-2">
-              <button onClick={() => setShowCheckinModal(false)} className="text-sm text-gray-500">Cancelar</button>
-              <button onClick={handleSaveCheckin} className="text-sm text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">
+              <button
+                onClick={() => setShowCheckinModal(false)}
+                className="text-sm text-gray-500"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveCheckin}
+                disabled={!tempDate}
+                className={`text-sm px-4 py-2 rounded ${
+                  !tempDate
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
+              >
                 Salvar
               </button>
             </div>

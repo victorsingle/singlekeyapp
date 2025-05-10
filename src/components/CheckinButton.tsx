@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Calendar } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNotificationStore } from '../stores/notificationStore';
@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 
 interface CheckinButtonProps {
   cycleId?: string;
-  userId?: string; // sempre o ID do Supabase Auth, vindo de users ou invited_users
+  userId?: string;
   checkinNotification?: {
     id: string;
   };
@@ -15,21 +15,32 @@ interface CheckinButtonProps {
 
 const mapConfidence = (value: string): 'green' | 'yellow' | 'red' => {
   switch (value) {
-    case 'high':
-      return 'green';
-    case 'medium':
-      return 'yellow';
-    case 'low':
-      return 'red';
-    default:
-      return 'yellow';
+    case 'high': return 'green';
+    case 'medium': return 'yellow';
+    case 'low': return 'red';
+    default: return 'yellow';
   }
 };
 
 export function CheckinButton({ cycleId, userId, checkinNotification }: CheckinButtonProps) {
   const { markAsRead, fetchNotifications } = useNotificationStore();
   const [loading, setLoading] = useState(false);
-  const { orgHasCheckedInToday, hasValidCheckinReminderToday, loading: checkLoading } = useOrgCheckinStatus(cycleId);
+
+  const [version, setVersion] = useState(0);
+
+  useEffect(() => {
+    const handler = () => {
+      console.log('[♻️ Recarregando status via botão]');
+      setVersion((v) => v + 1);
+    };
+
+    window.addEventListener('kai:checkin:updated', handler);
+    return () => window.removeEventListener('kai:checkin:updated', handler);
+  }, []);
+
+  const { orgHasCheckedInToday, hasValidCheckinReminderToday, reminderMessage, loading: checkLoading } =
+    useOrgCheckinStatus(cycleId, version);
+
 
   const handleCheckin = async () => {
     if (!userId || !cycleId) return;
@@ -86,6 +97,7 @@ export function CheckinButton({ cycleId, userId, checkinNotification }: CheckinB
       }
 
       toast.success('Check-in realizado com sucesso!');
+      window.dispatchEvent(new CustomEvent('kai:checkin:updated'));
     } catch (err) {
       console.error('[❌ Erro inesperado no check-in]', err);
       toast.error('Erro inesperado ao fazer check-in');
@@ -94,7 +106,7 @@ export function CheckinButton({ cycleId, userId, checkinNotification }: CheckinB
     }
   };
 
-  const disabled = !hasValidCheckinReminderToday || orgHasCheckedInToday || loading || checkLoading;
+  const disabled = !reminderMessage || loading || checkLoading;
   const alreadyCheckedIn = orgHasCheckedInToday && !loading;
 
   console.log('[💡 Props recebidas no botão]', { userId, cycleId });

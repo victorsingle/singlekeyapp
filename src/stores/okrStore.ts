@@ -6,6 +6,7 @@ import { useAuthStore } from './authStore';
 import OpenAI from 'openai';
 import { toast } from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
+import { logKaiPrompt } from '../lib/ai/logKaiPrompt';
 
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_OPENAI_API_KEY, // ou chave fixa se for teste
@@ -353,7 +354,7 @@ getCycleAverageProgress: (cycleId) => {
 
 generateFullOKRStructure: async (prompt: string) => {
   const { userId, organizationId } = useAuthStore.getState();
-
+  await logKaiPrompt(prompt);
   const dataAtual = new Date();
 
   const dataAtualFormatada = dataAtual.toLocaleDateString('pt-BR', {

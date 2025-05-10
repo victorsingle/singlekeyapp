@@ -28,6 +28,8 @@ dist-ssr
 
 #env e outros
 .env
+.env.homolog
+.en.local
 .bolt/
 .netlify/
 

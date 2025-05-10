@@ -53,7 +53,7 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
   const { cycles } = useCycleStore();
   const hasCycles = cycles && cycles.length > 0;
   const { isAdmin, isChampion } = usePermissions();
-  const { usado, limite, percentual, isLoading } = useTokenUsage();
+  const { usado, limite, percentual, isLoading, refetch } = useTokenUsage();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -74,6 +74,15 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
       console.log('[Updated Company]', company);
     }
   }, [company]);
+
+  useEffect(() => {
+  const handleKaiTokenUpdate = () => {
+    refetch();
+  };
+
+  window.addEventListener('kai:tokens:updated', handleKaiTokenUpdate);
+  return () => window.removeEventListener('kai:tokens:updated', handleKaiTokenUpdate);
+}, []);
 
   console.log('[🔔 HEADER CHECKIN]', {
     cycleIdToCheck,

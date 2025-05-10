@@ -175,6 +175,17 @@ useEffect(() => {
   }
 }, [selectedCycleId, cyclesReady, dataReady]);
 
+// --- Atualiza Consumo e Uso da IA ---
+
+useEffect(() => {
+  const handler = () => {
+    tokenUsage.refetch();
+  };
+
+  window.addEventListener('kai:tokens:updated', handler);
+  return () => window.removeEventListener('kai:tokens:updated', handler);
+}, []);
+
   // --- 2. Carregar dados do usuário e notificações ---
   useEffect(() => {
     if (session) {

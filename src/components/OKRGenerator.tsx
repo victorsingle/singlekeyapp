@@ -125,7 +125,8 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false, fromLis
                 try {
                   const cycleId = await generateFullOKRStructure(context);
                   toast.success('OKRs gerados com sucesso!');
-                  refetch(); 
+                  refetch();
+                  window.dispatchEvent(new CustomEvent('kai:tokens:updated'));
                   setContext('');
                   onFinish(cycleId);
                 } finally {

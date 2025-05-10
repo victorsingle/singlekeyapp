@@ -46,6 +46,8 @@ export const useOKRStore = create((set, get) => ({
   expandedIds: [],
   context: '',
   setContext: (value: string) => set({ context: value }),
+  isGenerating: false,
+  setIsGenerating: (val: boolean) => set({ isGenerating: val }),
 
   // Novo estado de expandido
   expandedOKRs: new Set(),

@@ -20,6 +20,7 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false, fromLis
   const { context, setContext, generateFullOKRStructure } = useOKRStore();
   const minChars = 350;
   const { isAdmin, isChampion } = usePermissions();
+  const setIsGenerating = useOKRStore(s => s.setIsGenerating);
 
 
   const { usado, limite, percentual, refetch, isLoading } = useTokenUsage();
@@ -120,11 +121,16 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false, fromLis
             <GenerateOKRButton
               disabled={context.length < minChars || limiteAtingido}
               onGenerate={async () => {
-                const cycleId = await generateFullOKRStructure(context);
-                toast.success('OKRs gerados com sucesso!');
-                refetch(); // força atualização do uso
-                setContext('');
-                onFinish(cycleId);
+                setIsGenerating(true);
+                try {
+                  const cycleId = await generateFullOKRStructure(context);
+                  toast.success('OKRs gerados com sucesso!');
+                  refetch(); 
+                  setContext('');
+                  onFinish(cycleId);
+                } finally {
+                  setIsGenerating(false);
+                }
               }}
             />
             </div>

@@ -133,7 +133,13 @@ const handler: Handler = async (event: HandlerEvent) => {
 
     console.log('[✅ Usuário ativado e organização criada com sucesso.]');
 
-    // 9. Redirecionar para login
+    // 9. Limpa a senha temporária por segurança
+    await supabaseAdmin
+      .from('users')
+      .update({ temp_password: null })
+      .eq('id', userId);
+
+    // 10. Redirecionar para login
     return {
       statusCode: 302,
       headers: {

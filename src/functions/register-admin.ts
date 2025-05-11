@@ -67,7 +67,7 @@ const handler: Handler = async (event: HandlerEvent) => {
       expires_at: new Date(Date.now() + 1000 * 60 * 60), // expira em 1h
     });
 
-    const activationLink = `${process.env.VITE_APP_URL}/.netlify/functions/confirm-user?token=${token}`;
+    const activationLink = `${process.env.VITE_APP_URL}/confirmar-conta?token=${token}`;
 
     await resend.emails.send({
       from: 'SingleKey <no-reply@singlekey.app>',

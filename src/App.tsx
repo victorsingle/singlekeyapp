@@ -29,6 +29,7 @@ import { ResetPassword } from './components/auth/ResetPassword';
 import { UpdatePassword } from './components/auth/UpdatePassword';
 import { AcceptInvitePage } from './components/auth/AcceptInvitePage';
 import { AuthCallback } from './components/auth/AuthCallback';
+import { ConfirmarConta } from './pages/ConfirmarConta';
 
 // Libs, stores e hooks
 import { supabase } from './lib/supabase';
@@ -325,6 +326,7 @@ useEffect(() => {
             <Route path="/update-password" element={<UpdatePassword />} />
             <Route path="/convite" element={<AcceptInvitePage />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/confirmar-conta" element={<ConfirmarConta />} />
             <Route path="/" element={<CycleDashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/cycle/:id" element={<CycleDetailPageWrapper />} />

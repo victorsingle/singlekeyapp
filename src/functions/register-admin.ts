@@ -57,10 +57,16 @@ const handler: Handler = async (event: HandlerEvent) => {
       };
     }
 
-    const activationLink = `${process.env.VITE_APP_URL}/.netlify/functions/confirm-user` +
-      `?user_id=${userId}` +
-      `&email=${encodeURIComponent(email)}` +
-      `&password=${encodeURIComponent(password)}`;
+    // Gera token único e salva no Supabase
+    const token = uuidv4();
+
+    await supabaseAdmin.from('confirmation_tokens').insert({
+      user_id: userId,
+      token,
+      expires_at: new Date(Date.now() + 1000 * 60 * 60), // expira em 1h
+    });
+
+    const activationLink = `${process.env.VITE_APP_URL}/.netlify/functions/confirm-user?token=${token}`;
 
     await resend.emails.send({
       from: 'SingleKey <no-reply@singlekey.app>',

@@ -2,25 +2,52 @@ import type { Handler, HandlerEvent } from '@netlify/functions';
 import { supabaseAdmin } from './supabaseAdmin';
 
 const handler: Handler = async (event: HandlerEvent) => {
-  const userId = event.queryStringParameters?.user_id;
-  const email = event.queryStringParameters?.email;
-  const password = event.queryStringParameters?.password;
+  const token = event.queryStringParameters?.token;
 
-  if (!userId || !email || !password) {
-    console.error('[❌ Dados ausentes no link de ativação]', { userId, email, password });
+  if (!token) {
+    console.error('[❌ Token ausente no link de ativação]');
     return {
       statusCode: 400,
-      body: JSON.stringify({ message: 'Parâmetros obrigatórios ausentes.' }),
+      body: JSON.stringify({ message: 'Token de ativação ausente.' }),
     };
   }
 
-  console.log('[🔍 Criando usuário no auth.users]:', { userId, email });
-
   try {
-    // 1. Buscar dados do usuário no banco de dados `users`
+    // 1. Buscar o token na tabela confirmation_tokens
+    const { data: tokenData, error: tokenError } = await supabaseAdmin
+      .from('confirmation_tokens')
+      .select('user_id, expires_at, confirmed_at')
+      .eq('token', token)
+      .maybeSingle();
+
+    if (tokenError || !tokenData) {
+      console.error('[❌ Token inválido ou não encontrado]', tokenError);
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: 'Token inválido ou expirado.' }),
+      };
+    }
+
+    if (tokenData.confirmed_at) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: 'Este link já foi utilizado.' }),
+      };
+    }
+
+    if (new Date(tokenData.expires_at) < new Date()) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: 'Token expirado.' }),
+      };
+    }
+
+    const userId = tokenData.user_id;
+
+    // 2. Buscar dados do usuário
     const { data: userData, error: fetchError } = await supabaseAdmin
       .from('users')
-      .select('first_name, last_name, company_name')
+      .select('first_name, last_name, company_name, email, temp_password')
       .eq('id', userId)
       .maybeSingle();
 
@@ -32,12 +59,19 @@ const handler: Handler = async (event: HandlerEvent) => {
       };
     }
 
-    const { first_name, last_name, company_name } = userData;
+    const { first_name, last_name, company_name, email, temp_password } = userData;
 
-    // 2. Criar o usuário no Supabase Auth
+    if (!temp_password) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: 'Senha temporária não encontrada para o usuário.' }),
+      };
+    }
+
+    // 3. Criar o usuário no Supabase Auth
     const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
-      password,
+      password: temp_password,
       user_metadata: { userId },
       email_confirm: true,
     });
@@ -52,30 +86,20 @@ const handler: Handler = async (event: HandlerEvent) => {
 
     const authUserId = createdUser.user.id;
 
-    // 3. Atualizar o display_name no auth (opcional)
+    // 4. Atualizar o display_name no auth (opcional)
     await supabaseAdmin.auth.admin.updateUserById(authUserId, {
       user_metadata: {
         full_name: `${first_name} ${last_name}`,
       },
     });
 
-    // 4. Atualizar a tabela `users` preenchendo o campo `user_id`
-    const { error: updateUserError } = await supabaseAdmin
+    // 5. Atualizar o campo user_id
+    await supabaseAdmin
       .from('users')
       .update({ user_id: authUserId })
       .eq('id', userId);
 
-    if (updateUserError) {
-      console.error('[❌ Erro ao atualizar user_id no banco]', updateUserError);
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ message: 'Erro ao atualizar cadastro do usuário.' }),
-      };
-    }
-
-    // 5. Criar a organização (account)
-    console.log('[🔨 Criando organização para o usuário]:', { userId, company_name });
-
+    // 6. Criar a organização
     const { data: accountData, error: accountError } = await supabaseAdmin
       .from('accounts')
       .insert({
@@ -95,22 +119,21 @@ const handler: Handler = async (event: HandlerEvent) => {
 
     const organizationId = accountData.id;
 
-    // 6. Atualizar o usuário preenchendo o organization_id
-    const { error: updateOrganizationError } = await supabaseAdmin
+    // 7. Atualizar o organization_id do usuário
+    await supabaseAdmin
       .from('users')
       .update({ organization_id: organizationId })
       .eq('id', userId);
 
-    if (updateOrganizationError) {
-      console.error('[❌ Erro ao atualizar organization_id no usuário]', updateOrganizationError);
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ message: 'Erro ao vincular organização ao usuário.' }),
-      };
-    }
+    // 8. Marcar o token como usado
+    await supabaseAdmin
+      .from('confirmation_tokens')
+      .update({ confirmed_at: new Date() })
+      .eq('token', token);
 
-    console.log('[✅ Usuário criado, organização criada e tudo vinculado corretamente.]');
+    console.log('[✅ Usuário ativado e organização criada com sucesso.]');
 
+    // 9. Redirecionar para login
     return {
       statusCode: 302,
       headers: {
@@ -119,7 +142,7 @@ const handler: Handler = async (event: HandlerEvent) => {
       body: '',
     };
   } catch (err) {
-    console.error('[❌ Erro inesperado]', err);
+    console.error('[❌ Erro inesperado no fluxo de confirmação]', err);
     return {
       statusCode: 500,
       body: JSON.stringify({ message: 'Erro inesperado.' }),

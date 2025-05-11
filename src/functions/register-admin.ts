@@ -45,6 +45,7 @@ const handler: Handler = async (event: HandlerEvent) => {
         first_name: firstName,
         last_name: lastName,
         phone,
+        temp_password: password
       })
       .select()
       .maybeSingle();

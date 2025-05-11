@@ -230,7 +230,7 @@ useEffect(() => {
       <div className="min-h-screen bg-gray-50">
 
         {/* Header e Menu lateral */}
-        {!isPublicRoute && dataReady && (
+        {!isPublicRoute && session && (
           <Header
             session={session}
             onLogout={async () => {

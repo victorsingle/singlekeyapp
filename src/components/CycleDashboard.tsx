@@ -176,7 +176,7 @@ export function CycleDashboard() {
                       onClick={() => setIsFormOpen(true)}
                       className="w-full sm:w-auto flex items-center text-sm justify-center px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-blue-100 hover:text-blue-600 transition-colors"
                     >
-                      Criar Manualmente
+                      Criar sem ajuda
                     </button>
                   </div>
                 )}

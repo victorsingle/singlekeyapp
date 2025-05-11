@@ -150,7 +150,7 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false, fromLis
               }}
               className="text-xs text-gray-500 hover:text-blue-600 transition"
             >
-              {fromList ? 'Voltar' : 'Criar Manualmente'} →
+              {fromList ? 'Voltar' : 'Criar Sem Ajuda'} →
             </button>
           </div>
           </form>

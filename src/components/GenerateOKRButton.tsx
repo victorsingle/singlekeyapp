@@ -72,7 +72,7 @@ return (
   <button
     onClick={handleClick}
     disabled={disabled || isGenerating}
-    className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium text-sm text-white bg-blue-600 hover:bg-blue-700 hover:shadow-xl transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md relative ${className}`}
+    className={`inline-flex items-center gap-2 px-3 py-2.5 rounded-lg font-medium text-sm text-white bg-blue-600 hover:bg-blue-700 hover:shadow-xl transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md relative ${className}`}
   >
     {isGenerating ? (
       <>
@@ -85,7 +85,7 @@ return (
       </>
     ) : (
       <>
-        <Sparkles className="w-4 h-4 mr-2" />
+        <Sparkles className="w-4 h-4 mr-1" />
         Gerar Indicadores
       </>
     )}

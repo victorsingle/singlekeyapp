@@ -69,6 +69,7 @@ const handler: Handler = async (event: HandlerEvent) => {
     }
 
     // 3. Criar o usuário no Supabase Auth
+    console.log('[⚠️ Tentando criar no Auth]', { email, password: temp_password }); 
     const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password: temp_password,
@@ -84,6 +85,7 @@ const handler: Handler = async (event: HandlerEvent) => {
       };
     }
 
+    console.log('[✅ Criado no auth]', createdUser.user.id); // e aqui
     const authUserId = createdUser.user.id;
 
     // 4. Atualizar o display_name no auth (opcional)

@@ -83,7 +83,7 @@ function App() {
   const [checkinRefreshVersion, setCheckinRefreshVersion] = useState(0);
 
   // --- Caminhos públicos ---
-  const publicPaths = ['/login','/register','/reset-password','/update-password','/auth/callback','/convite','/site','/onboarding'];
+  const publicPaths = ['/login','/register','/reset-password','/update-password','/auth/callback','/convite','/site','/onboarding','/confirmar-conta'];
   const isPublicRoute = publicPaths.includes(location.pathname) || location.pathname.startsWith('/auth/callback');
 
   // --- Notificação de check-in ---

@@ -164,19 +164,22 @@ function App() {
 
 useEffect(() => {
   const checkOnboarding = async () => {
-    if (!session?.user?.id || isPublicRoute) {
-      setOnboardingChecked(true); // <-- 🔧 importante
+    const { data: sessionData, error } = await supabase.auth.getSession();
+    const session = sessionData?.session;
+
+    if (!session?.user?.id) {
+      console.warn('[🔒] Sem sessão ativa para verificar onboarding');
       return;
     }
 
-    const { data, error } = await supabase
+    const { data, error: fetchError } = await supabase
       .from('users')
       .select('onboarding_completed')
       .eq('user_id', session.user.id)
       .maybeSingle();
 
-    if (error) {
-      console.error('[❌ Erro ao verificar onboarding]', error);
+    if (fetchError) {
+      console.error('[❌ Erro ao verificar onboarding]', fetchError);
       setOnboardingChecked(true);
       return;
     }
@@ -189,10 +192,15 @@ useEffect(() => {
     }
   };
 
-  if (session && !onboardingChecked) {
+  if (
+    isAuthChecked &&
+    !onboardingChecked &&
+    useAuthStore.getState().organizationId // garante que já carregou a org
+  ) {
     checkOnboarding();
   }
-}, [session, onboardingChecked]);
+}, [isAuthChecked, onboardingChecked, location.pathname]);
+
 
 // ⚠️ Libera o Header se um ciclo for criado manualmente após o carregamento
 useEffect(() => {

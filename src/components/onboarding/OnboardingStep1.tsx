@@ -16,9 +16,9 @@ export function OnboardingStep1({ onNext }: Props) {
       </p>
       <div className="w-full flex justify-center">
         <img
-          src="/image/onboarding/step1.svg"
+          src="/image/onboarding/step2.svg"
           alt="Ilustração onboarding"
-          className="w-[280px] sm:w-[320px] md:w-[380px] h-auto"
+          className="w-[230px] h-auto"
         />
       </div>
       <button

@@ -37,12 +37,6 @@ export function OnboardingStep2({ onNext, onBack, teams, setTeams }: Props) {
         </p>
       </div>
 
-      <img
-        src="/image/onboarding/step2.svg"
-        alt="Ilustração onboarding Step 2"
-        className="w-[260px] md:w-[320px] h-auto"
-      />
-
       <div className="w-full max-w-md space-y-3">
         <input
           type="text"

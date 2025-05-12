@@ -86,7 +86,7 @@ return (
     ) : (
       <>
         <Sparkles className="w-4 h-4 mr-2" />
-        Gerar com a KAI
+        Gerar Indicadores
       </>
     )}
   </button>

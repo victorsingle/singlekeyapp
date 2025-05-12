@@ -30,6 +30,7 @@ import { UpdatePassword } from './components/auth/UpdatePassword';
 import { AcceptInvitePage } from './components/auth/AcceptInvitePage';
 import { AuthCallback } from './components/auth/AuthCallback';
 import { ConfirmarConta } from './pages/ConfirmarConta';
+import { OnboardingPage } from './pages/OnboardingPage';
 
 // Libs, stores e hooks
 import { supabase } from './lib/supabase';
@@ -54,6 +55,7 @@ function App() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [cyclesReady, setCyclesReady] = useState(false);
   const [dataReady, setDataReady] = useState(false);
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -81,7 +83,7 @@ function App() {
   const [checkinRefreshVersion, setCheckinRefreshVersion] = useState(0);
 
   // --- Caminhos públicos ---
-  const publicPaths = ['/login','/register','/reset-password','/update-password','/auth/callback','/convite','/site'];
+  const publicPaths = ['/login','/register','/reset-password','/update-password','/auth/callback','/convite','/site','/onboarding'];
   const isPublicRoute = publicPaths.includes(location.pathname) || location.pathname.startsWith('/auth/callback');
 
   // --- Notificação de check-in ---
@@ -103,8 +105,11 @@ function App() {
     const init = async () => {
       // 1. Sessão
       const { data: { session }, error } = await supabase.auth.getSession();
-      if (error || !session) {
+      
+      if (error || !session || !session.user) {
+        console.warn('[🔒] Sem sessão ativa - redirecionando para login');
         setIsAuthChecked(true);
+        setOnboardingChecked(true); // <-- 🔧 importante
         return;
       }
   
@@ -154,6 +159,41 @@ function App() {
     return () => listener.subscription.unsubscribe();
   }, []);
   
+
+// Ativa Onboarding
+
+useEffect(() => {
+  const checkOnboarding = async () => {
+    if (!session?.user?.id || isPublicRoute) {
+      setOnboardingChecked(true); // <-- 🔧 importante
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('users')
+      .select('onboarding_completed')
+      .eq('user_id', session.user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('[❌ Erro ao verificar onboarding]', error);
+      setOnboardingChecked(true);
+      return;
+    }
+
+    if (data?.onboarding_completed === false && location.pathname !== '/onboarding') {
+      console.log('[🚀 Redirecionando para onboarding]');
+      navigate('/onboarding');
+    } else {
+      setOnboardingChecked(true);
+    }
+  };
+
+  if (session && !onboardingChecked) {
+    checkOnboarding();
+  }
+}, [session, onboardingChecked]);
+
 // ⚠️ Libera o Header se um ciclo for criado manualmente após o carregamento
 useEffect(() => {
   if (!dataReady && cyclesReady && cycles.length > 0 && selectedCycleId) {
@@ -213,13 +253,13 @@ useEffect(() => {
   }, []);
 
   // --- Redirecionamento para login se necessário ---
-  if (!isAuthChecked) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <RadarLoader />
-      </div>
-    );
-  }
+if (!isAuthChecked || !onboardingChecked) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <RadarLoader />
+    </div>
+  );
+}
   if (!session && !isPublicRoute) return <Navigate to="/login" replace />;
 
 
@@ -327,6 +367,8 @@ useEffect(() => {
             <Route path="/convite" element={<AcceptInvitePage />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/confirmar-conta" element={<ConfirmarConta />} />
+            <Route path="/onboarding" element={<OnboardingPage />} />
+
             <Route path="/" element={<CycleDashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/cycle/:id" element={<CycleDetailPageWrapper />} />

@@ -94,7 +94,6 @@ export async function createOKR(okrData) {
   return data;
 }
 
-
 /**
 * Deleta um OKR pelo ID.
 * @param okrId - ID do OKR a ser deletado.
@@ -401,8 +400,6 @@ export async function fetchTeams(organizationId: string) {
   return data || [];
 }
 
-
-
 export async function fetchKRTeamLinks(krIds: string[]) {
   const { data, error } = await supabase
     .from('team_key_results')
@@ -411,4 +408,22 @@ export async function fetchKRTeamLinks(krIds: string[]) {
 
   if (error) throw new Error(`Erro ao buscar vínculos KR x Team: ${error.message}`);
   return data;
+}
+
+interface TeamInput {
+  name: string;
+  description?: string;
+  organization_id: string;
+}
+
+export async function createTeamsBulk(teams: TeamInput[]) {
+  if (!teams.length) return;
+
+  const { error } = await supabase
+    .from('teams')
+    .insert(teams);
+
+  if (error) {
+    throw new Error(`Erro ao cadastrar times: ${error.message}`);
+  }
 }

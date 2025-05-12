@@ -131,7 +131,7 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
         </div>
 
         <div className="hidden md:flex items-center space-x-6">
-          <nav className="flex items-center space-x-6">
+          <nav  data-guide="menu-modulos" className="flex items-center space-x-6">
             <NavLink
               to="/cycles"
               className={clsx(
@@ -158,7 +158,7 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
             </NavLink>
           </nav>
 
-          <div className="relative flex items-center space-x-2" ref={dropdownRef}>
+          <div data-guide="menu-perfil" className="relative flex items-center space-x-2" ref={dropdownRef}>
             <button
               onClick={() => setShowDropdown((prev) => !prev)}
               className="flex items-center space-x-2 w-auto h-9 rounded-full px-3 text-blue-700 font-semibold focus:outline-none"

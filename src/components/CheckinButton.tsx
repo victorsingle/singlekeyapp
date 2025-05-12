@@ -113,6 +113,7 @@ export function CheckinButton({ cycleId, userId, checkinNotification }: CheckinB
 
   return (
     <button
+      data-guide="checkin-button"
       onClick={handleCheckin}
       disabled={disabled}
       className={`flex items-center ml-2 px-4 py-2 rounded text-sm transition ${

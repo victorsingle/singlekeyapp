@@ -10,6 +10,7 @@ import { createTeamsBulk } from '../services/okrService';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import RadarLoader from '../components/RadarLoader';
+import { useOnboardingGuide } from '../stores/useOnboardingGuide';
 
 export function OnboardingPage() {
   const [step, setStep] = useState(1);
@@ -20,6 +21,7 @@ export function OnboardingPage() {
   const { userId, organizationId, fetchUserData } = useAuthStore();
   const { generateFullOKRStructure, setIsGenerating } = useOKRStore();
   const navigate = useNavigate();
+
 
   useEffect(() => {
     const validateSessionAndLoadUser = async () => {
@@ -76,6 +78,7 @@ export function OnboardingPage() {
 
       toast.success('OKRs gerados com sucesso!');
       window.dispatchEvent(new CustomEvent('kai:tokens:updated'));
+      useOnboardingGuide.getState().startGuide();
       navigate(`/cycle/${cycleId}`);
     } catch (err) {
       toast.error('Erro ao finalizar onboarding');
@@ -84,6 +87,7 @@ export function OnboardingPage() {
       setIsGenerating(false);
     }
   }
+
 
   if (!isReady) {
     return (

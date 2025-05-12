@@ -30,7 +30,10 @@ import { UpdatePassword } from './components/auth/UpdatePassword';
 import { AcceptInvitePage } from './components/auth/AcceptInvitePage';
 import { AuthCallback } from './components/auth/AuthCallback';
 import { ConfirmarConta } from './pages/ConfirmarConta';
+
+// Onboarging
 import { OnboardingPage } from './pages/OnboardingPage';
+import { useOnboardingGuide } from './stores/useOnboardingGuide';
 
 // Libs, stores e hooks
 import { supabase } from './lib/supabase';
@@ -246,6 +249,14 @@ useEffect(() => {
     if (session) {
       useAuthStore.getState().fetchUserData();
       fetchNotifications(session.user.id);
+
+      //Onboading Tooltip
+      const hasSeen = localStorage.getItem('has_seen_feature_guide');
+      if (!hasSeen) {
+        useOnboardingGuide.getState().startGuide();
+        localStorage.setItem('has_seen_feature_guide', 'true');
+      }
+
     }
   }, [session]);
 

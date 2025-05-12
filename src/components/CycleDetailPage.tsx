@@ -24,6 +24,9 @@ import { supabase } from '../lib/supabase';
 import { useNotificationStore } from '../stores/notificationStore'; 
 import { CheckinButton } from '../components/CheckinButton';
 
+//Onboarding
+import { FeatureGuide } from '../components/onboarding/FeatureGuide';
+
 import { usePermissions } from '../hooks/usePermissions'; 
 
 interface CycleDetailPageProps {
@@ -158,6 +161,7 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <FeatureGuide />
       <SubHeader
         breadcrumb={[
           { label: 'Ciclos', href: '/cycles' },
@@ -197,6 +201,7 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
       >
 
             <div
+              data-guide="view-types"
               className={`inline-flex rounded-md overflow-hidden ${
                 viewMode === 'graph' ? 'shadow-lg' : ''
               }`}
@@ -228,7 +233,7 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
 
 
       {viewMode === 'list' && (
-        <OkrDetailsView  okrs={okrsDoCiclo} viewMode={viewMode} setViewMode={setViewMode} />
+        <OkrDetailsView okrs={okrsDoCiclo} viewMode={viewMode} setViewMode={setViewMode} />
       )}
 
       {viewMode === 'graph' && (

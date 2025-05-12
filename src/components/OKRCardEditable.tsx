@@ -110,6 +110,7 @@ function OKRCardEditableComponent({
         {/* Status e ações */}
         <div className="absolute top-[5px] right-2 flex items-center text-xs cursor-pointer">
           <button
+            data-guide='okrs-view'
             onClick={onToggleExpand}
             className="text-xs text-blue-600 mr-2 mt-0"
           >

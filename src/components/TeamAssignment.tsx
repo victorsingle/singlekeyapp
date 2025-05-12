@@ -87,10 +87,11 @@ export function TeamAssignment({ krId }: TeamAssignmentProps) {
       )}
 
       <button
+      data-guide="okrs-times"
         onClick={() => setIsModalOpen(true)}
-        className="text-sm mt-2 mb-1 text-blue-600 hover:underline"
+        className="text-xs mt-2 mb-1 text-blue-600 hover:underline"
       >
-        + Adicionar Time
+        + Atribuir a um ou mais Times
       </button>
 
       {isModalOpen && (

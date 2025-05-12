@@ -14,21 +14,20 @@ export function OnboardingStep3({ onBack, onFinish, prompt, setPrompt }: Props) 
   const minChars = 250;
 
   return (
-    <div className="w-full flex flex-col items-center space-y-6 text-center">
-      <div className="bg-blue-50 p-2 rounded-full shadow-inner animate-pulse">
-        <Target className="w-10 h-10 text-blue-600" />
+    <div className="w-full flex flex-col items-center space-y-3 text-center">
+      <div className="bg-blue-50 rounded-full shadow-inner animate-pulse">
+        <Target className="w-14 h-14 text-blue-600" />
       </div>
-
-      <h2 className="text-2xl font-bold text-gray-900">Me diga o que vocês querem alcançar</h2>
+      <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Me diga o que precisamos alcançar</h1>
       <p className="text-sm text-gray-500 max-w-md">
-        Pode escrever do seu jeito. Quanto mais claro for, melhor eu consigo te ajudar.
+        Use suas palavras. Quanto mais contexto, mais consigo te ajudar!
       </p>
 
       <div className="w-full max-w-xl space-y-1">
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Ex: Queremos aumentar a receita no B2B, melhorar aquisição de clientes e reduzir o tempo de conversão em 20%."
+          placeholder="Ex: Queremos estruturar melhor nossas metas para o próximo quarter. O foco é aumentar a conversão no funil B2B, reduzir churn de clientes atuais e lançar uma nova frente de produtos digitais ainda este ano..."
           className="w-full text-sm p-4 h-40 rounded-xl border border-gray-300 shadow-sm resize-none"
         />
         <div className="text-right text-xs text-gray-500">

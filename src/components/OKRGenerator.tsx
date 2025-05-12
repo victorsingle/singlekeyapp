@@ -18,7 +18,7 @@ interface OKRGeneratorProps {
 
 export function OKRGenerator({ onFinish, onManualStart, isModal = false, fromList = false }: OKRGeneratorProps) {
   const { context, setContext, generateFullOKRStructure } = useOKRStore();
-  const minChars = 350;
+  const minChars = 250;
   const { isAdmin, isChampion } = usePermissions();
   const setIsGenerating = useOKRStore(s => s.setIsGenerating);
 
@@ -53,7 +53,7 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false, fromLis
         <div className="flex justify-between text-xs text-gray-500 !mt-[0px]">
           <span>{context.length} / {minChars} caracteres</span>
           {context.length < minChars && (
-            <span className="text-red-500">Mínimo de 350 caracteres para gerar</span>
+            <span className="text-red-500">Mínimo de 250 caracteres para gerar</span>
           )}
         </div>
         <button

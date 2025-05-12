@@ -31,9 +31,9 @@ export function OnboardingStep2({ onNext, onBack, teams, setTeams }: Props) {
         <div className="bg-blue-50 rounded-full shadow-inner animate-pulse">
           <Target className="w-14 h-14 text-blue-600" />
         </div>
-        <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Quais os times da sua organização?</h1>
+        <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Quem está comprometido?</h1>
         <p className="text-sm text-gray-500 max-w-md">
-          Cadastre as equipes da sua empresa que irão colaborar.
+          Quais são as equipes da sua empresa que precisam focar nos resultados.
         </p>
       </div>
 
@@ -70,7 +70,7 @@ export function OnboardingStep2({ onNext, onBack, teams, setTeams }: Props) {
         {teams.map((team, index) => (
           <div
             key={index}
-            className="flex items-center bg-blue-50 text-blue-700 text-sm px-3 py-1 rounded-full"
+            className="flex items-center bg-blue-500 text-white text-sm px-3 py-1 rounded-full"
           >
             {team.name}
             <button

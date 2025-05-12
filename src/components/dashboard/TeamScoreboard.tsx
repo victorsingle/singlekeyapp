@@ -67,7 +67,7 @@ export function TeamScoreboard({ data }: TeamScoreboardProps) {
                     Baseline
                   </th>
                   <th className="px-6 py-3 text-left text-sm text-center font-medium text-gray-500">
-                    Target
+                    Alvo
                   </th>
                   <th className="px-6 py-3 text-left text-sm text-center font-medium text-gray-500">
                     Atingimento

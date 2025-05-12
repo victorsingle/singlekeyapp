@@ -186,10 +186,6 @@ function OKRCardEditableComponent({
                 <option value="tactical">Tático</option>
                 <option value="operational">Operacional</option>
               </select>
-
-              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full whitespace-nowrap self-start md:self-auto">
-                {status}
-              </span>
             </div>
           </div>
         </div>

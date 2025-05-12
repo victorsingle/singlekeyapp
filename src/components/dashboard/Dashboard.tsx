@@ -204,6 +204,13 @@ console.log('[🧪 DEBUG] Dados do placar por time (teamScoreboardData):', teamS
               ? 'Concluído'
               : 'Rascunho'
           }
+          badgeClassName={
+            selectedCycle.status === 'active'
+              ? 'bg-yellow-100 text-yellow-800'
+              : selectedCycle.status === 'completed'
+              ? 'bg-green-100 text-green-700'
+              : 'bg-blue-100 text-blue-800'
+          }
           period={
             selectedCycle.start_date && selectedCycle.end_date
               ? `${format(new Date(`${selectedCycle.start_date}T00:00:00`), "d 'de' MMMM 'de' yyyy", { locale: ptBR })} até ${format(new Date(`${selectedCycle.end_date}T00:00:00`), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}`

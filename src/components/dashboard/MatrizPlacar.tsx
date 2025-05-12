@@ -56,13 +56,13 @@ export function MatrizPlacar({ data, dates }: MatrizPlacarProps) {
       <table className="min-w-full text-xs text-left">
         <thead>
           <tr className="bg-gray-100">
-            <th className="p-2 text-gray-600 font-medium text-sm font-bold">Resultados-chave</th>
+            <th className="p-2 text-gray-600 font-medium text-sm font-bold">Resultados Esperados</th>
             {dates.map((date, i) => (
               <th key={`${date}-${i}`} className="p-2 text-gray-600 font-medium text-center text-sm font-bold">
                 {format(new Date(`${date}T00:00:00`), 'dd/MM/yyyy', { locale: ptBR })}
               </th>
             ))}
-            <th className="p-2 text-gray-600 font-medium text-left text-sm font-bold">Progresso</th>
+            <th className="p-2 text-gray-600 font-medium text-left text-sm font-bold">Atingimento</th>
           </tr>
         </thead>
         <tbody>

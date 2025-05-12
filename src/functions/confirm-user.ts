@@ -3,16 +3,7 @@ import { supabaseAdmin } from './supabaseAdmin';
 
 const handler: Handler = async (event: HandlerEvent) => {
 
-  //const token = event.queryStringParameters?.token;
-
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      body: 'Método não permitido',
-    };
-  }
-
-  const { token } = JSON.parse(event.body || '{}');
+  const token = event.queryStringParameters?.token;
 
   if (!token) {
     console.error('[❌ Token ausente no link de ativação]');
@@ -153,8 +144,11 @@ const handler: Handler = async (event: HandlerEvent) => {
 
     // 10. Redirecionar para login
     return {
-      statusCode: 200,
-      body: JSON.stringify({ message: 'Usuário confirmado com sucesso' }),
+      statusCode: 302,
+      headers: {
+        Location: `${process.env.VITE_APP_URL}/login?confirmado=1`,
+      },
+      body: '',
     };
   } catch (err) {
     console.error('[❌ Erro inesperado no fluxo de confirmação]', err);

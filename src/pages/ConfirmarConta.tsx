@@ -12,7 +12,7 @@ export function ConfirmarConta() {
     }
 
     // ✅ Dispara a função diretamente via navegação real
-    window.location.href = `/.netlify/functions/confirm-user?token=${token}`;
+    window.location.replace(`/.netlify/functions/confirm-user?token=${token}`);
   }, []);
 
   return (

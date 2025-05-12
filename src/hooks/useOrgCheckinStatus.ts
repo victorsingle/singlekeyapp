@@ -54,8 +54,8 @@ export function useOrgCheckinStatus(cycleId?: string, version: number = 0) {
         setReminderMessage(
           !checkedIn
             ? isToday
-              ? 'Você tem um check-in pendente para hoje'
-              : 'Você tem um check-in atrasado pendente'
+              ? 'Dia de Check-in! Atualize suas métricas e registre o nível de confiança clicando em "Realizar Check-in".'
+              : 'Você tem um check-in atrasado! Atualize suas métricas e registre o nível de confiança clicando em "Realizar Check-in".'
             : null
         );
       } catch (err) {

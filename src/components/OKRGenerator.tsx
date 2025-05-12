@@ -109,9 +109,9 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false, fromLis
                 className="w-full text-xs h-36 text-sm p-4 rounded-xl bg-white resize-none shadow-[0_20px_50px_rgba(0,0,0,0.07)] focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
               />
               <div className="absolute bottom-3 right-3 text-[10px] text-gray-400">
-                {context.length} / 350
-                {context.length < 350 && (
-                  <span className="text-red-500 ml-2">Mínimo de 350</span>
+                {context.length} / 250
+                {context.length < 250 && (
+                  <span className="text-red-500 ml-2">Mínimo de 250</span>
                 )}
               </div>
             </div>

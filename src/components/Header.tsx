@@ -113,7 +113,7 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
         </div>
       )}
       {cycleIdToCheck && hasValidCheckinReminderToday && reminderMessage && (
-        <div className="w-full bg-yellow-100 border-b border-yellow-300 text-yellow-800 px-4 py-2 text-sm font-medium text-center shadow-sm">
+        <div className="w-full bg-yellow-100 border-b border-yellow-300 text-yellow-800 px-4 py-2 text-xs font-medium text-center shadow-sm">
           <Link
             to={`/cycle/${cycleIdToCheck}`}
             className="underline hover:text-yellow-600"

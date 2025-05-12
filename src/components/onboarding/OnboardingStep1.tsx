@@ -18,7 +18,7 @@ export function OnboardingStep1({ onNext }: Props) {
         <img
           src="/image/onboarding/step1.svg"
           alt="Ilustração onboarding"
-          className="w-[280px] sm:w-[320px] md:w-[350px] h-auto"
+          className="w-[280px] sm:w-[320px] md:w-[380px] h-auto"
         />
       </div>
       <button

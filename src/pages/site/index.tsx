@@ -236,7 +236,7 @@ export function LandingPage() {
       </section>
 
       <section className="py-24 pt-18 pb-0 bg-gray-50" id="okr">
-        <div className="max-w-6xl mx-auto text-center mb-16">
+        <div className="max-w-6xl mx-auto text-center px-6 mb-16">
           <h2 className="text-3xl font-bold mb-4 tracking-tight">Usamos OKRs para organizar seu plano</h2>
           <p className="text-gray-600 max-w-2xl mx-auto text-base text-sm">
             Mas não se preocupe com a sigla. Pense nisso como uma forma simples de definir onde quer chegar e como saber se está no caminho certo.
@@ -244,7 +244,7 @@ export function LandingPage() {
         </div>
 
         {/* Cards explicativos */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl px-6 mx-auto">
           <div className="border border-gray-300 p-8 rounded-2xl text-left">
             <h3 className="text-xl font-semibold text-blue-700 mb-4">Ciclo</h3>
             <p className="text-gray-700 mb-6 text-sm">
@@ -289,7 +289,7 @@ export function LandingPage() {
         <div className="relative max-full mx-auto mt-20 text-blue-700 text-center bg-gray-200 p-8">
           <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-b-8 border-l-transparent border-r-transparent border-b-gray-200" />
           <h3 className="text-md font-semibold mb-1">
-            Google, Netflix, Nubank, iFood, Amazon e Microsoft usam OKRs para crescer com foco.
+            Google, Netflix, Nubank e Amazon usam OKRs para crescer com foco.
           </h3>
           <p className="text-sm">E agora, negócios como o seu também.</p>
         </div>

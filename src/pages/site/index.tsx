@@ -248,7 +248,7 @@ export function LandingPage() {
           <div className="border border-gray-300 p-8 rounded-2xl text-left">
             <h3 className="text-xl font-semibold text-blue-700 mb-4">Ciclo</h3>
             <p className="text-gray-700 mb-6 text-sm">
-              É o período em que você define e te ajuda a organizar, priorizar e revisar suas metas.
+              É o período que você define para organizar, priorizar e revisar suas metas.
             </p>
             <h4 className="text-sm font-semibold text-blue-700 mb-4">Exemplos:</h4>
             <ul className="text-gray-600 space-y-2 list-disc list-inside text-sm">

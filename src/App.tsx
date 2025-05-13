@@ -16,6 +16,7 @@ import { FeedbackButton } from './components/FeedbackButton';
 import { CycleDashboard } from './components/CycleDashboard';
 import { CycleDetailPage } from './components/CycleDetailPage';
 import { Dashboard } from './components/dashboard/Dashboard';
+import { ProfilePage } from './pages/admin/ProfilePage';
 import { UsersPage } from './pages/admin/UsersPage';
 import { TeamsPage } from './pages/admin/TeamsPage';
 import { TeamDetailPage } from './pages/admin/TeamDetailPage';
@@ -391,6 +392,7 @@ if (!isAuthChecked || !onboardingChecked) {
             <Route path="/" element={<CycleDashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/cycle/:id" element={<CycleDetailPageWrapper />} />
+            <Route path="/admin/profile" element={<ProfilePage requireAdmin element={<UsersPage />} />} />
             <Route path="/admin/users" element={<ProtectedRoute requireAdmin element={<UsersPage />} />} />
             <Route path="/admin/teams" element={<ProtectedRoute requireAdmin element={<TeamsPage />} />} />
             <Route path="/admin/teams/:id" element={<ProtectedRoute requireAdmin element={<TeamDetailPage />} />} />

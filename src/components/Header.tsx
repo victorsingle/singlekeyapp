@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Target, Menu, User, LogOut, Users } from 'lucide-react';
+import { Target, Menu, User, LogOut, Users, Settings } from 'lucide-react';
 import { useLocation, useNavigate, NavLink, Link } from 'react-router-dom';
 import { useCurrentCompany } from '../hooks/useCurrentCompany';
 import clsx from 'clsx';
@@ -199,6 +199,18 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
                 <ul className="py-1">
                   {isAdmin && (
                     <>
+                      <li>
+                        <button
+                          onClick={() => {
+                            navigate('/admin/profile');
+                            setShowDropdown(false);
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                        >
+                          <Settings className="w-4 h-4 text-gray-500" />
+                          Perfil
+                        </button>
+                      </li>
                       <li>
                         <button
                           onClick={() => {

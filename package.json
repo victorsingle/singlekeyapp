@@ -3,15 +3,16 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-"scripts": {
-  "dev": "vite --config vite.config.ts",
-  "build": "vite build --config vite.config.ts",
-  "preview": "vite preview --config vite.config.ts",
-  "lint": "eslint ."
-},
+  "scripts": {
+    "dev": "vite --config vite.config.ts",
+    "build": "vite build --config vite.config.ts",
+    "preview": "vite preview --config vite.config.ts",
+    "lint": "eslint ."
+  },
   "dependencies": {
     "@floating-ui/react": "^0.27.8",
     "@floating-ui/react-dom": "^2.1.2",
+    "@headlessui/react": "^2.2.3",
     "@radix-ui/react-collapsible": "^1.0.3",
     "@reactflow/node-resizer": "^2.2.11",
     "@supabase/supabase-js": "^2.39.7",

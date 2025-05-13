@@ -244,7 +244,7 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
         </div>
 
         <div className="md:hidden">
-          <button onClick={() => onMobileMenuOpen({ usado, limite, percentual, isLoading })} aria-label="Abrir menu">
+          <button data-guide="menu-modulos" onClick={() => onMobileMenuOpen({ usado, limite, percentual, isLoading })} aria-label="Abrir menu">
             <Menu className="w-6 h-6 text-gray-700" />
           </button>
         </div>

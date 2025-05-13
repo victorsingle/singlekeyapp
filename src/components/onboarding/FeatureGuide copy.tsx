@@ -8,8 +8,6 @@ export function FeatureGuide() {
   const [position, setPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const tooltipRef = useRef<HTMLDivElement>(null);
 
-  if (window.innerWidth < 640) return <></>;
-
   const current = steps.find((s) => s.step === step);
   const isLastStep = step >= steps.length;
 

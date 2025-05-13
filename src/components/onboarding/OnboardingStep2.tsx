@@ -90,8 +90,7 @@ export function OnboardingStep2({ onNext, onBack, teams, setTeams }: Props) {
         </button>
         <button
           onClick={onNext}
-          className="bg-blue-600 text-white px-5 py-2 text-sm rounded-md hover:bg-blue-700 transition disabled:opacity-50"
-          disabled={teams.length === 0}
+          className="bg-blue-600 text-white px-5 py-2 text-sm rounded-md hover:bg-blue-700  "
         >
           Avançar
         </button>

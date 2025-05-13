@@ -360,6 +360,7 @@ if (!isAuthChecked || !onboardingChecked) {
 
               {useAuthStore.getState().role === 'admin' && (
                 <>
+                  <button onClick={() => { navigate('/admin/profile'); setShowMobileMenu(false); }} className="text-left text-gray-700 hover:text-blue-600">Minha Conta</button>
                   <button onClick={() => { navigate('/admin/users'); setShowMobileMenu(false); }} className="text-left text-gray-700 hover:text-blue-600">Usuários</button>
                   <button onClick={() => { navigate('/admin/teams'); setShowMobileMenu(false); }} className="text-left text-gray-700 hover:text-blue-600">Times</button>
                 </>

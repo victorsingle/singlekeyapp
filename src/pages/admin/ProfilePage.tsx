@@ -128,10 +128,10 @@ function formatCNPJ(value: string) {
   return (
     <>
       <SubHeader
-        title="Perfil"
+        title="Minha Conta"
         breadcrumb={[
           { label: 'Administração', href: '/admin/profile' },
-          { label: 'Perfil', active: true }
+          { label: 'Minha Conta', active: true }
         ]}
       />
 

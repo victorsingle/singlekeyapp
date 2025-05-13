@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CalendarRange, Sparkles, X } from 'lucide-react';
+import { CalendarRange, Sparkles, X, Target } from 'lucide-react';
 import RadarLoader from './RadarLoader';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -169,7 +169,7 @@ export function CycleDashboard() {
                       onClick={() => setIsGeneratorOpen(true)}
                       className="w-full sm:w-auto flex items-center text-sm justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
-                      <Sparkles className="w-5 h-5 mr-2" />
+                      <Target className="w-5 h-5 mr-2" />
                       Gerar com a KAI
                     </button>
                     <button

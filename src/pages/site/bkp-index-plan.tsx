@@ -30,7 +30,7 @@ export function LandingPage() {
   return (
     <div className="min-h-screen bg-white text-gray-900 overflow-hidden">
       {/* Hero Section */}
-      <section className="relative px-6 py-20 sm:py-36 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-200">
+      <section className="relative px-6 py-20 sm:py-36 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
         <div className="relative max-w-4xl mx-auto text-center">
           <motion.div
             initial="hidden"
@@ -43,11 +43,11 @@ export function LandingPage() {
             <h1 className="text-5xl !text-black font-bold py-2 mb-10 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
               SingleKey <sup class="text-xs text-gray-400">Beta</sup>
             </h1>
-            <h2 className="text-4xl font-bold bg-clip-text py-3 text-transparent bg-gradient-to-r from-blue-600 to-indigo-900 tracking-tighter">
-              Chega de metas soltas e ideias vagas
+            <h2 className="text-5xl font-bold bg-clip-text py-3 text-transparent bg-gradient-to-r from-blue-600 to-indigo-900 tracking-tighter">
+              Estratégia do jeito simples
             </h2>
-            <p className="text-lg text-gray-700 mb-10 leading-relaxed tracking-tight">
-             Com a KAI, sua agente IA, você alinha seu time e cria indicadores com clareza e foco.
+            <p className="text-xl text-gray-700 mb-10 leading-relaxed">
+             Alinhe seu time e organize seus indicadores de resultados com a KAI, sua IA de gestão.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -83,10 +83,11 @@ export function LandingPage() {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl font-bold tracking-tight">Trabalhar sem direção custa caro</h2>
-            <div className="max-w-2xl text-gray-600 text-base text-sm py-2 mx-auto text-center">
+            <h2 className="text-3xl font-bold mb-4">Falta de foco custa caro. Mas dá pra mudar.</h2>
+            <div className="max-w-2xl text-gray-600 text-base md:text-lg py-2 mx-auto text-center">
               <p>
-                Com poucos cliques, o SingleKey te ajuda a organizar metas, indicadores e dar direção real ao time.
+                Se o time trabalha muito e entrega pouco, o problema não é esforço — é direção.
+                Veja como o SingleKey transforma confusão em clareza com poucos cliques.
               </p>
             </div>
             
@@ -117,7 +118,7 @@ export function LandingPage() {
                   {item.icon}
                 </div>
                 <h3 className="text-xl font-semibold mb-4 text-center">{item.title}</h3>
-                <p className="text-gray-600 text-sm text-center">{item.description}</p>
+                <p className="text-gray-600 text-center">{item.description}</p>
               </motion.div>
             ))}
           </div>
@@ -129,15 +130,15 @@ export function LandingPage() {
       <section className="relative bg-gradient-to-b from-white via-blue-50 to-indigo-50 py-24 px-6 text-center">
         <div className="relative z-10 max-w-3xl mx-auto mb-16">
           <motion.h2
-            initial={{ opacity: 0 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-3xl font-bold mb-4 tracking-tight"
+            className="text-4xl font-bold mb-4 tracking-tight"
           >
-            SingleKey em ação
+            Veja o SingleKey em ação
           </motion.h2>
-          <p className="text-gray-600 text-base text-sm mb-8">
-            Mesmo com bons produtos, serviços de qualidade e uma equipe comprometida, sua empresa pode se perder sem metas claras, acompanhamento consistente e organização. O esforço existe, mas sem direção, os resultados não aparecem.
+          <p className="text-gray-600 text-base md:text-lg mb-8">
+            Sem metas claras, sem acompanhamento e sem organização, a empresa se perde. Mesmo ofertando bons produtos e serviços e com funcionários e clientes satisfeitos.
           </p>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link
@@ -184,10 +185,10 @@ export function LandingPage() {
             transition={{ duration: 0.8 }}
             className="text-center mb-16 "
           >
-            <h2 className="text-3xl font-bold mb-4 tracking-tight">Simplifique sua gestão</h2>
-            <div className="max-w-2xl text-gray-600 text-base text-sm py-2 mx-auto text-center">
+            <h2 className="text-3xl font-bold mb-4">Simplifique sem esforço</h2>
+            <div className="max-w-2xl text-gray-600 text-base md:text-lg py-2 mx-auto text-center">
               <p>
-                SingleKey é uma ferramenta simples de usar e que utiliza IA para te ajudar a criar metas claras, organizar indicadores e alinhar todo o time.
+                SingleKey é uma ferramenta simples e de fácil utilização. Com nossa inteligência artificial, te ajudamos a definir, organizar e manter todos na mesma direção.
               </p>
             </div>
           </motion.div>
@@ -235,66 +236,170 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="py-24 pt-18 pb-0 bg-gray-50" id="okr">
-        <div className="max-w-6xl mx-auto text-center mb-16">
-          <h2 className="text-3xl font-bold mb-4 tracking-tight">Usamos OKRs para organizar seu plano</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto text-base text-sm">
-            Mas não se preocupe com a sigla. Pense nisso como uma forma simples de definir onde quer chegar e como saber se está no caminho certo.
-          </p>
-        </div>
+<section className="py-24 px-6 bg-gray-50" id="okr">
+  <div className="max-w-6xl mx-auto text-center mb-16">
+    <h2 className="text-3xl font-bold mb-4 tracking-tight">Utilizamos ORKs para otmizar o seu plano</h2>
+    <p className="text-gray-600 max-w-2xl mx-auto text-base md:text-lg">
+      Não se preocupe com a sigla. Pense em uma forma simples de saber onde quer chegar — e como medir se está no caminho.
+    </p>
+  </div>
 
-        {/* Cards explicativos */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          <div className="border border-gray-300 p-8 rounded-2xl text-left">
-            <h3 className="text-xl font-semibold text-blue-700 mb-4">Ciclo</h3>
-            <p className="text-gray-700 mb-6 text-sm">
-              É o período em que você define e te ajuda a organizar, priorizar e revisar suas metas.
+    {/* Cards explicativos */}
+    <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+      <div className="border border-gray-300 p-8 rounded-2xl text-left">
+        <h3 className="text-xl font-semibold text-blue-700 mb-4">Objetivo</h3>
+        <p className="text-gray-700 mb-6">
+          Onde você quer chegar ou algo importante que precisa ser alcançado.
+        </p>
+        <h4 className="text-sm font-semibold text-blue-700 mb-4">Exemplos:</h4>
+        <ul className="text-gray-600 space-y-2 list-disc list-inside text-sm">
+          <li>Ser referência em atendimento</li>
+          <li>Construir uma comunidade fiel</li>
+          <li>Dominar o mercado digital</li>
+        </ul>
+      </div>
+
+      <div className="border border-gray-300 p-8 rounded-3xl text-left">
+        <h3 className="text-xl font-semibold text-indigo-700 mb-4">Resultado-Chave</h3>
+        <p className="text-gray-700 mb-6">
+          São formas de medir se está funcionando. Métricas claras e mensuráveis.
+        </p>
+        <h4 className="text-sm font-semibold text-blue-700 mb-4">Exemplos:</h4>
+        <ul className="text-gray-600 space-y-2 list-disc list-inside text-sm">
+          <li>Aumentar o ticket médio em 15%</li>
+          <li>Ter 50 avaliações 5 estrelas</li>
+          <li>Gerar 30 orçamentos por semana</li>
+        </ul>
+      </div>
+    </div>
+
+    {/* Rodapé com validação social */}
+    <div className="max-w-4xl mx-auto mt-20 text-center bg-blue-700 rounded-2xl p-4 shadow-xl">
+      <p className="text-xl text-white mb-2">Empresas que usam OKRs</p>
+      <p className="text-md font-semibold text-white mb-2">
+        Google, Netflix, Nubank, iFood, Amazon, Microsoft e muitas outras.
+      </p>
+      <p className="text-white text-sm">E agora, negócios como o seu também.</p>
+    </div>
+</section>
+
+      {/* Planos */}
+      <section className="py-24 px-6 bg-gray-100" id="planos">
+        <div className="max-w-6xl mx-auto text-center">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-3xl font-bold mb-12"
+          >
+          <h2 className="text-3xl font-bold mb-4">Para você crescer com direção</h2>
+          <div className="max-w-2xl font-normal text-gray-600 text-base md:text-lg py-2 mx-auto text-center">
+            <p>
+              SingleKey é uma ferramenta ideal para negócios que têm metas, gente trabalhando duro e precisam de foco pra avançar. Assine já!
             </p>
-            <h4 className="text-sm font-semibold text-blue-700 mb-4">Exemplos:</h4>
-            <ul className="text-gray-600 space-y-2 list-disc list-inside text-sm">
-              <li>Janeiro a Março — Ciclo de Abertura</li>
-              <li>Abril a Junho — Ciclo de Expansão</li>
-              <li>Julho a Setembro — Ciclo de Eficiência</li>
-            </ul>
           </div>
-          <div className="border border-gray-300 p-8 rounded-2xl text-left">
-            <h3 className="text-xl font-semibold text-blue-700 mb-4">Objetivo</h3>
-            <p className="text-gray-700 mb-6 text-sm">
-              Onde você quer chegar ou algo importante que precisa ser alcançado.
-            </p>
-            <h4 className="text-sm font-semibold text-blue-700 mb-4">Exemplos:</h4>
-            <ul className="text-gray-600 space-y-2 list-disc list-inside text-sm">
-              <li>Ser referência em atendimento</li>
-              <li>Construir uma comunidade fiel</li>
-              <li>Dominar o mercado digital</li>
-            </ul>
+          </motion.h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[{
+              name: "Standard",
+              price: "R$ 29,90",
+              suffixText: "/ mês",
+              suffixColor: "text-gray-400",
+              description: "Ideal para começar com foco.",
+              features: [
+                "1 usuário",
+                "Criação de até 2 ciclos",
+                "Alerta de Checkins",
+                "Dashboard básico",
+                "Uso IA (10 mil unidades texto/mês)"
+              ],
+              cta: "Assinar",
+              highlighted: false
+            }, {
+              name: "Premium",
+              price: "R$ 79,90",
+              suffixText: "/ mês",
+              suffixColor: "text-white",
+              description: "Preferido pelos pequenos times e negócios.",
+              features: [
+                "Até 10 usuários",
+                "Cadastro e Gestão de Times",
+                "Criação de até 4 ciclos",
+                "Alerta de Checkins",
+                "Placar de Checkins",
+                "Uso IA (100 mil unidades texto/mês)"
+              ],
+              cta: "Assinar",
+              highlighted: true
+            }, {
+              name: "Enterprise",
+              price: "R$ 229,90",
+              suffixText: "/ mês",
+              suffixColor: "text-gray-400",
+              description: "Para empresas grandes com visão e escala.",
+              features: [
+                "Usuários Ilimitados",
+                "Cadastro e Gestão de Times",
+                "Criação de até 4 ciclos",
+                "Alerta de Checkins",
+                "Placar de Checkins",
+                "Resultados por Times",
+                "Uso IA (200 mil unidades texto/mês)"
+              ],
+              cta: "Assinar",
+              highlighted: false
+            }].map((plan, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className={`flex flex-col rounded-3xl border shadow-xl overflow-hidden ${
+                  plan.highlighted
+                    ? 'bg-gradient-to-br from-blue-700 to-indigo-800 text-white scale-[1.02]'
+                    : 'bg-white text-gray-900'
+                }`}
+              >
+                <div className="px-8 py-8 text-left">
+                  <h3 className={`text-3xl font-light mb-4 ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
+                    {plan.name}
+                  </h3>
+                  <p className={`text-4xl tracking-tighter font-bold mb-1 ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
+                  {plan.price}
+                  {plan.suffixText && (
+                    <span className={`text-base font-medium ${plan.suffixColor || 'text-gray-400'} ml-1`}>
+                      {plan.suffixText}
+                    </span>
+                  )}
+                </p>
+                  <p className={`text-sm mb-8 ${plan.highlighted ? 'text-white/80' : 'text-gray-500'}`}>
+                    {plan.description}
+                  </p>
+                  <button
+                    className={`flex w-full justify-center px-8 py-4 bg-white text-blue-700 rounded-full font-medium hover:bg-blue-100 hover:shadow-xl transition-all ${
+                      plan.highlighted
+                        ? 'bg-white text-blue-700'
+                        : 'bg-white text-blue-700 border hover:bg-blue-700 hover:text-white '
+                    }`}
+                  >
+                    {plan.cta}
+                  </button>
+                </div>
+                <hr className={plan.highlighted ? 'border-white/20' : 'border-gray-200'} />
+                <ul className={`text-sm px-8 py-8 space-y-3 text-left ${plan.highlighted ? 'text-white/90' : 'text-gray-800'}`}>
+                  {plan.features.map((f, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <CheckCircle className={`w-4 h-4 shrink-0 mt-1 ${plan.highlighted ? 'text-white' : 'text-green-500'}`} />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            ))}
           </div>
-
-          <div className="border border-gray-300 p-8 rounded-2xl text-left">
-            <h3 className="text-xl font-semibold text-indigo-700 mb-4">Resultado-Chave</h3>
-            <p className="text-gray-700 mb-6 text-sm">
-              São formas de medir se está funcionando. Métricas claras e mensuráveis.
-            </p>
-            <h4 className="text-sm font-semibold text-blue-700 mb-4">Exemplos:</h4>
-            <ul className="text-gray-600 space-y-2 list-disc list-inside text-sm">
-              <li>Aumentar o ticket médio em 15%</li>
-              <li>Ter 50 avaliações 5 estrelas</li>
-              <li>Gerar 30 orçamentos por semana</li>
-            </ul>
-          </div>
-        </div>
-
-
-        {/* Rodapé com validação social */}
-        <div className="relative max-full mx-auto mt-20 text-blue-700 text-center bg-gray-200 p-8">
-          <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-b-8 border-l-transparent border-r-transparent border-b-gray-200" />
-          <h3 className="text-md font-semibold mb-1">
-            Google, Netflix, Nubank, iFood, Amazon e Microsoft usam OKRs para crescer com foco.
-          </h3>
-          <p className="text-sm">E agora, negócios como o seu também.</p>
         </div>
       </section>
-
 
       {/* Call to Action */}
       <section className="py-24 px-6 bg-gradient-to-tl from-blue-600 to-indigo-900">
@@ -307,7 +412,7 @@ export function LandingPage() {
           <h2 className="text-3xl font-bold mb-2 text-white">
             Pronto aumentar os resultados da sua empresa?
           </h2>
-          <p className="text-sm text-white mb-10">É grátis! Clique, crie sua conta e leve mais eficácia para o seu time.</p>
+          <p className="text-sm text-white mb-10">Clique e leve mais eficiênica e eficácia para o seu time.</p>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link
               to="/register"
@@ -320,7 +425,6 @@ export function LandingPage() {
           </motion.div>
         </motion.div>
       </section>
-
       <footer className="bg-gray-50 text-center text-sm text-gray-500 py-6">
      <p>
        © {new Date().getFullYear()} SingleKey. Todos os direitos reservados.

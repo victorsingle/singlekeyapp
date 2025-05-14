@@ -180,8 +180,6 @@ function formatCNPJ(value: string) {
             </div>
           </div>
 
-          <RoleSelector value={userData.role_in_org} onChange={(val) => setUserData({ ...userData, role_in_org: val })} />
-
           <label className="flex items-center space-x-2 text-xs text-gray-600 pt-2">
             <input
               type="checkbox"
@@ -195,19 +193,31 @@ function formatCNPJ(value: string) {
         {/* BLOCO DE ENDEREÇO */}
         <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
           <h2 className="text-sm font-semibold text-gray-600">Dados da Empresa</h2>
-          <div>
-            <label className="text-xs text-gray-500 mb-1 block">CNPJ</label>
-            <input
-              type="text"
-              className="border rounded px-2 py-1 text-xs w-full"
-              value={formatCNPJ(userData.cnpj)}
-              onChange={(e) =>
-                setUserData({
-                  ...userData,
-                  cnpj: e.target.value.replace(/\D/g, ''), // armazena apenas os dígitos puros
-                })
-              }
-            />
+          <div className="flex gap-4">
+            {/* Campo CNPJ */}
+            <div className="w-1/2">
+              <label className="text-xs text-gray-500 mb-1 block">CNPJ</label>
+              <input
+                type="text"
+                className="border rounded px-2 py-1 text-xs w-full"
+                value={formatCNPJ(userData.cnpj)}
+                onChange={(e) =>
+                  setUserData({
+                    ...userData,
+                    cnpj: e.target.value.replace(/\D/g, ''),
+                  })
+                }
+              />
+            </div>
+
+            {/* Campo Papel na Empresa */}
+            <div className="w-1/2">
+              <label className="text-xs text-gray-500 mb-1 block">Papel na Empresa</label>
+              <RoleSelector
+                value={userData.role_in_org}
+                onChange={(val) => setUserData({ ...userData, role_in_org: val })}
+              />
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[

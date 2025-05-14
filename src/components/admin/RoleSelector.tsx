@@ -19,12 +19,11 @@ export function RoleSelector({ value, onChange }: { value: string, onChange: (va
   const filtered = roles.filter((role) => role.toLowerCase().includes(query.toLowerCase()));
 
   return (
-    <div className="mt-4">
-      <label className="block text-xs text-gray-600 mb-1">Papel na Empresa</label>
+    <div>
       <Combobox value={value} onChange={onChange}>
         <div className="relative">
           <Combobox.Input
-            className="w-full border p-2 rounded text-xs"
+            className="w-full border p-1 rounded text-xs"
             placeholder="Ex: CEO, Coordenador de Projetos..."
             onChange={(e) => setQuery(e.target.value)}
           />

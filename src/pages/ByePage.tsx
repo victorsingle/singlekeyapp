@@ -14,13 +14,10 @@ export function ByePage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-6">
-      <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-md space-y-4">
-        <h1 className="text-2xl font-bold text-blue-700">Sua conta foi encerrada.</h1>
-        <p className="text-sm text-gray-600">
-          Todos os dados da organização foram removidos com sucesso.
-        </p>
-        <p className="text-sm text-gray-500">
-          Obrigado por usar o SingleKey. Esperamos te ver novamente em breve! 💙
+      <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-lg space-y-4">
+        <h1 className="text-3xl font-bold text-blue-700">Sua conta foi encerrada</h1>
+        <p className="text-xs text-gray-500">
+          Todos os dados da organização foram removidos com sucesso. Obrigado por usar o SingleKey. Esperamos te ver novamente em breve! 💙
         </p>
         <button
           onClick={() => navigate('/site')}

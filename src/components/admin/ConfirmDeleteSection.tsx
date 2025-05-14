@@ -22,7 +22,7 @@ export function ConfirmDeleteSection({ orgName }: { orgName: string }) {
         return;
       }
 
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_FUNCTION_URL}/delete_account_final`, {
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_FUNCTION_URL}/functions/v1/delete_account_final`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

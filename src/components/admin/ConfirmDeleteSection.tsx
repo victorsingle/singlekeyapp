@@ -22,7 +22,7 @@ export function ConfirmDeleteSection({ orgName }: { orgName: string }) {
         return;
       }
 
-      const res = await fetch('https://ddopwcbobngaynhkoxhk.supabase.co/functions/v1/delete_organization', {
+      const res = await fetch('https://ddopwcbobngaynhkoxhk.supabase.co/functions/v1/delete_account_final', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ export function ConfirmDeleteSection({ orgName }: { orgName: string }) {
       toast.success('Conta encerrada com sucesso');
       await supabase.auth.signOut();
       navigate('/bye');
-      
+
     } catch {
       toast.error('Erro inesperado');
     } finally {

@@ -12,6 +12,8 @@ interface AuthState {
   organizationId: string | null; // <<< ADICIONAR AQUI!
   loading: boolean;
   error: string | null;
+  roleInOrg: string | null;
+  wantsUpdates: boolean;
 
   fetchUserData: () => Promise<void>;
 }
@@ -26,6 +28,8 @@ export const useAuthStore = create<AuthState>()(
     organizationId: null, // <<< ADICIONAR AQUI TAMBÉM!
     loading: false,
     error: null,
+    roleInOrg: null,
+    wantsUpdates: false,
 
     fetchUserData: async () => {
       set({ loading: true });
@@ -66,6 +70,8 @@ export const useAuthStore = create<AuthState>()(
           organizationId: invitedUser.organizationId,
           loading: false,
           error: null,
+          roleInOrg: invitedUser.roleInOrg ?? null,
+          wantsUpdates: invitedUser.wantsUpdates ?? false,
           });
 
 

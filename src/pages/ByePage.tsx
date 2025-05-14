@@ -23,7 +23,7 @@ export function ByePage() {
           Obrigado por usar o SingleKey. Esperamos te ver novamente em breve! 💙
         </p>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/site')}
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
         >
           Voltar para o início

@@ -17,29 +17,27 @@ export function ConfirmDeleteSection({ orgName }: { orgName: string }) {
       const { data } = await supabase.auth.getSession();
       const session = data.session;
 
-      if (!session?.access_token) {
+      if (!session?.user?.id) {
         toast.error('Sessão inválida.');
         return;
       }
 
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_FUNCTION_URL}/functions/v1/delete_account_final`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
+      const { error } = await supabase.rpc('anonymize_user_account', {
+        uid: session.user.id,
       });
 
-      if (!res.ok) {
-        toast.error('Erro ao excluir a organização');
+      if (error) {
+        console.error(error);
+        toast.error('Erro ao desativar a conta');
         return;
       }
 
-      toast.success('Conta encerrada com sucesso');
+      toast.success('Conta encerrada com sucesso!');
       await supabase.auth.signOut();
       navigate('/bye');
 
-    } catch {
+    } catch (err) {
+      console.error(err);
       toast.error('Erro inesperado');
     } finally {
       setLoading(false);

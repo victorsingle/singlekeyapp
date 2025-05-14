@@ -22,6 +22,7 @@ import { TeamsPage } from './pages/admin/TeamsPage';
 import { TeamDetailPage } from './pages/admin/TeamDetailPage';
 import { GuidePage } from './pages/GuidePage';
 import { LandingPage } from './pages/site';
+import { ByePage } from './pages/ByePage';
 
 // Autenticação
 import { AuthTabs } from './components/auth/AuthTabs';
@@ -87,7 +88,7 @@ function App() {
   const [checkinRefreshVersion, setCheckinRefreshVersion] = useState(0);
 
   // --- Caminhos públicos ---
-  const publicPaths = ['/login','/register','/reset-password','/update-password','/auth/callback','/convite','/site','/onboarding','/confirmar-conta'];
+  const publicPaths = ['/login','/register','/reset-password','/update-password','/auth/callback','/convite','/site','/onboarding','/confirmar-conta','/bye'];
   const isPublicRoute = publicPaths.includes(location.pathname) || location.pathname.startsWith('/auth/callback');
 
   // --- Notificação de check-in ---
@@ -389,6 +390,7 @@ if (!isAuthChecked || !onboardingChecked) {
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/confirmar-conta" element={<ConfirmarConta />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
+            <Route path="/bye" element={<ByePage  />} />
 
             <Route path="/" element={<CycleDashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />

@@ -234,12 +234,12 @@ function formatCNPJ(value: string) {
         </section>
 
         {/* BOTÃO FINAL */}
-        <div className="flex justify-start">
+        <div className="flex justify-center">
           <button
             onClick={handleSave}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg"
+            className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-6 rounded-lg"
           >
-            Salvar alterações
+            Salvar Alterações
           </button>
         </div>
 

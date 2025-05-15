@@ -50,25 +50,26 @@ export function LandingPage() {
              Com a KAI, sua agente IA, você alinha seu time e cria indicadores com clareza e foco.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link 
-                  to="/register"
-                  target="_blank"
-                  className="w-full sm:w-auto sm:max-w-max inline-flex items-center px-8 py-4 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl"
-                >
-                  <Target className="w-5 h-5 mr-2" />
-                  Criar conta gratuita
-                </Link>
-              </motion.div>
-              <motion.div>
+             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link 
-                  to="/login"
-                  target="_blank"
-                  className="w-full sm:w-auto sm:max-w-max inline-flex ml-0 sm:ml-4 items-center px-8 py-4 bg-white text-blue-600 rounded-full font-medium hover:bg-blue-200 hover:text-blue-900 transition-all shadow-lg hover:shadow-xl"
-                >
-                  Já tenho uma conta
-                </Link>
-              </motion.div>
+                to="/register"
+                target="_blank"
+                className="w-full sm:w-auto sm:max-w-max inline-flex items-center justify-center sm:justify-start px-8 py-4 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl"
+              >
+                <Target className="w-5 h-5 mr-2" />
+                Criar conta gratuita
+              </Link>
+            </motion.div>
+
+            <motion.div>
+              <Link 
+                to="/login"
+                target="_blank"
+                className="w-full sm:w-auto sm:max-w-max inline-flex items-center justify-center sm:justify-start ml-0 sm:ml-4 px-8 py-4 bg-white text-blue-600 rounded-full font-medium hover:bg-blue-200 hover:text-blue-900 transition-all shadow-lg hover:shadow-xl"
+              >
+                Já tenho uma conta
+              </Link>
+            </motion.div>
             </div>
           </motion.div>
         </div>

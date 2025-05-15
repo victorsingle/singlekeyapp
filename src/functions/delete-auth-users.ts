@@ -1,25 +1,25 @@
-import { Handler } from '@netlify/functions';
-import { supabaseAdmin } from './supabaseAdmin'; // deve exportar um client com service role
+import { supabaseAdmin } from './supabaseAdmin';
 
-const handler: Handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
+export default async function handler(req: Request): Promise<Response> {
+  if (req.method !== 'POST') {
+    return new Response('Method Not Allowed', { status: 405 });
   }
 
   try {
-    const { userId } = JSON.parse(event.body || '{}');
+    const { userId } = await req.json();
 
     if (!userId) {
-      return { statusCode: 400, body: 'Missing userId' };
+      return new Response(JSON.stringify({ error: 'Missing userId' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
-    // 1. Deleta o próprio usuário
-    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
-    if (deleteError) {
-      throw deleteError;
-    }
+    // Deleta usuário principal
+    const { error: mainError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    if (mainError) throw mainError;
 
-    // 2. Busca convidados e deleta
+    // Busca e deleta usuários convidados
     const { data: invited, error: invitedError } = await supabaseAdmin
       .from('invited_users')
       .select('user_id')
@@ -33,18 +33,16 @@ const handler: Handler = async (event) => {
       }
     }
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ success: true }),
-    };
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
 
   } catch (err) {
     console.error('[❌ Erro ao apagar auth.users]', err);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Falha ao apagar usuários de autenticação.' }),
-    };
+    return new Response(JSON.stringify({ error: 'Falha ao apagar usuários de autenticação.' }), {
+      status: 502,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
-};
-
-export { handler as default };
+}

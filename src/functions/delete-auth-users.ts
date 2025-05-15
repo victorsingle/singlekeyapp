@@ -1,19 +1,31 @@
-import { supabaseAdmin } from './supabaseAdmin';
+import { Handler } from '@netlify/functions';
+import { supabaseAdmin } from './supabaseAdmin'; // deve exportar um client com service role
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
-
-  const { userId } = req.body;
+const handler: Handler = async (event) => {
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, body: 'Method Not Allowed' };
+  }
 
   try {
-    // 1. Apaga o próprio usuário
-    await supabaseAdmin.auth.admin.deleteUser(userId);
+    const { userId } = JSON.parse(event.body || '{}');
 
-    // 2. Apaga convidados que ele convidou
-    const { data: invited } = await supabaseAdmin
+    if (!userId) {
+      return { statusCode: 400, body: 'Missing userId' };
+    }
+
+    // 1. Deleta o próprio usuário
+    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    if (deleteError) {
+      throw deleteError;
+    }
+
+    // 2. Busca convidados e deleta
+    const { data: invited, error: invitedError } = await supabaseAdmin
       .from('invited_users')
       .select('user_id')
       .eq('invited_by', userId);
+
+    if (invitedError) throw invitedError;
 
     for (const { user_id } of invited ?? []) {
       if (user_id) {
@@ -21,10 +33,18 @@ export default async function handler(req, res) {
       }
     }
 
-    return res.status(200).json({ success: true });
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ success: true }),
+    };
 
   } catch (err) {
     console.error('[❌ Erro ao apagar auth.users]', err);
-    return res.status(500).json({ error: 'Falha ao apagar usuários de autenticação.' });
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Falha ao apagar usuários de autenticação.' }),
+    };
   }
-}
+};
+
+export { handler as default };

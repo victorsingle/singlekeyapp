@@ -32,13 +32,6 @@ export function ConfirmDeleteSection({ orgName }: { orgName: string }) {
         return;
       }
 
-      // 2. Remove usuários da auth via API protegida
-      await fetch('/.netlify/functions/delete-auth-users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: session.user.id }),
-      });
-
       toast.success('Conta encerrada com sucesso!');
       await supabase.auth.signOut();
       navigate('/bye');

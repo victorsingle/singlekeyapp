@@ -292,7 +292,7 @@ export function CompanyForm() {
           navigate('/login');
         }}
         title="Verifique seu e-mail"
-        message="Enviamos um LINK DE CONFIRMAÇÃO para o e-mail Cadastrado. Acesse o link para CONFIRMAR seu cadastro."
+        message="Um LINK DE CONFIRMAÇÃO foi enviado para o e-mail informado. Clique nele para finalizar o cadastro."
       />
     </div>
   );

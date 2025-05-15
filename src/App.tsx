@@ -288,7 +288,41 @@ if (!isAuthChecked || !onboardingChecked) {
   // --- Render principal ---
   return (
     <>
-      <Toaster position="top-right" reverseOrder={false} />
+      <Toaster
+      position="top-right"
+      reverseOrder={false}
+      
+      toastOptions={{
+        // Estilo base
+        style: {
+          padding: '16px',
+          fontSize: '14px',
+          borderRadius: '6px',
+        },
+        success: {
+          style: {
+            background: '#dcfce7', // bg-green-100
+            color: '#065f46',      // text-green-800
+          },
+          iconTheme: {
+            primary: '#16a34a',    // green-600
+            secondary: '#bbf7d0',  // green-200
+          },
+        },
+        error: {
+          style: {
+            background: '#fee2e2', // bg-red-100
+            color: '#991b1b',      // text-red-800
+          },
+          iconTheme: {
+            primary: '#dc2626',    // red-600
+            secondary: '#fecaca',  // red-200
+          },
+        },
+      }}
+
+      />
+      
       <div className="min-h-screen bg-gray-50">
 
         {/* Header e Menu lateral */}

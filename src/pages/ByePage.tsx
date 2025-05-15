@@ -6,8 +6,8 @@ export function ByePage() {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      navigate('/'); // Redireciona para home após 6s (opcional)
-    }, 6000);
+      navigate('/site'); 
+    }, 10000);
 
     return () => clearTimeout(timeout);
   }, [navigate]);

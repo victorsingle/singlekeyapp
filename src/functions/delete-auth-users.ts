@@ -1,5 +1,4 @@
-// pages/api/delete-auth-users.ts (ou app/api se for App Router)
-import { supabaseAdmin } from '../../lib/supabaseAdmin';
+import { supabaseAdmin } from './supabaseAdmin';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();

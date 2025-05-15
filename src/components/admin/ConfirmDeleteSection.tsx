@@ -33,7 +33,7 @@ export function ConfirmDeleteSection({ orgName }: { orgName: string }) {
       }
 
       // 2. Remove usuários da auth via API protegida
-      await fetch('/api/delete-auth-users', {
+      await fetch('/.netlify/functions/delete-auth-users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: session.user.id }),

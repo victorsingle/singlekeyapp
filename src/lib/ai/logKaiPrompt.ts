@@ -35,7 +35,8 @@ export async function logKaiPrompt(prompt: string, cicloTema?: string) {
     interface_origem: 'web',
     ip_address: ip,
     user_agent: navigator.userAgent,
-    lang: navigator.language
+    lang: navigator.language,
+    organization_id: store.organizationId,
   };
 
   console.log('[📤 Enviando log da KAI]', payload);

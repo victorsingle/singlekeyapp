@@ -74,7 +74,6 @@ export const useAuthStore = create<AuthState>()(
           wantsUpdates: invitedUser.wantsUpdates ?? false,
           });
 
-
         } else {
           const { data: userProfileRaw } = await supabase
             .from('users')

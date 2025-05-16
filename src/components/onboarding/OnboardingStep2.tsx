@@ -33,7 +33,7 @@ export function OnboardingStep2({ onNext, onBack, teams, setTeams }: Props) {
         </div>
         <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Quem está comprometido?</h1>
         <p className="text-sm text-gray-500 max-w-md">
-          Quais são as equipes da sua empresa que precisam focar nos resultados.
+          Quais são as equipes da sua empresa que precisam focar nos resultados. Você poderá associá-los depois aos indicadores para um acompanhamento mais detalhado.
         </p>
       </div>
 
@@ -46,7 +46,7 @@ export function OnboardingStep2({ onNext, onBack, teams, setTeams }: Props) {
           className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
         />
         <textarea
-          placeholder="Descrição (opcional)"
+          placeholder="Descrição"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={2}
@@ -92,7 +92,7 @@ export function OnboardingStep2({ onNext, onBack, teams, setTeams }: Props) {
           onClick={onNext}
           className="bg-blue-600 text-white px-5 py-2 text-sm rounded-md hover:bg-blue-700  "
         >
-          Avançar
+          {teams.length === 0 ? 'Pular etapa' : 'Avançar'}
         </button>
       </div>
     </div>

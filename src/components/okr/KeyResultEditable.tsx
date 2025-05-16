@@ -187,7 +187,7 @@ export function KeyResultEditable({ kr }: KeyResultEditableProps) {
           <div className="flex flex-col gap-1">
             <label className="md:hidden text-xs text-gray-500 mb-1">Confiança</label>
             {/* bolinhas + progresso permanecem */}
-            <div className="flex gap-2 items-center">
+            <div data-guide="confianca-button" className="flex gap-2 items-center">
               <button className={`w-6 h-6 rounded-full bg-green-400 border ${kr.confidence_flag === 'high' ? 'ring-2 ring-gray-500' : ''}`} onClick={() => handleBlur('confidence_flag', 'high')} />
               <button className={`w-6 h-6 rounded-full bg-yellow-400 border ${kr.confidence_flag === 'medium' ? 'ring-2 ring-gray-500' : ''}`} onClick={() => handleBlur('confidence_flag', 'medium')} />
               <button className={`w-6 h-6 rounded-full bg-red-400 border ${kr.confidence_flag === 'low' ? 'ring-2 ring-gray-500' : ''}`} onClick={() => handleBlur('confidence_flag', 'low')} />

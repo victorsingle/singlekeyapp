@@ -253,10 +253,11 @@ function formatCNPJ(value: string) {
           </button>
         </div>
 
-        {/* BLOCO DE EXCLUSÃO */}
+        {/* BLOCO DE EXCLUSÃO 
         <div className="pt-6">
           <ConfirmDeleteSection orgName={orgData.name} />
         </div>
+        */}
       </div>
     </>
   );

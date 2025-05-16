@@ -4,7 +4,6 @@ import { steps } from '../../constants/onboardingSteps';
 
 export function FeatureGuide() {
   const { step, visible, nextStep, skipGuide } = useOnboardingGuide();
-
   const [position, setPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const tooltipRef = useRef<HTMLDivElement>(null);
 
@@ -20,9 +19,7 @@ export function FeatureGuide() {
     const tooltip = tooltipRef.current;
     if (!target || !tooltip) return;
 
-    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-    const timeout = setTimeout(() => {
+    const updatePosition = () => {
       const rect = target.getBoundingClientRect();
       const scrollTop = window.scrollY;
       const scrollLeft = window.scrollX;
@@ -54,17 +51,22 @@ export function FeatureGuide() {
       }
 
       setPosition({ top, left });
-    }, 0);
+    };
 
-    return () => clearTimeout(timeout);
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    updatePosition();
+
+    const observer = new ResizeObserver(() => {
+      updatePosition();
+    });
+
+    observer.observe(tooltip);
+
+    return () => observer.disconnect();
   }, [step, current, visible]);
 
   const handleNext = () => {
-    if (isLastStep) {
-      skipGuide();
-    } else {
-      nextStep();
-    }
+    nextStep();
   };
 
   const arrowClass = current && {
@@ -74,7 +76,6 @@ export function FeatureGuide() {
     right: 'absolute left-[-8px] top-1/2 -translate-y-1/2 border-y-8 border-y-transparent border-r-8 border-r-purple-600',
   }[current?.placement];
 
-  // ⛳ Aqui sim: só oculta o conteúdo, mas mantém os hooks ativos
   if (!visible || !current) return <></>;
 
   return (
@@ -84,13 +85,17 @@ export function FeatureGuide() {
       style={{ top: position.top, left: position.left }}
     >
       <div className={arrowClass} />
-      <h3 className="font-bold mb-1">{current.title}</h3>
-      <p className="text-sm mb-3">{current.description}</p>
+      <h3 className="font-bold mb-3 text-xs">{current.title}</h3>
+      <div className="text-xs mb-3">
+        {typeof current.description === 'string'
+          ? <p>{current.description}</p>
+          : current.description}
+      </div>
       <div className="flex gap-4">
-        <button onClick={handleNext} className="bg-white text-purple-600 px-3 py-1 rounded">
+        <button onClick={handleNext} className="bg-white text-xs text-purple-600 px-3 py-1 rounded">
           {isLastStep ? 'Finalizar' : 'Próximo'}
         </button>
-        <button onClick={skipGuide} className="text-white underline text-sm">Pular</button>
+        <button onClick={skipGuide} className="text-white text-xs underline text-sm">Pular</button>
       </div>
     </div>
   );

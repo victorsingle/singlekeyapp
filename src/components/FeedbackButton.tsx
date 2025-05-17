@@ -30,6 +30,16 @@ export function FeedbackButton() {
       .eq("user_id", authUserId)
       .maybeSingle();
 
+
+    if (!userData.data) {
+      // Tenta buscar na tabela `invited_users` como fallback
+      userData = await supabase
+        .from("invited_users")
+        .select("organization_id")
+        .eq("user_id", authUserId)
+        .maybeSingle();
+    }
+
     if (error || !userData) {
       toast.error("Erro ao identificar usuário no sistema.");
       setLoading(false);

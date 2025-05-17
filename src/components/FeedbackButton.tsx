@@ -11,59 +11,62 @@ export function FeedbackButton() {
   
   const { userId: authUserId } = useAuthStore();
 
-  const handleSend = async () => {
-    if (!message.trim()) return;
-    setLoading(true);
+const handleSend = async () => {
+  if (!message.trim()) return;
+  setLoading(true);
 
-    
+  if (!authUserId) {
+    toast.error("Usuário não autenticado.");
+    setLoading(false);
+    return;
+  }
 
-    if (!authUserId) {
-      toast.error("Usuário não autenticado.");
-      setLoading(false);
-      return;
-    }
+  let organization_id: string | null = null;
 
-    // 🔍 Busca o ID real da tabela `users` com base no user_id do auth
-    const { data: userData, error } = await supabase
-      .from("users")
-      .select("id, organization_id")
+  // Tenta buscar na tabela `users`
+  const { data: userRow, error: userError } = await supabase
+    .from("users")
+    .select("organization_id")
+    .eq("user_id", authUserId)
+    .maybeSingle();
+
+  if (userRow?.organization_id) {
+    organization_id = userRow.organization_id;
+  } else {
+    // Se não achou, tenta buscar na tabela `invited_users`
+    const { data: invitedRow } = await supabase
+      .from("invited_users")
+      .select("organization_id")
       .eq("user_id", authUserId)
       .maybeSingle();
 
-
-    if (!userData.data) {
-      // Tenta buscar na tabela `invited_users` como fallback
-      userData = await supabase
-        .from("invited_users")
-        .select("organization_id")
-        .eq("user_id", authUserId)
-        .maybeSingle();
+    if (invitedRow?.organization_id) {
+      organization_id = invitedRow.organization_id;
     }
+  }
 
-    if (error || !userData) {
-      toast.error("Erro ao identificar usuário no sistema.");
-      setLoading(false);
-      return;
-    }
-
-    const { organization_id } = userData;
-
-    const { error: insertError } = await supabase.from("user_feedback").insert({
-      user_id: authUserId,
-      organization_id,
-      message,
-    });
-
+  if (!organization_id) {
+    toast.error("Erro ao identificar usuário no sistema.");
     setLoading(false);
+    return;
+  }
 
-    if (insertError) {
-      toast.error("Erro ao enviar feedback.");
-    } else {
-      toast.success("Feedback enviado com sucesso!");
-      setMessage("");
-      setOpen(false);
-    }
-  };
+  const { error: insertError } = await supabase.from("user_feedback").insert({
+    user_id: authUserId,
+    organization_id,
+    message,
+  });
+
+  setLoading(false);
+
+  if (insertError) {
+    toast.error("Erro ao enviar feedback.");
+  } else {
+    toast.success("Feedback enviado com sucesso!");
+    setMessage("");
+    setOpen(false);
+  }
+};
 
   return (
     <div className="fixed bottom-6 right-4 z-50">

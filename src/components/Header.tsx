@@ -56,6 +56,10 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
   const { isAdmin, isChampion } = usePermissions();
   const { usado, limite, percentual, isLoading, refetch } = useTokenUsage();
 
+  const firstName = useAuthStore(state => state.firstName);
+  const lastName = useAuthStore(state => state.lastName);
+  const role = useAuthStore(state => state.role);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -166,9 +170,18 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
               <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-semibold">
                 {session?.user?.email?.charAt(0)?.toUpperCase() ?? 'U'}
               </div>
-              {company?.first_name && (
-                <span className="text-sm font-medium text-gray-700">{company.first_name}</span>
+              <div className="flex flex-col text-left">
+              {(firstName || lastName) && (
+                <span className="text-sm font-medium text-gray-700 leading-none">
+                  {firstName} {lastName}
+                </span>
               )}
+              {role && (
+                <span className="text-[10px] pt-1 text-gray-400 capitalize leading-none">
+                  {role === 'admin' ? 'Administrador' : role === 'champion' ? 'Champion' : 'Colaborador'}
+                </span>
+              )}
+            </div>
             </button>
 
             {showDropdown && (

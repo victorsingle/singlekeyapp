@@ -7,6 +7,7 @@ interface AuthState {
   userId: string | null;
   role: 'admin' | 'champion' | 'collaborator' | null;
   firstName: string | null;
+  lastName: string | null; // ✅ Adicione isso
   adminId: string | null;
   companyName: string | null;
   organizationId: string | null; // <<< ADICIONAR AQUI!
@@ -23,6 +24,7 @@ export const useAuthStore = create<AuthState>()(
     userId: null,
     role: null,
     firstName: null,
+    lastName: null,
     adminId: null,
     companyName: null,
     organizationId: null, // <<< ADICIONAR AQUI TAMBÉM!
@@ -64,6 +66,7 @@ export const useAuthStore = create<AuthState>()(
           set({
           userId,
           firstName: invitedUser.firstName,
+          lastName: invitedUser.lastName,
           role: invitedUser.role,
           adminId: invitedUser.invitedBy,
           companyName: invitedOrg?.organization_name ?? null,
@@ -87,6 +90,7 @@ export const useAuthStore = create<AuthState>()(
             set({
               userId,
               firstName: userProfile.firstName,
+              lastName: userProfile.lastName,
               role: 'admin',
               adminId: null,
               companyName: userProfile.companyName,

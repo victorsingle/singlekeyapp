@@ -36,10 +36,10 @@ export function FeedbackButton() {
       return;
     }
 
-    const { id: userbId, organization_id } = userData;
+    const { organization_id } = userData;
 
     const { error: insertError } = await supabase.from("user_feedback").insert({
-      user_id: userbId,
+      user_id: authUserId,
       organization_id,
       message,
     });

@@ -27,7 +27,7 @@ export const useAuthStore = create<AuthState>()(
     lastName: null,
     adminId: null,
     companyName: null,
-    organizationId: null, // <<< ADICIONAR AQUI TAMBÉM!
+    organizationId: null, 
     loading: false,
     error: null,
     roleInOrg: null,

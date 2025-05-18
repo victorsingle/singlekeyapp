@@ -1,5 +1,6 @@
 import type { Handler, HandlerEvent } from '@netlify/functions';
 import { supabaseAdmin } from './supabaseAdmin';
+import CryptoJS from 'crypto-js';
 
 const handler: Handler = async (event: HandlerEvent) => {
 
@@ -69,11 +70,17 @@ const handler: Handler = async (event: HandlerEvent) => {
       };
     }
 
+    // 🔓 Descriptografa a senha temporária
+    const SECRET_KEY = process.env.TEMP_PASSWORD_SECRET!;
+    const decryptedBytes = CryptoJS.AES.decrypt(temp_password, SECRET_KEY);
+    const decryptedPassword = decryptedBytes.toString(CryptoJS.enc.Utf8);
+
+
     // 3. Criar o usuário no Supabase Auth
     console.log('[⚠️ Tentando criar no Auth]', { email, password: temp_password }); 
     const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
-      password: temp_password,
+      password: decryptedPassword,
       user_metadata: { userId },
       email_confirm: true,
     });

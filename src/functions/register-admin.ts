@@ -2,10 +2,12 @@ import type { Handler, HandlerEvent } from '@netlify/functions';
 import { supabaseAdmin } from './supabaseAdmin';
 import { Resend } from 'resend';
 import { v4 as uuidv4 } from 'uuid';
+import CryptoJS from 'crypto-js';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const handler: Handler = async (event: HandlerEvent) => {
+
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -35,6 +37,9 @@ const handler: Handler = async (event: HandlerEvent) => {
 
   try {
     const userId = uuidv4();
+    const SECRET_KEY = process.env.TEMP_PASSWORD_SECRET!;
+    // Criptografar a senha temporária
+    const encryptedPassword = CryptoJS.AES.encrypt(password, SECRET_KEY).toString();
 
     const { error: insertError } = await supabaseAdmin
       .from('users')
@@ -45,7 +50,7 @@ const handler: Handler = async (event: HandlerEvent) => {
         first_name: firstName,
         last_name: lastName,
         phone,
-        temp_password: password
+        temp_password: encryptedPassword
       })
       .select()
       .maybeSingle();

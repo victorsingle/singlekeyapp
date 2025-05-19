@@ -83,25 +83,29 @@ export function OKRPreGenerator() {
       scrollToBottom();
     }
 
-    // Tentativa de parse como JSON estruturado
     try {
-      const parsed = JSON.parse(accumulated);
-      if (parsed?.ciclo && parsed?.okrs) {
-        setParsedOKR(parsed);
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: 'assistant',
-            content: 'Aqui está uma proposta inicial com base no seu contexto. Está alinhado com o que você imaginava? Se estiver ok, você pode clicar no botão ao lado para gerar os OKRs no sistema.',
-          },
-        ]);
-      } else {
-        setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
+      const tentativaJSON = accumulated.trim().match(/\{[\s\S]*\}/)?.[0];
+      if (tentativaJSON) {
+        const estrutura = JSON.parse(tentativaJSON);
+        if (estrutura?.ciclo && Array.isArray(estrutura.okrs)) {
+          setParsedOKR(estrutura);
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: 'assistant',
+              content: 'Aqui está uma proposta com base no seu desafio. Está alinhada com o que você imaginava? Se quiser seguir com ela, clique no botão ao lado para gerar no sistema.',
+            },
+          ]);
+          setCurrentResponse('');
+          setLoading(false);
+          return;
+        }
       }
-    } catch {
-      setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
+    } catch (err) {
+      console.warn('[⚠️ Não foi possível interpretar como estrutura JSON de OKRs]', err);
     }
 
+    setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
     setCurrentResponse('');
     setLoading(false);
   };
@@ -157,7 +161,7 @@ export function OKRPreGenerator() {
         <h3 className="text-lg font-semibold text-gray-700 mb-4">Estrutura de OKRs</h3>
         {!parsedOKR ? (
           <p className="text-sm text-gray-400 italic">
-           Utilize o chat ao lado para planejar com a KAI.
+            Utilize o chat ao lado para planejar com a KAI.
           </p>
         ) : (
           <div className="space-y-4 text-sm text-gray-700">

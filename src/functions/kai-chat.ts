@@ -1,12 +1,12 @@
 import { Configuration, OpenAIApi } from 'openai-edge';
 import { createClient } from '@supabase/supabase-js';
 
-// Configuração do OpenAI
+// OpenAI config
 const openai = new OpenAIApi(new Configuration({
   apiKey: process.env.VITE_OPENAI_API_KEY!,
 }));
 
-// Instância Supabase
+// Supabase config
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -43,29 +43,33 @@ export default async function handler(req: Request): Promise<Response> {
       year: 'numeric'
     }).replace('.', '');
 
-    // Detecta intenção de geração de OKRs
-    const deveGerarEstrutura = [
-      'okr',
-      'objetivo',
-      'key result',
-      'resultado-chave',
-      'ciclo',
-      'estrutura',
-      'meta',
-      'estruturar'
-    ].some(palavra => ultimoPrompt.includes(palavra));
+    const termosDeOKR = [
+      'okr', 'objetivo', 'key result', 'resultado-chave',
+      'ciclo', 'estrutura', 'meta', 'estruturar', 'desdobrar'
+    ];
+
+    const promptVago = ['não sei', 'pensando', 'ainda não sei', 'em dúvida'].some(p => ultimoPrompt.includes(p));
+    const deveGerarEstrutura = termosDeOKR.some(p => ultimoPrompt.includes(p)) && !promptVago;
 
     const promptSistema = deveGerarEstrutura
       ? `
-Você é do sexo feminino e se chama KAI e é uma geradora de OKRs estruturados. Com base no contexto fornecido, você deve retornar uma sugestão **explicada em português natural**, antes da estrutura final.
+Você é a Kai, uma IA especialista em planejamento com OKRs. Hoje é ${dataFormatada}.
 
-A data de hoje é **${dataFormatada}**. Use-a como base para nomear períodos, ciclos e datas.
+1. Com base no contexto, você irá sugerir uma estrutura de OKRs explicando em português natural, em tom profissional e acessível.
+2. NÃO diga que vai gerar um "JSON". Diga que montou uma proposta e pergunte se o usuário deseja "gerar no sistema para acompanhamento".
+3. NÃO inclua a estrutura dentro do chat. Apenas diga que está pronta e pode ser gerada ao lado.
+4. Evite repetir emojis ou exagerar no uso deles.
+5. Se o conteúdo estiver pronto, diga: "Está alinhado com o que você tinha em mente? Se quiser acompanhar no sistema, é só clicar no botão ao lado."
 
-Após sua explicação, pergunte se o usuário quer gerar a estrutura completa. Somente gere a estrutura JSON se ele confirmar explicitamente.
-      `
+A estrutura será retornada apenas se o usuário confirmar explicitamente.
+      `.trim()
       : `
-Você é a Kai, uma IA especialista em OKRs. Responda de forma simpática, curta e útil. Se o usuário ainda não forneceu contexto suficiente, incentive-o a descrever o desafio que deseja enfrentar neste ciclo.
-`;
+Você é a Kai, uma IA especialista em OKRs. Responda de forma simpática e clara.
+
+1. Se o usuário ainda estiver explorando ("ainda não sei", "pensando", "não sei por onde começar"), faça perguntas para entender melhor o desafio do ciclo.
+2. Só sugira estrutura se o contexto estiver claro.
+3. Evite repetir emojis ou parecer forçada. Naturalidade acima de tudo.
+      `.trim();
 
     const completion = await openai.createChatCompletion({
       model: 'gpt-4o',

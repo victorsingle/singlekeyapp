@@ -175,7 +175,7 @@ export function OKRPreGenerator() {
               {currentResponse}
             </div>
           )}
-          {awaitingConfirmation && parsedOKR && (
+          {awaitingConfirmation && (
             <div className="flex justify-end mt-2">
               <button
                 onClick={handleGenerateOKRs}

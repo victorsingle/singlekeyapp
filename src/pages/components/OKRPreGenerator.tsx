@@ -25,7 +25,7 @@ export function OKRPreGenerator() {
     console.log('[🧪 Mensagem do usuário]:', input);
 
     const lower = input.toLowerCase();
-    const isConfirmation = ['pode gerar', 'pode seguir', 'pode cadastrar', 'sim', 'está ótimo', 'está ótimo assim'].some(f =>
+    const isConfirmation = ['pode gerar', 'pode seguir', 'pode cadastrar', 'sim', 'gostei', 'está ótimo', 'está ótimo assim'].some(f =>
       lower.includes(f)
     );
 

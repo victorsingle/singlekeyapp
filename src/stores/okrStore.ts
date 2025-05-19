@@ -421,7 +421,12 @@ generateFullOKRStructure: async (prompt: string) => {
 
         🔷 GERE O CONTEÚDO EM PORTUGUÊS BRASILEIRO
         🔷 Retorne APENAS o JSON
-        `
+        
+        Texto validado:
+        """ 
+        ${prompt}
+        """
+        `.trim()
       },
       {
         role: 'user',

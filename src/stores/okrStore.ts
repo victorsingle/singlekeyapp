@@ -367,69 +367,69 @@ generateFullOKRStructure: async (prompt: string) => {
   console.log(dataAtualFormatada);
 
   const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    response_format: { type: 'json_object' },
-    messages: [
-      {
-        role: 'system',
-        content: `
-      Você é a Kai, uma IA especialista em OKRs.
+  model: 'gpt-4o',
+  response_format: { type: 'json_object' },
+  messages: [
+    {
+      role: 'system',
+      content: `
+Você é a Kai, uma IA especialista em OKRs.
 
-      Você receberá abaixo um TEXTO JÁ VALIDADO PELO USUÁRIO contendo a estrutura final de OKRs aprovada por ele.
+Você receberá abaixo um TEXTO JÁ VALIDADO PELO USUÁRIO contendo a estrutura final de OKRs aprovada por ele.
 
-      ⚠️ Sua única tarefa é CONVERTER esse conteúdo em formato JSON, seguindo a estrutura abaixo, sem alterar absolutamente nada.
+⚠️ Sua única tarefa é CONVERTER esse conteúdo em formato JSON, seguindo a estrutura abaixo, sem alterar absolutamente nada.
 
-      🚫 Não reformule textos, não reorganize, não corrija frases.
-      ✅ Apenas converta fielmente o conteúdo textual em estrutura JSON.
+🚫 Não reformule textos, não reorganize, não corrija frases.
+✅ Apenas converta fielmente o conteúdo textual em estrutura JSON.
 
-      Formato JSON esperado:
-      {
-        "ciclo": {
-          "nome": "string",
-          "dataInicio": "YYYY-MM-DD",
-          "dataFim": "YYYY-MM-DD",
-          "temaEstratégico": "string"
-        },
-        "okrs": [
-          {
-            "id": "okr-1",
-            "objetivo": "string",
-            "tipo": "strategic" | "tactical" | "operational",
-            "resultadosChave": [
-              {
-                "texto": "string",
-                "tipo": "moonshot" | "roofshot",
-                "métrica": "string",
-                "valorInicial": number,
-                "valorAlvo": number,
-                "unidade": "string"
-              }
-            ]
-          }
-        ],
-        "links": [
-          {
-            "origem": "okr-1",
-            "destino": "okr-2",
-            "tipo": "hierarchy"
-          }
-        ]
-      }
+Formato JSON esperado:
+{
+  "ciclo": {
+    "nome": "string",
+    "dataInicio": "YYYY-MM-DD",
+    "dataFim": "YYYY-MM-DD",
+    "temaEstratégico": "string"
+  },
+  "okrs": [
+    {
+      "id": "okr-1",
+      "objetivo": "string",
+      "tipo": "strategic" | "tactical" | "operational",
+      "resultadosChave": [
+        {
+          "texto": "string",
+          "tipo": "moonshot" | "roofshot",
+          "métrica": "string",
+          "valorInicial": number,
+          "valorAlvo": number,
+          "unidade": "string"
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "origem": "okr-1",
+      "destino": "okr-2",
+      "tipo": "hierarchy"
+    }
+  ]
+}
 
-      Retorne APENAS o JSON sem comentários ou explicações.
+Retorne APENAS o JSON sem comentários ou explicações.
 
-      Texto validado:
-      """
-      ${prompt}
-      """
-      `.trim()
-      },
-      {
-        role: 'user',
-        content: `Contexto: ${prompt}`
-      }
-    ]
-  });
+Texto validado:
+"""
+${prompt}
+"""
+`.trim()
+    },
+    {
+      role: 'user',
+      content: prompt  // ✅ sem "Contexto:"
+    }
+  ]
+});
 
   const raw = completion.choices[0].message.content;
   const totalTokens = completion.usage?.total_tokens ?? 0;

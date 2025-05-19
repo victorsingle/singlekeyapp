@@ -3,11 +3,23 @@ import { ArrowUpCircle, Target } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../../stores/authStore';
 
+interface ParsedOKR {
+  ciclo: {
+    nome: string;
+    dataInicio: string;
+    dataFim: string;
+    temaEstratégico: string;
+  };
+  okrs: any[];
+  links: any[];
+}
+
 export function OKRPreGenerator() {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState('');
+  const [parsedOKR, setParsedOKR] = useState<ParsedOKR | null>(null);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToBottom = () => {
@@ -21,6 +33,7 @@ export function OKRPreGenerator() {
     setInput('');
     setLoading(true);
     setCurrentResponse('');
+    setParsedOKR(null);
 
     const { userId, organizationId } = useAuthStore.getState();
 
@@ -42,7 +55,6 @@ export function OKRPreGenerator() {
     const reader = response.body.getReader();
     const decoder = new TextDecoder('utf-8');
     let done = false;
-    let accumulated = '';
 
     while (!done) {
       const { value, done: readerDone } = await reader.read();
@@ -59,8 +71,7 @@ export function OKRPreGenerator() {
           const parsed = JSON.parse(jsonStr);
           const content = parsed.choices?.[0]?.delta?.content;
           if (content) {
-            accumulated += content;
-            setCurrentResponse(accumulated);
+            setCurrentResponse((prev) => prev + content);
           }
         } catch (err) {
           console.error('[❌ Erro ao processar chunk da IA]', err);
@@ -70,7 +81,27 @@ export function OKRPreGenerator() {
       scrollToBottom();
     }
 
-    setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
+    // Tentativa de parse como proposta OKR
+    let parsedOKR: ParsedOKR | null = null;
+    try {
+      parsedOKR = JSON.parse(currentResponse);
+    } catch {
+      // Não é JSON estruturado
+    }
+
+    if (parsedOKR?.ciclo && Array.isArray(parsedOKR.okrs)) {
+      setParsedOKR(parsedOKR);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: 'Aqui está uma proposta de estrutura de OKRs. Isso está alinhado com o que você imaginava? Se estiver bom, você pode clicar no botão ao lado para gerar no sistema.',
+        },
+      ]);
+    } else {
+      setMessages((prev) => [...prev, { role: 'assistant', content: currentResponse }]);
+    }
+
     setCurrentResponse('');
     setLoading(false);
   };
@@ -124,9 +155,35 @@ export function OKRPreGenerator() {
       {/* Painel de estrutura futura */}
       <div className="bg-white rounded-xl shadow p-4 border border-gray-100">
         <h3 className="text-lg font-semibold text-gray-700 mb-4">Estrutura de OKRs</h3>
-        <p className="text-sm text-gray-400 italic">
-          Ainda não implementado. Conecte aqui o parser da resposta da Kai e gere os OKRs a partir dela.
-        </p>
+        {!parsedOKR ? (
+          <p className="text-sm text-gray-400 italic">
+            Ainda não implementado. Conecte aqui o parser da resposta da Kai e gere os OKRs a partir dela.
+          </p>
+        ) : (
+          <div className="space-y-4 text-sm text-gray-700">
+            <div>
+              <strong>Ciclo:</strong> {parsedOKR.ciclo.nome} ({parsedOKR.ciclo.dataInicio} → {parsedOKR.ciclo.dataFim})
+              <br />
+              <strong>Tema:</strong> {parsedOKR.ciclo.temaEstratégico}
+            </div>
+            {parsedOKR.okrs.map((okr, i) => (
+              <div key={i} className="p-2 border rounded-md">
+                <div><strong>{okr.tipo.toUpperCase()}</strong>: {okr.objetivo}</div>
+                <ul className="list-disc list-inside mt-1">
+                  {okr.resultadosChave.map((kr: any, k: number) => (
+                    <li key={k}>{kr.texto} <span className="text-xs text-gray-500">({kr.tipo}, {kr.métrica})</span></li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+            <button
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              onClick={() => alert('Gerar no sistema!')}
+            >
+              Gerar no sistema
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

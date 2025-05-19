@@ -121,7 +121,7 @@ export function OKRPreGenerator() {
             {
               role: 'assistant',
               content:
-                'Está alinhado com o que você tinha em mente? Se quiser acompanhar no sistema, é só me avisar que eu gero pra você.',
+                'Está alinhado com o que você tinha em mente? Se quiser acompanhar no sistema, clique no botão abaixo.',
             },
           ]);
           setCurrentResponse('');
@@ -158,6 +158,42 @@ export function OKRPreGenerator() {
           {currentResponse && (
             <div className="bg-blue-50 text-gray-800 text-sm p-3 rounded-xl animate-pulse whitespace-pre-wrap">
               {currentResponse}
+            </div>
+          )}
+          {awaitingConfirmation && (
+            <div className="flex justify-end">
+              <button
+                onClick={async () => {
+                  if (!parsedOKR) return;
+                  setLoading(true);
+                  try {
+                    await generateFullOKRStructure(parsedOKR);
+                    setMessages((prev) => [
+                      ...prev,
+                      {
+                        role: 'assistant',
+                        content: '✅ OKRs cadastrados no sistema com sucesso! Agora você pode acompanhá-los normalmente.',
+                      },
+                    ]);
+                    setParsedOKR(null);
+                    setAwaitingConfirmation(false);
+                  } catch (err) {
+                    console.error('[❌ Erro ao cadastrar OKRs]', err);
+                    setMessages((prev) => [
+                      ...prev,
+                      {
+                        role: 'assistant',
+                        content: 'Ocorreu um erro ao tentar cadastrar os OKRs. Tente novamente mais tarde.',
+                      },
+                    ]);
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                className="bg-blue-600 text-white text-sm font-medium py-2 px-4 rounded hover:bg-blue-700 transition"
+              >
+                Implementar Indicadores
+              </button>
             </div>
           )}
           <div ref={chatEndRef} />

@@ -1,12 +1,10 @@
 import { Configuration, OpenAIApi } from 'openai-edge';
 import { createClient } from '@supabase/supabase-js';
 
-// OpenAI config
 const openai = new OpenAIApi(new Configuration({
   apiKey: process.env.VITE_OPENAI_API_KEY!,
 }));
 
-// Supabase config
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -43,16 +41,36 @@ export default async function handler(req: Request): Promise<Response> {
       year: 'numeric'
     }).replace('.', '');
 
+    const termosConfirmacao = [
+      'pode gerar no sistema', 'pode gerar', 'pode criar no sistema',
+      'sim, pode montar', 'gerar estrutura', 'criar estrutura'
+    ];
+
     const termosDeOKR = [
       'okr', 'objetivo', 'key result', 'resultado-chave',
       'ciclo', 'estrutura', 'meta', 'estruturar', 'desdobrar'
     ];
 
     const promptVago = ['não sei', 'pensando', 'ainda não sei', 'em dúvida'].some(p => ultimoPrompt.includes(p));
-    const deveGerarEstrutura = termosDeOKR.some(p => ultimoPrompt.includes(p)) && !promptVago;
+    const confirmouGerar = termosConfirmacao.some(p => ultimoPrompt.includes(p));
+    const querGerarOKRs = termosDeOKR.some(p => ultimoPrompt.includes(p)) && !promptVago;
 
-    const promptSistema = deveGerarEstrutura
-      ? `
+    let promptSistema = '';
+
+    if (confirmouGerar) {
+      promptSistema = `
+Você é uma IA chamada KAI. Gere agora apenas a estrutura JSON completa e pura dos OKRs com base na conversa anterior. O formato deve ser exatamente este:
+
+{
+  "ciclo": { ... },
+  "okrs": [ ... ],
+  "links": [ ... ]
+}
+
+Não inclua nenhuma explicação, introdução, emoji ou comentários.
+      `.trim();
+    } else if (querGerarOKRs) {
+      promptSistema = `
 Você é a Kai, uma IA especialista em planejamento com OKRs. Hoje é ${dataFormatada}.
 
 1. Com base no contexto, você irá sugerir uma estrutura de OKRs explicando em português natural, em tom profissional e acessível.
@@ -62,14 +80,16 @@ Você é a Kai, uma IA especialista em planejamento com OKRs. Hoje é ${dataForm
 5. Se o conteúdo estiver pronto, diga: "Está alinhado com o que você tinha em mente? Se quiser acompanhar no sistema, é só clicar no botão ao lado."
 
 A estrutura será retornada apenas se o usuário confirmar explicitamente.
-      `.trim()
-      : `
+      `.trim();
+    } else {
+      promptSistema = `
 Você é a Kai, uma IA especialista em OKRs. Responda de forma simpática e clara.
 
 1. Se o usuário ainda estiver explorando ("ainda não sei", "pensando", "não sei por onde começar"), faça perguntas para entender melhor o desafio do ciclo.
 2. Só sugira estrutura se o contexto estiver claro.
 3. Evite repetir emojis ou parecer forçada. Naturalidade acima de tudo.
       `.trim();
+    }
 
     const completion = await openai.createChatCompletion({
       model: 'gpt-4o',

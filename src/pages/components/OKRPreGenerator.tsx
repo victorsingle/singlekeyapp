@@ -95,44 +95,51 @@ export function OKRPreGenerator() {
       return;
     }
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder('utf-8');
-    let accumulated = '';
-    let done = false;
+          const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = '';
+      let done = false;
 
-    while (!done) {
-      const { value, done: readerDone } = await reader.read();
-      done = readerDone;
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
 
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n').filter((line) => line.trim().startsWith('data:'));
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n').filter((line) => line.trim().startsWith('data:'));
 
-      for (const line of lines) {
-        const jsonStr = line.replace(/^data:\s*/, '');
-        if (jsonStr === '[DONE]') continue;
+        for (const line of lines) {
+          const jsonStr = line.replace(/^data:\s*/, '');
+          if (jsonStr === '[DONE]') continue;
 
-        try {
-          const parsed = JSON.parse(jsonStr);
-          const content = parsed.content;
-          const okrData = parsed.okr_json;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            let content = parsed.content;
 
-          if (content) {
-            accumulated += content;
-            setCurrentResponse(accumulated);
+            if (typeof content === 'string' && content.startsWith('[OKR_JSON]')) {
+              const raw = content.replace('[OKR_JSON]', '');
+              const match = raw.match(/\{[\s\S]*\}/);
+              if (match) {
+                const json = JSON.parse(match[0]);
+                if (json?.ciclo && Array.isArray(json.okrs)) {
+                  setParsedOKR(json);
+                  parsedRef.current = json;
+                  setAwaitingConfirmation(true);
+                }
+                content = raw.replace(match[0], '').trim();
+              }
+            }
+
+            if (content) {
+              accumulated += content;
+              setCurrentResponse(accumulated);
+            }
+          } catch (err) {
+            console.error('[❌ Erro ao processar chunk da IA]', err);
           }
-
-          if (okrData?.ciclo && Array.isArray(okrData.okrs)) {
-            setParsedOKR(okrData);
-            parsedRef.current = okrData;
-            setAwaitingConfirmation(true); // garante que o botão apareça
-          }
-        } catch (err) {
-          console.error('[❌ Erro ao processar chunk da IA]', err);
         }
-      }
 
-      scrollToBottom();
-    }
+        scrollToBottom();
+      }
 
     const match = accumulated.match(/\{[\s\S]*\}$/);
     let visibleText = accumulated;

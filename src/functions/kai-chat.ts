@@ -1,6 +1,4 @@
 import { Configuration, OpenAIApi } from 'openai-edge';
-import OpenAIStream from 'ai/stream';
-import { StreamingTextResponse } from 'ai';
 import { createClient } from '@supabase/supabase-js';
 
 const openai = new OpenAIApi(new Configuration({
@@ -11,10 +9,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-
-export const config = {
-  runtime: 'edge',
-};
 
 export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
@@ -107,28 +101,57 @@ Você é a Kai, uma IA especialista em OKRs. Responda de forma simpática e clar
       temperature: 0.7,
     });
 
-    const stream = await OpenAIStream(completion, {
-      async onCompletion(completionText) {
-        try {
-          const jsonMatch = completionText.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            const parsed = JSON.parse(jsonMatch[0]);
-            return JSON.stringify({
-              content: completionText.replace(jsonMatch[0], '').trim(),
-              okr_json: parsed,
-            });
-          } else {
-            return JSON.stringify({ content: completionText });
-          }
-        } catch (err) {
-          console.warn('[⚠️ JSON malformado na resposta]', err);
-          return JSON.stringify({ content: completionText });
+    const encoder = new TextEncoder();
+    const readableStream = new ReadableStream({
+      async start(controller) {
+        const reader = completion.body?.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { value, done } = await reader!.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          buffer += chunk;
         }
+
+        if (confirmouGerar) {
+          try {
+            const match = buffer.match(/\{[\s\S]*\}/);
+            if (match) {
+              const estrutura = match[0];
+              const textoLimpo = buffer.replace(estrutura, '').trim();
+              const resposta = {
+                content: `[OKR_JSON]${estrutura}\n${textoLimpo}`
+              };
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify(resposta)}\n\n`));
+            } else {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: buffer })}\n\n`));
+            }
+          } catch (err) {
+            console.warn('[⚠️ Falha ao tentar embedar JSON OKR]');
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: buffer })}\n\n`));
+          }
+        } else {
+          // Caso normal (sem confirmação), envia tudo como está
+          const lines = buffer.split('\n');
+          for (const line of lines) {
+            if (line.trim()) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: line })}\n\n`));
+            }
+          }
+        }
+
+        controller.close();
       }
     });
 
-    return new StreamingTextResponse(stream, {
+    return new Response(readableStream, {
       headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       },

@@ -26,45 +26,17 @@ export function OKRPreGenerator() {
   const handleSend = async () => {
     if (!input.trim()) return;
 
-    console.log('[🧪 Mensagem do usuário]:', input);
-
     const lower = input.toLowerCase();
     const confirmationPhrases = [
-    'pode gerar',
-    'vamos gerar',
-    'pode seguir',
-    'vamos seguir assim',
-    'pode cadastrar',
-    'vamos cadastrar',
-    'sim',
-    'top',
-    'perfeito',
-    'maneiro',
-    'massa',
-    'é isso',
-    'gostei',
-    'gostei bastante',
-    'legal',
-    'perfeito',
-    'está ótimo',
-    'está ótimo assim',
-    'vamos em frente',
-    'tá bom',
-    'ok',
-    'fechou',
-    'tá certo',
-    'vamos nessa',
-    'segue assim',
-    'tá ótimo',
-    'pode ir'
-  ];
+      'pode gerar', 'vamos gerar', 'pode seguir', 'vamos seguir assim',
+      'pode cadastrar', 'vamos cadastrar', 'sim', 'top', 'perfeito',
+      'maneiro', 'massa', 'é isso', 'gostei', 'gostei bastante',
+      'legal', 'está ótimo', 'está ótimo assim', 'vamos em frente',
+      'tá bom', 'ok', 'fechou', 'tá certo', 'vamos nessa',
+      'segue assim', 'tá ótimo', 'pode ir'
+    ];
 
-  const isConfirmation = confirmationPhrases.some(f =>
-    lower.includes(f)
-  );
-
-    console.log('[🧪 É confirmação?]', isConfirmation);
-    console.log('[🧪 parsedOKR está preenchido?]', !!parsedRef.current);
+    const isConfirmation = confirmationPhrases.some(f => lower.includes(f));
 
     const newMessage = { role: 'user' as const, content: input };
     setMessages((prev) => [...prev, newMessage]);
@@ -72,9 +44,8 @@ export function OKRPreGenerator() {
     setLoading(true);
     setCurrentResponse('');
 
-    // ✅ Confirmação após estrutura já gerada
     if (isConfirmation && parsedRef.current) {
-      setParsedOKR(parsedRef.current); // reativa o botão
+      setParsedOKR(parsedRef.current);
       setAwaitingConfirmation(true);
       setLoading(false);
       return;
@@ -95,80 +66,55 @@ export function OKRPreGenerator() {
       return;
     }
 
-          const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let accumulated = '';
-      let done = false;
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let accumulated = '';
+    let done = false;
 
-      while (!done) {
-        const { value, done: readerDone } = await reader.read();
-        done = readerDone;
+    while (!done) {
+      const { value, done: readerDone } = await reader.read();
+      done = readerDone;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n').filter((line) => line.trim().startsWith('data:'));
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n').filter((line) => line.trim().startsWith('data:'));
 
-        for (const line of lines) {
-          const jsonStr = line.replace(/^data:\s*/, '');
-          if (jsonStr === '[DONE]') continue;
+      for (const line of lines) {
+        const jsonStr = line.replace(/^data:\s*/, '');
+        if (jsonStr === '[DONE]') continue;
 
-          try {
-            const parsed = JSON.parse(jsonStr);
-            let content = parsed.content;
+        try {
+          const parsed = JSON.parse(jsonStr);
+          let content = parsed.content;
 
-            if (typeof content === 'string' && content.startsWith('[OKR_JSON]')) {
-              const raw = content.replace('[OKR_JSON]', '');
-              const match = raw.match(/\{[\s\S]*\}/);
-              if (match) {
-                const json = JSON.parse(match[0]);
-                if (json?.ciclo && Array.isArray(json.okrs)) {
-                  setParsedOKR(json);
-                  parsedRef.current = json;
-                  setAwaitingConfirmation(true);
-                }
-                content = raw.replace(match[0], '').trim();
+          if (typeof content === 'string' && content.startsWith('[OKR_JSON]')) {
+            const raw = content.replace('[OKR_JSON]', '');
+            const match = raw.match(/\{[\s\S]*\}/);
+            if (match) {
+              const json = JSON.parse(match[0]);
+              if (json?.ciclo && Array.isArray(json.okrs)) {
+                setParsedOKR(json);
+                parsedRef.current = json;
+                setAwaitingConfirmation(true);
               }
+              content = raw.replace(match[0], '').trim();
             }
-
-            if (content) {
-              accumulated += content;
-              setCurrentResponse(accumulated);
-            }
-          } catch (err) {
-            console.error('[❌ Erro ao processar chunk da IA]', err);
           }
+
+          if (content) {
+            accumulated += content;
+            setCurrentResponse(accumulated);
+          }
+        } catch (err) {
+          console.error('[❌ Erro ao processar chunk da IA]', err);
         }
-
-        scrollToBottom();
       }
 
-    const match = accumulated.match(/\{[\s\S]*\}$/);
-    let visibleText = accumulated;
-    let estruturaJSON = null;
-
-    if (match) {
-      try {
-        estruturaJSON = JSON.parse(match[0]);
-        visibleText = accumulated.replace(match[0], '').trim();
-      } catch (err) {
-        console.warn('[⚠️ JSON malformado ou incompleto]', err);
-      }
+      scrollToBottom();
     }
 
-    if (estruturaJSON?.ciclo && Array.isArray(estruturaJSON.okrs)) {
-      setParsedOKR(estruturaJSON);
-      parsedRef.current = estruturaJSON;
+    if (accumulated) {
+      setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
     }
-
-    setMessages((prev) => [
-      ...prev,
-      ...(visibleText ? [{ role: 'assistant', content: visibleText }] : []),
-      ...(estruturaJSON
-        ? [{
-            role: 'assistant',
-            content: 'Está alinhado com o que você tinha em mente? Se estiver tudo certo, clique no botão abaixo.',
-          }]
-        : []),
-    ]);
 
     setCurrentResponse('');
     setLoading(false);
@@ -180,7 +126,6 @@ export function OKRPreGenerator() {
 
     try {
       const result = await generateFullOKRStructure(parsedOKR);
-
       setMessages((prev) => [
         ...prev,
         {
@@ -188,7 +133,6 @@ export function OKRPreGenerator() {
           content: '✅ OKRs cadastrados no sistema com sucesso! Redirecionando para o ciclo...',
         },
       ]);
-
       const cicloId = result?.ciclo?.id;
       if (cicloId) {
         setTimeout(() => navigate(`/ciclos/${cicloId}`), 1500);

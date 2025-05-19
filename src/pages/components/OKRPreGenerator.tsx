@@ -22,10 +22,15 @@ export function OKRPreGenerator() {
   const handleSend = async () => {
     if (!input.trim()) return;
 
+    console.log('[🧪 Mensagem do usuário]:', input);
+
     const lower = input.toLowerCase();
     const isConfirmation = ['pode gerar', 'pode seguir', 'pode cadastrar', 'sim', 'está ótimo', 'está ótimo assim'].some(f =>
       lower.includes(f)
     );
+
+    console.log('[🧪 É confirmação?]', isConfirmation);
+    console.log('[🧪 parsedOKR está preenchido?]', !!parsedOKR);
 
     const newMessage = { role: 'user' as const, content: input };
     setMessages((prev) => [...prev, newMessage]);

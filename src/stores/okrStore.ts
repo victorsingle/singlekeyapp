@@ -373,60 +373,56 @@ generateFullOKRStructure: async (prompt: string) => {
       {
         role: 'system',
         content: `
-        Você é a Kai, uma IA especialista em OKRs e Planejamento Estratégico.
+      Você é a Kai, uma IA especialista em OKRs.
 
-        Receberá abaixo um TEXTO JÁ ESTRUTURADO que foi validado com o usuário em uma conversa anterior.  
-        Seu papel é APENAS converter esse conteúdo para o formato JSON esperado pelo sistema SingleKey,  
-        SEM alterar nenhuma frase, texto, métrica ou vínculo.  
+      Você receberá abaixo um TEXTO JÁ VALIDADO PELO USUÁRIO contendo a estrutura final de OKRs aprovada por ele.
 
-        ⚠️ Regras:
-        - NÃO adicione nem remova nenhum Objetivo ou KR
-        - NÃO reformule os textos
-        - NÃO traduza nem adapte
-        - Apenas mapeie o conteúdo para o JSON com precisão
+      ⚠️ Sua única tarefa é CONVERTER esse conteúdo em formato JSON, seguindo a estrutura abaixo, sem alterar absolutamente nada.
 
-        Formato JSON esperado:
-        {
-          "ciclo": {
-            "nome": "string",
-            "dataInicio": "YYYY-MM-DD",
-            "dataFim": "YYYY-MM-DD",
-            "temaEstratégico": "string"
-          },
-          "okrs": [
-            {
-              "id": "okr-1",
-              "objetivo": "string",
-              "tipo": "strategic" | "tactical" | "operational",
-              "resultadosChave": [
-                {
-                  "texto": "string",
-                  "tipo": "moonshot" | "roofshot",
-                  "métrica": "string",
-                  "valorInicial": number,
-                  "valorAlvo": number,
-                  "unidade": "string"
-                }
-              ]
-            }
-          ],
-          "links": [
-            {
-              "origem": "okr-1",
-              "destino": "okr-2",
-              "tipo": "hierarchy"
-            }
-          ]
-        }
+      🚫 Não reformule textos, não reorganize, não corrija frases.
+      ✅ Apenas converta fielmente o conteúdo textual em estrutura JSON.
 
-        🔷 GERE O CONTEÚDO EM PORTUGUÊS BRASILEIRO
-        🔷 Retorne APENAS o JSON
-        
-        Texto validado:
-        """ 
-        ${prompt}
-        """
-        `.trim()
+      Formato JSON esperado:
+      {
+        "ciclo": {
+          "nome": "string",
+          "dataInicio": "YYYY-MM-DD",
+          "dataFim": "YYYY-MM-DD",
+          "temaEstratégico": "string"
+        },
+        "okrs": [
+          {
+            "id": "okr-1",
+            "objetivo": "string",
+            "tipo": "strategic" | "tactical" | "operational",
+            "resultadosChave": [
+              {
+                "texto": "string",
+                "tipo": "moonshot" | "roofshot",
+                "métrica": "string",
+                "valorInicial": number,
+                "valorAlvo": number,
+                "unidade": "string"
+              }
+            ]
+          }
+        ],
+        "links": [
+          {
+            "origem": "okr-1",
+            "destino": "okr-2",
+            "tipo": "hierarchy"
+          }
+        ]
+      }
+
+      Retorne APENAS o JSON sem comentários ou explicações.
+
+      Texto validado:
+      """
+      ${prompt}
+      """
+      `.trim()
       },
       {
         role: 'user',

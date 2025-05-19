@@ -1,9 +1,11 @@
 import { Configuration, OpenAIApi } from 'openai-edge';
 import { createClient } from '@supabase/supabase-js';
 
-const openai = new OpenAIApi(new Configuration({
-  apiKey: process.env.VITE_OPENAI_API_KEY!,
-}));
+const openai = new OpenAIApi(
+  new Configuration({
+    apiKey: process.env.VITE_OPENAI_API_KEY!,
+  })
+);
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -41,21 +43,30 @@ export default async function handler(req: Request): Promise<Response> {
     const dataFormatada = dataAtual.toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: 'short',
-      year: 'numeric'
+      year: 'numeric',
     }).replace('.', '');
 
     const ultimoPrompt = messages[messages.length - 1]?.content?.toLowerCase() || '';
-    const promptVago = ['não sei', 'pensando', 'ainda não sei', 'em dúvida'].some(p => ultimoPrompt.includes(p));
+    const promptVago = ['não sei', 'pensando', 'ainda não sei', 'em dúvida'].some((p) =>
+      ultimoPrompt.includes(p)
+    );
 
     let promptSistema = '';
 
-    // 🔁 MODO CONVERSA
     if (modo === 'conversa') {
       const termosDeOKR = [
-        'okr', 'objetivo', 'key result', 'resultado-chave',
-        'ciclo', 'estrutura', 'meta', 'estruturar', 'desdobrar'
+        'okr',
+        'objetivo',
+        'key result',
+        'resultado-chave',
+        'ciclo',
+        'estrutura',
+        'meta',
+        'estruturar',
+        'desdobrar',
       ];
-      const querGerarOKRs = termosDeOKR.some(p => ultimoPrompt.includes(p)) && !promptVago;
+      const querGerarOKRs =
+        termosDeOKR.some((p) => ultimoPrompt.includes(p)) && !promptVago;
 
       if (querGerarOKRs) {
         promptSistema = `
@@ -73,14 +84,10 @@ Seu papel é ajudar o usuário a montar uma estrutura completa de OKRs para o ci
 
 🧠 Se o usuário solicitar ajustes, atualize apenas a parte solicitada, mantendo o restante como está. Nunca sobrescreva tudo a cada mensagem.
 
-⚠️ Nunca use JSON ou emojis. Responda com texto limpo e estruturado, como neste exemplo:
-**Ciclo:** Trimestre 2 de 2025 (01/04/2025 a 30/06/2025)
-**Tema:** Crescimento e consolidação da nova oferta
-**Objetivo 1 (Estratégico):** ...
-- KR1 (moonshot): ... — Métrica: ... — Unidade: ...
-- KR2 (roofshot): ... — Métrica: ... — Unidade: ...
+⚠️ Nunca use JSON ou emojis. Responda com texto limpo e estruturado.
 
-Finalize perguntando se o conteúdo está bom ou se o usuário deseja ajustar algo antes de cadastrar.
+Comece sempre perguntando:
+“Posso gerar uma proposta de estruturação dos indicadores para você aprovar?”
         `.trim();
       } else {
         promptSistema = `
@@ -95,10 +102,7 @@ Nunca use JSON ou emojis. Seja natural, humana e objetiva.
       const completion = await openai.createChatCompletion({
         model: 'gpt-4o',
         stream: true,
-        messages: [
-          { role: 'system', content: promptSistema },
-          ...messages,
-        ],
+        messages: [{ role: 'system', content: promptSistema }, ...messages],
         temperature: 0.7,
       });
 
@@ -114,7 +118,9 @@ Nunca use JSON ou emojis. Seja natural, humana e objetiva.
             if (done) break;
 
             const chunk = decoder.decode(value);
-            const lines = chunk.split('\n').filter(line => line.trim().startsWith('data:'));
+            const lines = chunk.split('\n').filter((line) =>
+              line.trim().startsWith('data:')
+            );
 
             for (const line of lines) {
               const jsonStr = line.replace(/^data:\s*/, '');
@@ -125,7 +131,9 @@ Nunca use JSON ou emojis. Seja natural, humana e objetiva.
                 const content = parsed.choices?.[0]?.delta?.content;
                 if (content) {
                   buffer += content;
-                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`));
+                  controller.enqueue(
+                    encoder.encode(`data: ${JSON.stringify({ content })}\n\n`)
+                  );
                 }
               } catch (err) {
                 console.warn('[⚠️ Erro ao parsear linha de streaming]', err);
@@ -134,7 +142,7 @@ Nunca use JSON ou emojis. Seja natural, humana e objetiva.
           }
 
           controller.close();
-        }
+        },
       });
 
       return new Response(stream, {
@@ -148,7 +156,6 @@ Nunca use JSON ou emojis. Seja natural, humana e objetiva.
       });
     }
 
-    // ✅ MODO GERAR — estrutura final como texto
     if (modo === 'gerar') {
       const promptSistema = `
 Você é a Kai, uma IA especialista em OKRs. Hoje é ${dataFormatada}.
@@ -162,16 +169,13 @@ Inclua:
 - KRs com tipo, métrica e unidade
 - Vínculos entre objetivos
 
-⚠️ Não use JSON. Retorne texto puro, bem estruturado, fiel ao que foi validado. Não adicione nada além do que o usuário viu e aprovou.
+⚠️ Não use JSON. Retorne texto puro, bem estruturado, fiel ao que foi validado. Finalize com: “Está de acordo com o que imaginava? Posso ajustar se precisar.”
       `.trim();
 
       const completion = await openai.createChatCompletion({
         model: 'gpt-4o',
         stream: false,
-        messages: [
-          { role: 'system', content: promptSistema },
-          ...messages,
-        ],
+        messages: [{ role: 'system', content: promptSistema }, ...messages],
         temperature: 0.3,
       });
 

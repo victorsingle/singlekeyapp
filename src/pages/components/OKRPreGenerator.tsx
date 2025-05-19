@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowUpCircle, Target } from 'lucide-react';
 import clsx from 'clsx';
@@ -18,8 +18,14 @@ export function OKRPreGenerator() {
   const generateFullOKRStructure = useOKRStore((state) => state.generateFullOKRStructure);
 
   const scrollToBottom = () => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100); // atraso leve para garantir renderização
   };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, currentResponse, confirmedPrompt]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -95,8 +101,6 @@ export function OKRPreGenerator() {
           console.error('[❌ Erro ao processar chunk da IA]', err);
         }
       }
-
-      scrollToBottom();
     }
 
     if (accumulated) {

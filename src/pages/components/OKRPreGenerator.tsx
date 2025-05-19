@@ -59,7 +59,7 @@ export function OKRPreGenerator() {
         messages: [...messages, newMessage],
         userId,
         organizationId,
-        modo: 'conversa'
+        modo: 'conversa',
       }),
     });
 
@@ -86,7 +86,7 @@ export function OKRPreGenerator() {
 
         try {
           const parsed = JSON.parse(jsonStr);
-          const content = parsed.choices?.[0]?.delta?.content;
+          const content = parsed.content;
           if (content) {
             accumulated += content;
             setCurrentResponse(accumulated);
@@ -115,14 +115,20 @@ export function OKRPreGenerator() {
       const cicloId = await generateFullOKRStructure(confirmedPrompt);
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: '✅ OKRs cadastrados no sistema com sucesso! Redirecionando para o ciclo...' }
+        {
+          role: 'assistant',
+          content: '✅ OKRs cadastrados no sistema com sucesso! Redirecionando para o ciclo...',
+        },
       ]);
       setTimeout(() => navigate(`/ciclos/${cicloId}`), 1500);
     } catch (err) {
       console.error('[❌ Erro ao cadastrar OKRs]', err);
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: 'Ocorreu um erro ao tentar cadastrar os OKRs. Tente novamente mais tarde.' }
+        {
+          role: 'assistant',
+          content: 'Ocorreu um erro ao tentar cadastrar os OKRs. Tente novamente mais tarde.',
+        },
       ]);
     } finally {
       setLoading(false);
@@ -138,7 +144,9 @@ export function OKRPreGenerator() {
               key={i}
               className={clsx(
                 'text-sm p-3 rounded-xl whitespace-pre-wrap',
-                msg.role === 'assistant' ? 'bg-blue-50 text-gray-800' : 'bg-gray-100 text-right ml-auto'
+                msg.role === 'assistant'
+                  ? 'bg-blue-50 text-gray-800'
+                  : 'bg-gray-100 text-right ml-auto'
               )}
             >
               {msg.content}

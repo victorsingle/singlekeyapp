@@ -1,7 +1,9 @@
 import { Configuration, OpenAIApi } from 'openai-edge';
 import { createClient } from '@supabase/supabase-js';
 
-const openai = new OpenAIApi(new Configuration({ apiKey: process.env.VITE_OPENAI_API_KEY! }));
+const openai = new OpenAIApi(new Configuration({
+  apiKey: process.env.VITE_OPENAI_API_KEY!
+}));
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,8 +11,7 @@ const supabase = createClient(
 );
 
 export default async function handler(req: Request): Promise<Response> {
-  // 🔁 Pré-flight CORS
-    if (req.method === 'OPTIONS') {
+  if (req.method === 'OPTIONS') {
     return new Response(null, {
       status: 204,
       headers: {
@@ -21,7 +22,6 @@ export default async function handler(req: Request): Promise<Response> {
     });
   }
 
-  // ❌ Método inválido
   if (req.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405 });
   }
@@ -33,6 +33,39 @@ export default async function handler(req: Request): Promise<Response> {
       return new Response('Unauthorized', { status: 401 });
     }
 
+    const lastMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
+
+    const isSaudacaoSimples = [
+      'bom dia', 'boa tarde', 'boa noite', 'oi', 'olá', 'ola', 'e aí', 'fala', 'tudo bem', 'tudo bom'
+    ].some(frase => lastMessage.startsWith(frase));
+
+    // 🟦 Caso seja só uma saudação → resposta amigável sem JSON
+    if (isSaudacaoSimples) {
+      const reply = await openai.createChatCompletion({
+        model: 'gpt-4o',
+        stream: true,
+        messages: [
+          {
+            role: 'system',
+            content: 'Você é a Kai, uma IA cordial que ajuda pessoas a estruturarem OKRs. Quando a intenção do usuário for informal ou genérica, responda de forma acolhedora, sem tentar gerar objetivos.'
+          },
+          ...messages,
+        ],
+        temperature: 0.6,
+      });
+
+      return new Response(reply.body, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+      });
+    }
+
+    // 🧠 Prompt estruturado com contexto de OKRs
     const dataAtual = new Date();
     const dataAtualFormatada = dataAtual.toLocaleDateString('pt-BR', {
       day: '2-digit',
@@ -142,9 +175,7 @@ export default async function handler(req: Request): Promise<Response> {
       temperature: 0.7,
     });
 
-    const stream = completion.body;
-
-    return new Response(stream, {
+    return new Response(completion.body, {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',

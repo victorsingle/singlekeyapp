@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { ArrowUpCircle, Target } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../../stores/authStore';
+import { generateFullOKRStructure } from '../../stores/useOKRStore';
 
 interface ParsedOKR {
   ciclo: {
@@ -20,6 +21,7 @@ export function OKRPreGenerator() {
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState('');
   const [parsedOKR, setParsedOKR] = useState<ParsedOKR | null>(null);
+  const [userConfirmed, setUserConfirmed] = useState(false);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToBottom = () => {
@@ -33,7 +35,6 @@ export function OKRPreGenerator() {
     setInput('');
     setLoading(true);
     setCurrentResponse('');
-    setParsedOKR(null);
 
     const { userId, organizationId } = useAuthStore.getState();
 
@@ -89,11 +90,13 @@ export function OKRPreGenerator() {
         const estrutura = JSON.parse(tentativaJSON);
         if (estrutura?.ciclo && Array.isArray(estrutura.okrs)) {
           setParsedOKR(estrutura);
+          setUserConfirmed(false);
           setMessages((prev) => [
             ...prev,
             {
               role: 'assistant',
-              content: 'Aqui está uma proposta com base no seu desafio. Está alinhada com o que você imaginava? Se quiser seguir com ela, clique no botão ao lado para gerar no sistema.',
+              content:
+                'Está alinhado com o que você tinha em mente? Se quiser acompanhar no sistema, clique no botão abaixo.',
             },
           ]);
           setCurrentResponse('');
@@ -110,9 +113,14 @@ export function OKRPreGenerator() {
     setLoading(false);
   };
 
+  const handleGenerate = () => {
+    if (parsedOKR) {
+      generateFullOKRStructure(parsedOKR);
+    }
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-7xl mx-auto px-6 py-10">
-      {/* Chat com Kai */}
+    <div className="w-full max-w-4xl mx-auto px-6 py-10">
       <div className="bg-white rounded-xl shadow p-4 flex flex-col justify-between h-[500px] border border-gray-100">
         <div className="overflow-y-auto space-y-4 mb-4 pr-2">
           {messages.map((msg, i) => (
@@ -126,13 +134,18 @@ export function OKRPreGenerator() {
               )}
             >
               {msg.content}
+              {msg.role === 'user' && parsedOKR === null && input.toLowerCase().includes('sim') && (
+                <span className="text-red-500"> (confirmação capturada)</span>
+              )}
             </div>
           ))}
+
           {currentResponse && (
             <div className="bg-blue-50 text-gray-800 text-sm p-3 rounded-xl animate-pulse whitespace-pre-wrap">
               {currentResponse}
             </div>
           )}
+
           <div ref={chatEndRef} />
         </div>
 
@@ -154,36 +167,14 @@ export function OKRPreGenerator() {
             <ArrowUpCircle className="w-5 h-5" />
           </button>
         </form>
-      </div>
 
-      {/* Painel de estrutura futura */}
-      <div className="bg-white rounded-xl shadow p-4 border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-700 mb-4">Estrutura de OKRs</h3>
-        {!parsedOKR ? (
-          <p className="text-sm text-gray-400 italic">
-            Utilize o chat ao lado para planejar com a KAI.
-          </p>
-        ) : (
-          <div className="space-y-4 text-sm text-gray-700">
-            <div>
-              <strong>Ciclo:</strong> {parsedOKR.ciclo.nome} ({parsedOKR.ciclo.dataInicio} → {parsedOKR.ciclo.dataFim})<br />
-              <strong>Tema:</strong> {parsedOKR.ciclo.temaEstratégico}
-            </div>
-            {parsedOKR.okrs.map((okr, i) => (
-              <div key={i} className="p-2 border rounded-md">
-                <div><strong>{okr.tipo.toUpperCase()}</strong>: {okr.objetivo}</div>
-                <ul className="list-disc list-inside mt-1">
-                  {okr.resultadosChave.map((kr: any, k: number) => (
-                    <li key={k}>{kr.texto} <span className="text-xs text-gray-500">({kr.tipo}, {kr.métrica})</span></li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+        {parsedOKR && (
+          <div className="mt-4 text-center">
             <button
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              onClick={() => alert('Gerar no sistema!')}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              onClick={handleGenerate}
             >
-              Gerar no sistema
+              Cadastrar OKRs
             </button>
           </div>
         )}

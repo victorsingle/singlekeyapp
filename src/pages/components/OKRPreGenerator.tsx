@@ -23,44 +23,11 @@ export function OKRPreGenerator() {
   const handleSend = async () => {
     if (!input.trim()) return;
 
-    const lower = input.toLowerCase();
-    const isConfirmation = ['gerar no sistema', 'pode cadastrar', 'sim pode seguir', 'sim pode gerar'].some(f =>
-      lower.includes(f)
-    );
-
     const newMessage = { role: 'user' as const, content: input };
     setMessages((prev) => [...prev, newMessage]);
     setInput('');
     setLoading(true);
     setCurrentResponse('');
-
-    if (isConfirmation && parsedOKR) {
-      try {
-        await generateFullOKRStructure(parsedOKR);
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: 'assistant',
-            content: '✅ OKRs cadastrados no sistema com sucesso! Agora você pode acompanhá-los normalmente.',
-          },
-        ]);
-        setParsedOKR(null);
-        setAwaitingConfirmation(false);
-        setLoading(false);
-        return;
-      } catch (err) {
-        console.error('[❌ Erro ao cadastrar OKRs]', err);
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: 'assistant',
-            content: 'Ocorreu um erro ao tentar cadastrar os OKRs. Tente novamente mais tarde.',
-          },
-        ]);
-        setLoading(false);
-        return;
-      }
-    }
 
     const response = await fetch('/.netlify/functions/kai-chat', {
       method: 'POST',
@@ -108,34 +75,53 @@ export function OKRPreGenerator() {
       scrollToBottom();
     }
 
-    // tentativa de parse como JSON puro
-    try {
-      const tentativaJSON = accumulated.trim().match(/\{[\s\S]*\}/)?.[0];
-      if (tentativaJSON) {
-        const estrutura = JSON.parse(tentativaJSON);
-        if (estrutura?.ciclo && Array.isArray(estrutura.okrs)) {
-          setParsedOKR(input); // passa o prompt original
-          setAwaitingConfirmation(true);
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: 'assistant',
-              content:
-                'Está alinhado com o que você tinha em mente? Se quiser acompanhar no sistema, clique no botão abaixo.',
-            },
-          ]);
-          setCurrentResponse('');
-          setLoading(false);
-          return;
-        }
-      }
-    } catch (err) {
-      console.warn('[⚠️ Não foi possível interpretar como estrutura JSON de OKRs]', err);
+    // Detecta estrutura de OKRs por padrão textual (ex: "**Objetivo")
+    if (accumulated.includes('**Objetivo') || accumulated.includes('**Objetivos')) {
+      setParsedOKR(accumulated);
+      setAwaitingConfirmation(true);
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: accumulated },
+        {
+          role: 'assistant',
+          content: 'Está alinhado com o que você tinha em mente? Se quiser cadastrar no sistema, clique no botão abaixo.',
+        },
+      ]);
+    } else {
+      setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
     }
 
-    setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
     setCurrentResponse('');
     setLoading(false);
+  };
+
+  const handleGenerateOKRs = async () => {
+    if (!parsedOKR) return;
+    setLoading(true);
+
+    try {
+      await generateFullOKRStructure(parsedOKR);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: '✅ OKRs cadastrados no sistema com sucesso! Agora você pode acompanhá-los normalmente.',
+        },
+      ]);
+      setParsedOKR(null);
+      setAwaitingConfirmation(false);
+    } catch (err) {
+      console.error('[❌ Erro ao cadastrar OKRs]', err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: 'Ocorreu um erro ao tentar cadastrar os OKRs. Tente novamente mais tarde.',
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -163,33 +149,7 @@ export function OKRPreGenerator() {
           {awaitingConfirmation && (
             <div className="flex justify-end">
               <button
-                onClick={async () => {
-                  if (!parsedOKR) return;
-                  setLoading(true);
-                  try {
-                    await generateFullOKRStructure(parsedOKR);
-                    setMessages((prev) => [
-                      ...prev,
-                      {
-                        role: 'assistant',
-                        content: '✅ OKRs cadastrados no sistema com sucesso! Agora você pode acompanhá-los normalmente.',
-                      },
-                    ]);
-                    setParsedOKR(null);
-                    setAwaitingConfirmation(false);
-                  } catch (err) {
-                    console.error('[❌ Erro ao cadastrar OKRs]', err);
-                    setMessages((prev) => [
-                      ...prev,
-                      {
-                        role: 'assistant',
-                        content: 'Ocorreu um erro ao tentar cadastrar os OKRs. Tente novamente mais tarde.',
-                      },
-                    ]);
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
+                onClick={handleGenerateOKRs}
                 className="bg-blue-600 text-white text-sm font-medium py-2 px-4 rounded hover:bg-blue-700 transition"
               >
                 Implementar Indicadores

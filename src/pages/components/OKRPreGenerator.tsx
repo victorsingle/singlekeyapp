@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { ArrowUpCircle, Target } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../../stores/authStore';
-import { generateFullOKRStructure } from '../../stores/okrStore';
+import { useOKRStore  } from '../../stores/okrStore';
 
 interface ParsedOKR {
   ciclo: {

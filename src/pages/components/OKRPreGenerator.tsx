@@ -37,6 +37,8 @@ export function OKRPreGenerator() {
     ];
 
     const isConfirmation = confirmationPhrases.some(f => lower.includes(f));
+    console.log('[🔍 É confirmação?]', isConfirmation);
+    console.log('[🔍 parsedRef preenchido?]', !!parsedRef.current);
 
     const newMessage = { role: 'user' as const, content: input };
     setMessages((prev) => [...prev, newMessage]);
@@ -44,13 +46,38 @@ export function OKRPreGenerator() {
     setLoading(true);
     setCurrentResponse('');
 
+    // ✅ Se for confirmação, gerar estrutura final no modo "gerar"
     if (isConfirmation && parsedRef.current) {
-      setParsedOKR(parsedRef.current);
-      setAwaitingConfirmation(true);
+      try {
+        const response = await fetch('/.netlify/functions/kai-chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [...messages, newMessage],
+            userId,
+            organizationId,
+            modo: 'gerar',
+          }),
+        });
+
+        const content = await response.text();
+        const json = JSON.parse(content);
+
+        if (json?.ciclo && Array.isArray(json.okrs)) {
+          setParsedOKR(json);
+          parsedRef.current = json;
+          setAwaitingConfirmation(true);
+          console.log('[✅ Estrutura final recebida da IA]');
+        }
+      } catch (err) {
+        console.error('[❌ Erro ao gerar estrutura final da IA]', err);
+      }
+
       setLoading(false);
       return;
     }
 
+    // 🔁 Fluxo normal de conversa (modo: conversa)
     const response = await fetch('/.netlify/functions/kai-chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -58,7 +85,7 @@ export function OKRPreGenerator() {
         messages: [...messages, newMessage],
         userId,
         organizationId,
-        modo: 'conversa'
+        modo: 'conversa',
       }),
     });
 
@@ -85,21 +112,7 @@ export function OKRPreGenerator() {
 
         try {
           const parsed = JSON.parse(jsonStr);
-          let content = parsed.content;
-
-          if (typeof content === 'string' && content.startsWith('[OKR_JSON]')) {
-            const raw = content.replace('[OKR_JSON]', '');
-            const match = raw.match(/\{[\s\S]*\}/);
-            if (match) {
-              const json = JSON.parse(match[0]);
-              if (json?.ciclo && Array.isArray(json.okrs)) {
-                setParsedOKR(json);
-                parsedRef.current = json;
-                setAwaitingConfirmation(true);
-              }
-              content = raw.replace(match[0], '').trim();
-            }
-          }
+          const content = parsed.content;
 
           if (content) {
             accumulated += content;
@@ -134,6 +147,7 @@ export function OKRPreGenerator() {
           content: '✅ OKRs cadastrados no sistema com sucesso! Redirecionando para o ciclo...',
         },
       ]);
+
       const cicloId = result?.ciclo?.id;
       if (cicloId) {
         setTimeout(() => navigate(`/ciclos/${cicloId}`), 1500);
@@ -175,7 +189,7 @@ export function OKRPreGenerator() {
               {currentResponse}
             </div>
           )}
-          {awaitingConfirmation && (
+          {awaitingConfirmation && parsedOKR && (
             <div className="flex justify-end mt-2">
               <button
                 onClick={handleGenerateOKRs}

@@ -11,6 +11,7 @@ export function OKRPreGenerator() {
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState('');
   const [parsedOKR, setParsedOKR] = useState<any | null>(null);
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   const parsedRef = useRef<any | null>(null);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -74,6 +75,7 @@ export function OKRPreGenerator() {
     // ✅ Confirmação após estrutura já gerada
     if (isConfirmation && parsedRef.current) {
       setParsedOKR(parsedRef.current); // reativa o botão
+      setAwaitingConfirmation(true);
       setLoading(false);
       return;
     }
@@ -213,13 +215,13 @@ export function OKRPreGenerator() {
               {currentResponse}
             </div>
           )}
-          {parsedOKR && (
+          {awaitingConfirmation && parsedOKR && (
             <div className="flex justify-end mt-2">
               <button
                 onClick={handleGenerateOKRs}
                 className="bg-blue-600 text-white text-sm font-medium py-2 px-4 rounded hover:bg-blue-700 transition"
               >
-                Cadastrar OKRs no sistema
+                Cadastrar Indicadores
               </button>
             </div>
           )}

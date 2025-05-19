@@ -106,12 +106,18 @@ Você é a Kai, uma IA especialista em OKRs. Responda de forma simpática e clar
 
               try {
                 const parsed = JSON.parse(jsonStr);
-                const content = parsed.choices?.[0]?.delta?.content;
+
+                const content =
+                  parsed.choices?.[0]?.delta?.content ||
+                  parsed.choices?.[0]?.text ||
+                  parsed.choices?.[0]?.message?.content;
+
                 if (content) {
+                  buffer += content;
                   controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`));
                 }
               } catch (err) {
-                console.warn('[⚠️ Erro ao parsear linha do stream]', err);
+                console.warn('[⚠️ Erro ao parsear linha de streaming]', err);
               }
             }
           }

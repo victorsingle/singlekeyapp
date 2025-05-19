@@ -1,5 +1,6 @@
 import { Configuration, OpenAIApi } from 'openai-edge';
-import { OpenAIStream, StreamingTextResponse } from 'ai';
+import OpenAIStream from 'ai/stream';
+import { StreamingTextResponse } from 'ai';
 import { createClient } from '@supabase/supabase-js';
 
 const openai = new OpenAIApi(new Configuration({

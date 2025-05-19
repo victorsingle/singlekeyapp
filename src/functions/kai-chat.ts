@@ -1,7 +1,7 @@
 import { Configuration, OpenAIApi } from 'openai-edge';
 import { createClient } from '@supabase/supabase-js';
 
-const openai = new OpenAIApi(new Configuration({ apiKey: process.env.OPENAI_API_KEY! }));
+const openai = new OpenAIApi(new Configuration({ apiKey: process.env.VITE_OPENAI_API_KEY! }));
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

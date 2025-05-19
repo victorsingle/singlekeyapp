@@ -42,6 +42,7 @@ export function OKRPreGenerator() {
     const reader = response.body.getReader();
     const decoder = new TextDecoder('utf-8');
     let done = false;
+    let accumulated = '';
 
     while (!done) {
       const { value, done: readerDone } = await reader.read();
@@ -58,7 +59,8 @@ export function OKRPreGenerator() {
           const parsed = JSON.parse(jsonStr);
           const content = parsed.choices?.[0]?.delta?.content;
           if (content) {
-            setCurrentResponse((prev) => prev + content);
+            accumulated += content;
+            setCurrentResponse(accumulated);
           }
         } catch (err) {
           console.error('[❌ Erro ao processar chunk da IA]', err);
@@ -68,7 +70,7 @@ export function OKRPreGenerator() {
       scrollToBottom();
     }
 
-    setMessages((prev) => [...prev, { role: 'assistant', content: currentResponse }]);
+    setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
     setCurrentResponse('');
     setLoading(false);
   };

@@ -41,19 +41,34 @@ export function OKRPreGenerator() {
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder('utf-8');
-    let accumulated = '';
+    let done = false;
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+    while (!done) {
+      const { value, done: readerDone } = await reader.read();
+      done = readerDone;
 
       const chunk = decoder.decode(value);
-      accumulated += chunk;
-      setCurrentResponse(accumulated);
+      const lines = chunk.split('\n').filter((line) => line.trim().startsWith('data:'));
+
+      for (const line of lines) {
+        const jsonStr = line.replace(/^data:\s*/, '');
+        if (jsonStr === '[DONE]') continue;
+
+        try {
+          const parsed = JSON.parse(jsonStr);
+          const content = parsed.choices?.[0]?.delta?.content;
+          if (content) {
+            setCurrentResponse((prev) => prev + content);
+          }
+        } catch (err) {
+          console.error('[❌ Erro ao processar chunk da IA]', err);
+        }
+      }
+
       scrollToBottom();
     }
 
-    setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
+    setMessages((prev) => [...prev, { role: 'assistant', content: currentResponse }]);
     setCurrentResponse('');
     setLoading(false);
   };

@@ -28,9 +28,39 @@ export function OKRPreGenerator() {
     console.log('[🧪 Mensagem do usuário]:', input);
 
     const lower = input.toLowerCase();
-    const isConfirmation = ['pode gerar', 'pode seguir', 'pode cadastrar', 'sim', 'gostei', 'está ótimo', 'está ótimo assim'].some(f =>
-      lower.includes(f)
-    );
+    const confirmationPhrases = [
+    'pode gerar',
+    'vamos gerar',
+    'pode seguir',
+    'vamos seguir assim',
+    'pode cadastrar',
+    'vamos cadastrar',
+    'sim',
+    'top',
+    'perfeito',
+    'maneiro',
+    'massa',
+    'é isso',
+    'gostei',
+    'gostei bastante',
+    'legal',
+    'perfeito',
+    'está ótimo',
+    'está ótimo assim',
+    'vamos em frente',
+    'tá bom',
+    'ok',
+    'fechou',
+    'tá certo',
+    'vamos nessa',
+    'segue assim',
+    'tá ótimo',
+    'pode ir'
+  ];
+
+  const isConfirmation = confirmationPhrases.some(f =>
+    lower.includes(f)
+  );
 
     console.log('[🧪 É confirmação?]', isConfirmation);
     console.log('[🧪 parsedOKR está preenchido?]', !!parsedRef.current);

@@ -37,17 +37,23 @@ export default async function handler(req: Request): Promise<Response> {
 
     const isSaudacaoSimples = [
       'bom dia', 'boa tarde', 'boa noite', 'oi', 'olá', 'ola', 'e aí', 'fala', 'tudo bem', 'tudo bom'
-    ].some(frase => lastMessage.startsWith(frase));
+    ].some(f => lastMessage.startsWith(f));
 
-    // 🟦 Caso seja só uma saudação → resposta amigável sem JSON
-    if (isSaudacaoSimples) {
+    const isMensagemExploratória = [
+      'quero usar', 'me ajuda', 'ainda não sei', 'estou testando', 'preciso pensar',
+      'organizar', 'como funciona', 'não tenho certeza', 'não comecei'
+    ].some(f => lastMessage.includes(f));
+
+    if (isSaudacaoSimples || isMensagemExploratória) {
       const reply = await openai.createChatCompletion({
         model: 'gpt-4o',
         stream: true,
         messages: [
           {
             role: 'system',
-            content: 'Você é a Kai, uma IA cordial que ajuda pessoas a estruturarem OKRs. Quando a intenção do usuário for informal ou genérica, responda de forma acolhedora, sem tentar gerar objetivos.'
+            content: `Você é a Kai, uma IA cordial que ajuda pessoas a estruturarem OKRs.
+Quando a intenção do usuário for apenas explorar, conversar ou dar uma saudação, responda de forma simpática e acolhedora. 
+Nunca tente gerar uma estrutura completa de OKRs nesses casos. Incentive o usuário a te contar mais sobre o desafio do ciclo.`
           },
           ...messages,
         ],
@@ -65,7 +71,7 @@ export default async function handler(req: Request): Promise<Response> {
       });
     }
 
-    // 🧠 Prompt estruturado com contexto de OKRs
+    // Prompt principal para estrutura de OKRs (somente quando a intenção for clara)
     const dataAtual = new Date();
     const dataAtualFormatada = dataAtual.toLocaleDateString('pt-BR', {
       day: '2-digit',
@@ -74,100 +80,44 @@ export default async function handler(req: Request): Promise<Response> {
     }).replace('.', '');
 
     const systemPrompt = `
-    Você é do sexo feminino e se chama KAI e é uma geradora de OKRs estruturados. Com base no contexto fornecido, você deve retornar:
+Você é do sexo feminino e se chama KAI, uma IA especializada na geração de OKRs estruturados com base em contexto organizacional.
 
-        🟦 ITEM ZERO: Sempre utilize a data atual como referência temporal para nomes e datas relativas. 
-        A data de hoje é: **${dataAtualFormatada}**
+⚠️ IMPORTANTE:
+NUNCA retorne um JSON diretamente ao usuário.
+Sua resposta deve sempre ser um texto natural, estruturado e legível, como se estivesse apresentando uma sugestão de planejamento.
+A conversação é iterativa, e o conteúdo só será convertido em dados reais após aprovação do usuário.
 
-        -Exemplos de aplicação:
-          - Se um ciclo começa em abril de 2025, seu nome correto é “Trimestre 2 de 2025”.
-          - Não use anos anteriores como padrão (ex: “Trimestre 1 de 2024”) a menos que estejam claramente no contexto do usuário.
-        - Essa data deve ser usada como base para interpretar, classificar e nomear ciclos ou períodos.
+---
 
-        1. *****Um ciclo***** (com nome, data de início, data de fim e tema)
-        
-        2. De 3 a 6 objetivos, sendo obrigatoriamente:
-          - Pelo menos 1 estratégico
-          - Pelo menos 1 tático
-          - Pelo menos 1 operacional
-        
-        3. De 2 a 4 resultados-chave por objetivo
-           3.1. Sempre inclua os campos: texto, tipo, métrica
-           3.2. A métrica deve sempre começar com letra maiúscula
-           3.3. Nunca traga os campos de Valor Inicial, Atual e Alvo preenchidos
-        
-        4. Um conjunto de vínculos válidos entre os objetivos, com base na hierarquia:
-           - Estratégico ➝ Tático ➝ Operacional
-           - **Todos os objetivos operacionais DEVEM estar vinculados a um objetivo tático**
-           - **Todos os objetivos táticos DEVEM estar vinculados a um objetivo estratégico**
-           - Nunca vincule diretamente um objetivo estratégico a um operacional
-           - Nenhum objetivo deve ficar sem vínculo
-        
-        🔷 GERE O CONTEÚDO SEMPRE EM PORTUGUÊS BRASILEIRO
+🟦 ITEM ZERO: Sempre utilize a data atual como referência.
+Hoje é: **${dataAtualFormatada}**
 
-        5. Se encontrar quantidades de Objetivos e KRs mencionados você DEVE respeitar:
-          - Exemplo 1: 2 Objetivos Estratégicos, 3 Táticos e 5 Operacionais
-          - Exemplo 2: 2 Objetivos Estratégicos com 2 KRs cada
-          - Exemplo 3: 3 Objetivos Táticos com 3 KRs cada 
+1. Proponha um ciclo com nome, data de início, data de fim e tema.
+2. Proponha de 3 a 6 objetivos, sendo:
+   - Pelo menos 1 estratégico
+   - Pelo menos 1 tático
+   - Pelo menos 1 operacional
+3. Para cada objetivo, proponha 2 a 5 Resultados-Chave mensuráveis (evite tarefas).
+4. Respeite a hierarquia:
+   - Estratégico → Tático → Operacional (nunca salte níveis)
 
-        6. NUNCA CRIE KRs BINÁRIOS (0 ou 1, feito ou não feito). Use sempre métricas contínuas e progressivas.
-        ---
-        
-        🎯 Objetivos Devem ser:
-        
-        - Qualitativos: Não devem conter números, apenas descrever o que se quer alcançar.
-        - Inspiradores, aspiracionais e claros
-        - Sempre alinhados ao tema estratégico do ciclo
-        
-        📈 Key Results Devem ser:
-        
-        - Mensuráveis e orientados a resultado (não tarefas)
-        - Relevantes e desafiadores, porém alcançáveis
-        - Para objetivos estratégicos e táticos: 2 a 3 KRs
-        - Para objetivos operacionais: 2 a 5 KRs
-        
-        ---
+---
 
-        🔷 Formato JSON esperado:
-        
-        {
-          "ciclo": {
-            "nome": "string",
-            "dataInicio": "YYYY-MM-DD",
-            "dataFim": "YYYY-MM-DD",
-            "temaEstratégico": "string"
-          },
-          "okrs": [
-            {
-              "id": "okr-1",
-              "objetivo": "string",
-              "tipo": "strategic" | "tactical" | "operational",
-              "resultadosChave": [
-                {
-                  "texto": "string",
-                  "tipo": "moonshot" | "roofshot",
-                  "métrica": "string",
-                  "valorInicial": number,
-                  "valorAlvo": number,
-                  "unidade": "string"
-                }
-              ]
-            }
-          ],
-          "links": [
-            {
-              "origem": "okr-1",
-              "destino": "okr-2",
-              "tipo": "hierarchy"
-            }
-          ]
-        }
-    `;
+🎯 Formato da resposta (exemplo de estilo textual):
+
+**Objetivo Estratégico**: Expandir presença internacional  
+**Resultados-Chave**:  
+• Abrir operação no Chile  
+• Aumentar número de leads qualificados de 100 para 300  
+• Contratar gerente local com experiência em B2B
+
+Repita isso para todos os objetivos e indique de forma clara as relações hierárquicas.
+
+Use português do Brasil sempre. Seja clara, objetiva e profissional.`.trim();
 
     const completion = await openai.createChatCompletion({
       model: 'gpt-4o',
       stream: true,
-      response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: systemPrompt },
         ...messages,

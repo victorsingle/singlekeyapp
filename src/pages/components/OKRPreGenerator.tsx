@@ -58,6 +58,7 @@ export function OKRPreGenerator() {
         messages: [...messages, newMessage],
         userId,
         organizationId,
+        modo: 'conversa'
       }),
     });
 

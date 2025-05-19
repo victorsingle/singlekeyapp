@@ -2,27 +2,19 @@ import { useState, useRef } from 'react';
 import { ArrowUpCircle, Target } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../../stores/authStore';
-import { useOKRStore  } from '../../stores/okrStore';
-
-interface ParsedOKR {
-  ciclo: {
-    nome: string;
-    dataInicio: string;
-    dataFim: string;
-    temaEstratégico: string;
-  };
-  okrs: any[];
-  links: any[];
-}
+import { useOKRStore } from '../../stores/okrStore';
 
 export function OKRPreGenerator() {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState('');
-  const [parsedOKR, setParsedOKR] = useState<ParsedOKR | null>(null);
-  const [userConfirmed, setUserConfirmed] = useState(false);
+  const [parsedOKR, setParsedOKR] = useState<string | null>(null);
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
+
+  const { userId, organizationId } = useAuthStore.getState();
+  const generateFullOKRStructure = useOKRStore((state) => state.generateFullOKRStructure);
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -30,13 +22,45 @@ export function OKRPreGenerator() {
 
   const handleSend = async () => {
     if (!input.trim()) return;
+
+    const lower = input.toLowerCase();
+    const isConfirmation = ['gerar no sistema', 'pode cadastrar', 'sim pode seguir', 'sim pode gerar'].some(f =>
+      lower.includes(f)
+    );
+
     const newMessage = { role: 'user' as const, content: input };
     setMessages((prev) => [...prev, newMessage]);
     setInput('');
     setLoading(true);
     setCurrentResponse('');
 
-    const { userId, organizationId } = useAuthStore.getState();
+    if (isConfirmation && parsedOKR) {
+      try {
+        await generateFullOKRStructure(parsedOKR);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: '✅ OKRs cadastrados no sistema com sucesso! Agora você pode acompanhá-los normalmente.',
+          },
+        ]);
+        setParsedOKR(null);
+        setAwaitingConfirmation(false);
+        setLoading(false);
+        return;
+      } catch (err) {
+        console.error('[❌ Erro ao cadastrar OKRs]', err);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: 'Ocorreu um erro ao tentar cadastrar os OKRs. Tente novamente mais tarde.',
+          },
+        ]);
+        setLoading(false);
+        return;
+      }
+    }
 
     const response = await fetch('/.netlify/functions/kai-chat', {
       method: 'POST',
@@ -84,19 +108,20 @@ export function OKRPreGenerator() {
       scrollToBottom();
     }
 
+    // tentativa de parse como JSON puro
     try {
       const tentativaJSON = accumulated.trim().match(/\{[\s\S]*\}/)?.[0];
       if (tentativaJSON) {
         const estrutura = JSON.parse(tentativaJSON);
         if (estrutura?.ciclo && Array.isArray(estrutura.okrs)) {
-          setParsedOKR(estrutura);
-          setUserConfirmed(false);
+          setParsedOKR(input); // passa o prompt original
+          setAwaitingConfirmation(true);
           setMessages((prev) => [
             ...prev,
             {
               role: 'assistant',
               content:
-                'Está alinhado com o que você tinha em mente? Se quiser acompanhar no sistema, clique no botão abaixo.',
+                'Está alinhado com o que você tinha em mente? Se quiser acompanhar no sistema, é só me avisar que eu gero pra você.',
             },
           ]);
           setCurrentResponse('');
@@ -111,12 +136,6 @@ export function OKRPreGenerator() {
     setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
     setCurrentResponse('');
     setLoading(false);
-  };
-
-  const handleGenerate = () => {
-    if (parsedOKR) {
-      generateFullOKRStructure(parsedOKR);
-    }
   };
 
   return (
@@ -134,18 +153,13 @@ export function OKRPreGenerator() {
               )}
             >
               {msg.content}
-              {msg.role === 'user' && parsedOKR === null && input.toLowerCase().includes('sim') && (
-                <span className="text-red-500"> (confirmação capturada)</span>
-              )}
             </div>
           ))}
-
           {currentResponse && (
             <div className="bg-blue-50 text-gray-800 text-sm p-3 rounded-xl animate-pulse whitespace-pre-wrap">
               {currentResponse}
             </div>
           )}
-
           <div ref={chatEndRef} />
         </div>
 
@@ -167,17 +181,6 @@ export function OKRPreGenerator() {
             <ArrowUpCircle className="w-5 h-5" />
           </button>
         </form>
-
-        {parsedOKR && (
-          <div className="mt-4 text-center">
-            <button
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              onClick={handleGenerate}
-            >
-              Cadastrar OKRs
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

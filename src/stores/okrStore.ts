@@ -368,7 +368,7 @@ generateFullOKRStructure: async (prompt: string) => {
 
   const completion = await openai.chat.completions.create({
   model: 'gpt-4o',
-  response_format: { type: 'json_object' },
+  response_format: 'json',
   messages: [
     {
       role: 'system',
@@ -423,10 +423,6 @@ Texto validado:
 ${prompt}
 """
 `.trim()
-    },
-    {
-      role: 'user',
-      content: prompt  // ✅ sem "Contexto:"
     }
   ]
 });

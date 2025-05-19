@@ -158,7 +158,7 @@ export function OKRPreGenerator() {
             </div>
           )}
           {confirmedPrompt && (
-            <div className="flex justify-end mt-2">
+            <div className="flex justify-start mt-2">
               <button
                 onClick={handleGenerateOKRs}
                 className="bg-blue-600 text-white text-sm font-medium py-2 px-4 rounded hover:bg-blue-700 transition"

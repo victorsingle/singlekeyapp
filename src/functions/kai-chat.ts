@@ -46,51 +46,49 @@ export default async function handler(req: Request): Promise<Response> {
 
     const ultimoPrompt = messages[messages.length - 1]?.content?.toLowerCase() || '';
     const promptVago = ['não sei', 'pensando', 'ainda não sei', 'em dúvida'].some(p => ultimoPrompt.includes(p));
-    const saudacoes = ['boa noite', 'bom dia', 'boa tarde'];
 
     let promptSistema = '';
 
     // 🔁 MODO CONVERSA
     if (modo === 'conversa') {
-      const contextoInicial = messages.length <= 2 && !saudacoes.includes(ultimoPrompt);
+      const termosDeOKR = [
+        'okr', 'objetivo', 'key result', 'resultado-chave',
+        'ciclo', 'estrutura', 'meta', 'estruturar', 'desdobrar'
+      ];
+      const querGerarOKRs = termosDeOKR.some(p => ultimoPrompt.includes(p)) && !promptVago;
 
-      if (contextoInicial || (!promptVago && ultimoPrompt.length > 60)) {
-        // O contexto inicial é considerado suficiente se o prompt tiver mais de 60 caracteres e não for vago
+      if (querGerarOKRs) {
         promptSistema = `
 Você é a Kai, uma IA especialista em planejamento com OKRs. Hoje é ${dataFormatada}.
 
-Com base no contexto fornecido pelo usuário, proponha uma estrutura de OKRs completa e validável, explicando em português natural e tom profissional.
+Seu papel é ajudar o usuário a montar uma estrutura completa de OKRs para o ciclo atual.
 
-✅ A estrutura textual deve conter:
-- Nome e datas do ciclo
+✅ Você deve gerar:
+- Nome do ciclo
+- Data de início e fim (3 meses a partir de hoje)
 - Tema estratégico
-- 3 a 6 Objetivos (com tipo: estratégico, tático, operacional)
-- 2 a 4 KRs por objetivo (com tipo: moonshot | roofshot, métrica e unidade)
-- Vínculos entre objetivos no final (ex: "Vincular Objetivo 2 ao Objetivo 1")
+- De 3 a 6 objetivos com tipo: estratégico, tático ou operacional
+- De 2 a 5 KRs por objetivo, com tipo (moonshot | roofshot), métrica e unidade
+- Vínculos entre objetivos (ex: Vincular Objetivo 3 ao Objetivo 2)
 
-🔗 Exemplo de formato:
-**Ciclo:** Trimestre 3 de 2025 (01/07/2025 a 30/09/2025)  
-**Tema:** Consolidação e crescimento da nova solução  
-**Objetivo 1 (Estratégico):** Expandir o reconhecimento da marca  
-- KR1 (moonshot): Aumentar em 30% o número de menções orgânicas — Métrica: Citações — Unidade: unidades  
-- KR2 (roofshot): ...  
-**Objetivo 2 (Tático):** ...  
-**Objetivo 3 (Operacional):** ...  
-Vincular Objetivo 2 ao Objetivo 1  
-Vincular Objetivo 3 ao Objetivo 2  
+🧠 Se o usuário solicitar ajustes, atualize apenas a parte solicitada, mantendo o restante como está. Nunca sobrescreva tudo a cada mensagem.
 
-No fim, diga:  
-"Está tudo certo? Se quiser cadastrar no sistema, é só clicar no botão abaixo."
+⚠️ Nunca use JSON ou emojis. Responda com texto limpo e estruturado, como neste exemplo:
+**Ciclo:** Trimestre 2 de 2025 (01/04/2025 a 30/06/2025)
+**Tema:** Crescimento e consolidação da nova oferta
+**Objetivo 1 (Estratégico):** ...
+- KR1 (moonshot): ... — Métrica: ... — Unidade: ...
+- KR2 (roofshot): ... — Métrica: ... — Unidade: ...
 
-🚫 Não use emojis nem JSON.  
+Finalize perguntando se o conteúdo está bom ou se o usuário deseja ajustar algo antes de cadastrar.
         `.trim();
       } else {
         promptSistema = `
 Você é a Kai, uma IA especialista em OKRs. Responda de forma simpática e clara.
 
-1. Se o usuário ainda estiver explorando ("ainda não sei", "pensando", "não sei por onde começar"), faça perguntas para entender melhor o desafio do ciclo.
-2. Só sugira estrutura se o contexto estiver claro.
-3. Evite repetir emojis ou parecer forçada. Naturalidade acima de tudo.
+Se o usuário estiver indeciso, faça perguntas para entender melhor o contexto e só proponha estrutura quando houver clareza suficiente.
+
+Nunca use JSON ou emojis. Seja natural, humana e objetiva.
         `.trim();
       }
 
@@ -111,7 +109,6 @@ Você é a Kai, uma IA especialista em OKRs. Responda de forma simpática e clar
       const stream = new ReadableStream({
         async start(controller) {
           let buffer = '';
-
           while (true) {
             const { value, done } = await reader!.read();
             if (done) break;
@@ -125,12 +122,7 @@ Você é a Kai, uma IA especialista em OKRs. Responda de forma simpática e clar
 
               try {
                 const parsed = JSON.parse(jsonStr);
-
-                const content =
-                  parsed.choices?.[0]?.delta?.content ||
-                  parsed.choices?.[0]?.text ||
-                  parsed.choices?.[0]?.message?.content;
-
+                const content = parsed.choices?.[0]?.delta?.content;
                 if (content) {
                   buffer += content;
                   controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`));
@@ -159,21 +151,18 @@ Você é a Kai, uma IA especialista em OKRs. Responda de forma simpática e clar
     // ✅ MODO GERAR — estrutura final como texto
     if (modo === 'gerar') {
       const promptSistema = `
-Você é a Kai, uma IA especialista em planejamento com OKRs. Hoje é ${dataFormatada}.
+Você é a Kai, uma IA especialista em OKRs. Hoje é ${dataFormatada}.
 
-Com base na conversa anterior, gere uma proposta de estrutura de OKRs clara, objetiva e em português natural, pronta para ser interpretada pela própria IA do sistema SingleKey.
+Sua tarefa agora é gerar a estrutura completa e final de OKRs APROVADA pelo usuário em formato textual.
 
-A estrutura deve incluir:
-- Nome e datas do ciclo
+Inclua:
+- Nome do ciclo e datas (3 meses)
 - Tema estratégico
-- Objetivos (com seus tipos)
-- Resultados-chave (com tipo, métrica, unidade)
+- Objetivos (com tipo)
+- KRs com tipo, métrica e unidade
 - Vínculos entre objetivos
 
-⚠️ Importante:
-- NÃO envie em JSON
-- NÃO use emojis
-- Retorne apenas o texto estruturado (ex: "**Objetivo 1: ...**", "- KR 1: ...")
+⚠️ Não use JSON. Retorne texto puro, bem estruturado, fiel ao que foi validado. Não adicione nada além do que o usuário viu e aprovou.
       `.trim();
 
       const completion = await openai.createChatCompletion({

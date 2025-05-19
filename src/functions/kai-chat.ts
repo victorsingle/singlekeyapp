@@ -10,6 +10,10 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+export const config = {
+  runtime: 'edge',
+};
+
 export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
     return new Response(null, {
@@ -27,13 +31,12 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   try {
-    const { messages, userId, organizationId } = await req.json();
+    const { messages, userId, organizationId, modo = 'conversa' } = await req.json();
 
     if (!userId || !organizationId || !Array.isArray(messages)) {
       return new Response('Unauthorized', { status: 401 });
     }
 
-    const ultimoPrompt = messages[messages.length - 1]?.content?.toLowerCase() || '';
     const dataAtual = new Date();
     const dataFormatada = dataAtual.toLocaleDateString('pt-BR', {
       day: '2-digit',
@@ -41,36 +44,21 @@ export default async function handler(req: Request): Promise<Response> {
       year: 'numeric'
     }).replace('.', '');
 
-    const termosConfirmacao = [
-      'pode gerar no sistema', 'pode gerar', 'pode criar no sistema',
-      'sim, pode montar', 'gerar estrutura', 'criar estrutura'
-    ];
-
-    const termosDeOKR = [
-      'okr', 'objetivo', 'key result', 'resultado-chave',
-      'ciclo', 'estrutura', 'meta', 'estruturar', 'desdobrar'
-    ];
-
+    const ultimoPrompt = messages[messages.length - 1]?.content?.toLowerCase() || '';
     const promptVago = ['não sei', 'pensando', 'ainda não sei', 'em dúvida'].some(p => ultimoPrompt.includes(p));
-    const confirmouGerar = termosConfirmacao.some(p => ultimoPrompt.includes(p));
-    const querGerarOKRs = termosDeOKR.some(p => ultimoPrompt.includes(p)) && !promptVago;
 
     let promptSistema = '';
 
-    if (confirmouGerar) {
-      promptSistema = `
-Você é uma IA chamada KAI. Gere agora apenas a estrutura JSON completa e pura dos OKRs com base na conversa anterior. O formato deve ser exatamente este:
+    // 🔁 MODO CONVERSA
+    if (modo === 'conversa') {
+      const termosDeOKR = [
+        'okr', 'objetivo', 'key result', 'resultado-chave',
+        'ciclo', 'estrutura', 'meta', 'estruturar', 'desdobrar'
+      ];
+      const querGerarOKRs = termosDeOKR.some(p => ultimoPrompt.includes(p)) && !promptVago;
 
-{
-  "ciclo": { ... },
-  "okrs": [ ... ],
-  "links": [ ... ]
-}
-
-Não inclua nenhuma explicação, introdução, emoji ou comentários.
-      `.trim();
-    } else if (querGerarOKRs) {
-      promptSistema = `
+      if (querGerarOKRs) {
+        promptSistema = `
 Você é a Kai, uma IA especialista em planejamento com OKRs. Hoje é ${dataFormatada}.
 
 1. Com base no contexto, você irá sugerir uma estrutura de OKRs explicando em português natural, em tom profissional e acessível.
@@ -80,82 +68,118 @@ Você é a Kai, uma IA especialista em planejamento com OKRs. Hoje é ${dataForm
 5. Se o conteúdo estiver pronto, diga: "Está alinhado com o que você tinha em mente? Se quiser acompanhar no sistema, é só clicar no botão ao lado."
 
 A estrutura será retornada apenas se o usuário confirmar explicitamente.
-      `.trim();
-    } else {
-      promptSistema = `
+        `.trim();
+      } else {
+        promptSistema = `
 Você é a Kai, uma IA especialista em OKRs. Responda de forma simpática e clara.
 
 1. Se o usuário ainda estiver explorando ("ainda não sei", "pensando", "não sei por onde começar"), faça perguntas para entender melhor o desafio do ciclo.
 2. Só sugira estrutura se o contexto estiver claro.
 3. Evite repetir emojis ou parecer forçada. Naturalidade acima de tudo.
-      `.trim();
+        `.trim();
+      }
+
+      const completion = await openai.createChatCompletion({
+        model: 'gpt-4o',
+        stream: true,
+        messages: [
+          { role: 'system', content: promptSistema },
+          ...messages,
+        ],
+        temperature: 0.7,
+      });
+
+      const encoder = new TextEncoder();
+      const reader = completion.body?.getReader();
+      const decoder = new TextDecoder();
+
+      const stream = new ReadableStream({
+        async start(controller) {
+          while (true) {
+            const { value, done } = await reader!.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n').filter(line => line.trim().startsWith('data:'));
+
+            for (const line of lines) {
+              const content = line.replace(/^data:\s*/, '');
+              if (content === '[DONE]') continue;
+
+              controller.enqueue(encoder.encode(`${line}\n\n`));
+            }
+          }
+
+          controller.close();
+        }
+      });
+
+      return new Response(stream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+      });
     }
 
-    const completion = await openai.createChatCompletion({
-      model: 'gpt-4o',
-      stream: true,
-      messages: [
-        { role: 'system', content: promptSistema },
-        ...messages,
-      ],
-      temperature: 0.7,
-    });
+    // ✅ MODO GERAR
+    if (modo === 'gerar') {
+      const promptSistema = `
+Você é uma IA chamada KAI. Gere agora apenas a estrutura JSON completa e pura dos OKRs com base na conversa anterior. O formato deve ser exatamente este:
 
-    const encoder = new TextEncoder();
-    const readableStream = new ReadableStream({
-      async start(controller) {
-        const reader = completion.body?.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-
-        while (true) {
-          const { value, done } = await reader!.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value);
-          buffer += chunk;
+{
+  "ciclo": {
+    "nome": "...",
+    "dataInicio": "...",
+    "dataFim": "...",
+    "temaEstratégico": "..."
+  },
+  "okrs": [
+    {
+      "objetivo": "...",
+      "tipo": "moonshot | roofshot",
+      "resultadosChave": [
+        {
+          "texto": "...",
+          "métrica": "...",
+          "valorInicial": 0,
+          "valorAlvo": 100,
+          "unidade": "%"
         }
+      ]
+    }
+  ],
+  "links": []
+}
 
-        if (confirmouGerar) {
-          try {
-            const match = buffer.match(/\{[\s\S]*\}/);
-            if (match) {
-              const estrutura = match[0];
-              const textoLimpo = buffer.replace(estrutura, '').trim();
-              const resposta = {
-                content: `[OKR_JSON]${estrutura}\n${textoLimpo}`
-              };
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify(resposta)}\n\n`));
-            } else {
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: buffer })}\n\n`));
-            }
-          } catch (err) {
-            console.warn('[⚠️ Falha ao tentar embedar JSON OKR]');
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: buffer })}\n\n`));
-          }
-        } else {
-          // Caso normal (sem confirmação), envia tudo como está
-          const lines = buffer.split('\n');
-          for (const line of lines) {
-            if (line.trim()) {
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: line })}\n\n`));
-            }
-          }
-        }
+Não inclua explicação, comentários ou emojis. Responda apenas com o JSON.
+      `.trim();
 
-        controller.close();
-      }
-    });
+      const completion = await openai.createChatCompletion({
+        model: 'gpt-4o',
+        stream: false,
+        messages: [
+          { role: 'system', content: promptSistema },
+          ...messages,
+        ],
+        temperature: 0.2,
+      });
 
-    return new Response(readableStream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
-    });
+      const jsonRaw = await completion.json();
+      const content = jsonRaw.choices?.[0]?.message?.content || '';
+
+      return new Response(content, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
+    }
+
+    return new Response('Modo inválido', { status: 400 });
   } catch (err) {
     console.error('[❌ Erro na função kai-chat]', err);
     return new Response('Erro interno da IA', { status: 500 });

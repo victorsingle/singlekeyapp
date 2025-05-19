@@ -22,12 +22,22 @@ export function OKRPreGenerator() {
   const handleSend = async () => {
     if (!input.trim()) return;
 
+    const lower = input.toLowerCase();
+    const isConfirmation = ['pode gerar', 'pode seguir', 'pode cadastrar', 'sim', 'está ótimo', 'está ótimo assim'].some(f =>
+      lower.includes(f)
+    );
+
     const newMessage = { role: 'user' as const, content: input };
     setMessages((prev) => [...prev, newMessage]);
     setInput('');
     setLoading(true);
     setCurrentResponse('');
-    setParsedOKR(null);
+
+    // ✅ se já temos a estrutura e o usuário confirmou, não chama nova geração
+    if (isConfirmation && parsedOKR) {
+      setLoading(false);
+      return;
+    }
 
     const response = await fetch('/.netlify/functions/kai-chat', {
       method: 'POST',

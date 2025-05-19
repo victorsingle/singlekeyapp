@@ -54,6 +54,7 @@ export function OKRPreGenerator() {
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder('utf-8');
+    let accumulated = '';
     let done = false;
 
     while (!done) {
@@ -71,7 +72,8 @@ export function OKRPreGenerator() {
           const parsed = JSON.parse(jsonStr);
           const content = parsed.choices?.[0]?.delta?.content;
           if (content) {
-            setCurrentResponse((prev) => prev + content);
+            accumulated += content;
+            setCurrentResponse(accumulated);
           }
         } catch (err) {
           console.error('[❌ Erro ao processar chunk da IA]', err);
@@ -81,25 +83,23 @@ export function OKRPreGenerator() {
       scrollToBottom();
     }
 
-    // Tentativa de parse como proposta OKR
-    let parsedOKR: ParsedOKR | null = null;
+    // Tentativa de parse como JSON estruturado
     try {
-      parsedOKR = JSON.parse(currentResponse);
+      const parsed = JSON.parse(accumulated);
+      if (parsed?.ciclo && parsed?.okrs) {
+        setParsedOKR(parsed);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: 'Aqui está uma proposta inicial com base no seu contexto. Está alinhado com o que você imaginava? Se estiver ok, você pode clicar no botão ao lado para gerar os OKRs no sistema.',
+          },
+        ]);
+      } else {
+        setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
+      }
     } catch {
-      // Não é JSON estruturado
-    }
-
-    if (parsedOKR?.ciclo && Array.isArray(parsedOKR.okrs)) {
-      setParsedOKR(parsedOKR);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'assistant',
-          content: 'Aqui está uma proposta de estrutura de OKRs. Isso está alinhado com o que você imaginava? Se estiver bom, você pode clicar no botão ao lado para gerar no sistema.',
-        },
-      ]);
-    } else {
-      setMessages((prev) => [...prev, { role: 'assistant', content: currentResponse }]);
+      setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
     }
 
     setCurrentResponse('');
@@ -157,13 +157,12 @@ export function OKRPreGenerator() {
         <h3 className="text-lg font-semibold text-gray-700 mb-4">Estrutura de OKRs</h3>
         {!parsedOKR ? (
           <p className="text-sm text-gray-400 italic">
-            Ainda não implementado. Conecte aqui o parser da resposta da Kai e gere os OKRs a partir dela.
+           Utilize o chat ao lado para planejar com a KAI.
           </p>
         ) : (
           <div className="space-y-4 text-sm text-gray-700">
             <div>
-              <strong>Ciclo:</strong> {parsedOKR.ciclo.nome} ({parsedOKR.ciclo.dataInicio} → {parsedOKR.ciclo.dataFim})
-              <br />
+              <strong>Ciclo:</strong> {parsedOKR.ciclo.nome} ({parsedOKR.ciclo.dataInicio} → {parsedOKR.ciclo.dataFim})<br />
               <strong>Tema:</strong> {parsedOKR.ciclo.temaEstratégico}
             </div>
             {parsedOKR.okrs.map((okr, i) => (

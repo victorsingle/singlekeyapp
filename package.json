@@ -17,6 +17,7 @@
     "@radix-ui/react-collapsible": "^1.0.3",
     "@reactflow/node-resizer": "^2.2.11",
     "@supabase/supabase-js": "^2.49.4",
+    "ai": "^4.3.16",
     "bcryptjs": "^3.0.2",
     "chart.js": "^4.4.1",
     "ci-info": "^4.2.0",

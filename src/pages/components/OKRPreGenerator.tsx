@@ -113,10 +113,18 @@ export function OKRPreGenerator() {
 
         try {
           const parsed = JSON.parse(jsonStr);
-          const content = parsed.choices?.[0]?.delta?.content;
+          const content = parsed.content;
+          const okrData = parsed.okr_json;
+
           if (content) {
             accumulated += content;
             setCurrentResponse(accumulated);
+          }
+
+          if (okrData?.ciclo && Array.isArray(okrData.okrs)) {
+            setParsedOKR(okrData);
+            parsedRef.current = okrData;
+            setAwaitingConfirmation(true); // garante que o botão apareça
           }
         } catch (err) {
           console.error('[❌ Erro ao processar chunk da IA]', err);

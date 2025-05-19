@@ -6,6 +6,7 @@ import { InputExamples } from './components/InputExamples';
 import { StateExamples } from './components/StateExamples';
 import { TypographyExamples } from './components/TypographyExamples';
 import { OKRCardEditable  } from './components/OKRCardEditable';
+import { OKRPreGenerator } from './components/OKRPreGenerator';
 
 
 export function GuidePage() {
@@ -90,6 +91,12 @@ export function GuidePage() {
       <section className="space-y-4">
         <h2 className="text-2xl font-semibold text-gray-700 border-b pb-2">UI States</h2>
         <StateExamples />
+      </section>
+
+      {/* Iterador de OKRs com Kai */}
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold text-gray-700 border-b pb-2">Geração Iterativa com Kai</h2>
+        <OKRPreGenerator />
       </section>
     </div>
   );

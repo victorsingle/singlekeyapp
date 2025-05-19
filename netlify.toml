@@ -2,6 +2,9 @@
   directory = "src/functions"
   node_bundler = "esbuild"
 
+  [functions.kai-chat]
+  path = "/api/kai-chat"
+
 [build]
   publish = "dist"
   command = "npm run build"

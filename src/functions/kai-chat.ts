@@ -93,6 +93,7 @@ Você é a Kai, uma IA especialista em OKRs. Responda de forma simpática e clar
 
       const stream = new ReadableStream({
         async start(controller) {
+          let buffer = '';
           while (true) {
             const { value, done } = await reader!.read();
             if (done) break;

@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowUpCircle, Target } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../../stores/authStore';
@@ -10,8 +11,10 @@ export function OKRPreGenerator() {
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState('');
   const [parsedOKR, setParsedOKR] = useState<any | null>(null);
+  const parsedRef = useRef<any | null>(null);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
+  const navigate = useNavigate();
   const { userId, organizationId } = useAuthStore.getState();
   const generateFullOKRStructure = useOKRStore((state) => state.generateFullOKRStructure);
 
@@ -30,7 +33,7 @@ export function OKRPreGenerator() {
     );
 
     console.log('[🧪 É confirmação?]', isConfirmation);
-    console.log('[🧪 parsedOKR está preenchido?]', !!parsedOKR);
+    console.log('[🧪 parsedOKR está preenchido?]', !!parsedRef.current);
 
     const newMessage = { role: 'user' as const, content: input };
     setMessages((prev) => [...prev, newMessage]);
@@ -38,8 +41,9 @@ export function OKRPreGenerator() {
     setLoading(true);
     setCurrentResponse('');
 
-    // ✅ se já temos a estrutura e o usuário confirmou, não chama nova geração
-    if (isConfirmation && parsedOKR) {
+    // ✅ Confirmação após estrutura já gerada
+    if (isConfirmation && parsedRef.current) {
+      setParsedOKR(parsedRef.current); // reativa o botão
       setLoading(false);
       return;
     }
@@ -105,6 +109,7 @@ export function OKRPreGenerator() {
 
     if (estruturaJSON?.ciclo && Array.isArray(estruturaJSON.okrs)) {
       setParsedOKR(estruturaJSON);
+      parsedRef.current = estruturaJSON;
     }
 
     setMessages((prev) => [
@@ -127,14 +132,20 @@ export function OKRPreGenerator() {
     setLoading(true);
 
     try {
-      await generateFullOKRStructure(parsedOKR);
+      const result = await generateFullOKRStructure(parsedOKR);
+
       setMessages((prev) => [
         ...prev,
         {
           role: 'assistant',
-          content: '✅ OKRs cadastrados no sistema com sucesso! Agora você pode acompanhá-los normalmente.',
+          content: '✅ OKRs cadastrados no sistema com sucesso! Redirecionando para o ciclo...',
         },
       ]);
+
+      const cicloId = result?.ciclo?.id;
+      if (cicloId) {
+        setTimeout(() => navigate(`/ciclos/${cicloId}`), 1500);
+      }
       setParsedOKR(null);
     } catch (err) {
       console.error('[❌ Erro ao cadastrar OKRs]', err);
@@ -172,20 +183,16 @@ export function OKRPreGenerator() {
               {currentResponse}
             </div>
           )}
-          <div className="flex justify-end mt-2">
-            <button
-              onClick={handleGenerateOKRs}
-              disabled={!parsedOKR || loading}
-              className={clsx(
-                'text-sm font-medium py-2 px-4 rounded transition',
-                parsedOKR
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              )}
-            >
-              Cadastrar OKRs no sistema
-            </button>
-          </div>
+          {parsedOKR && (
+            <div className="flex justify-end mt-2">
+              <button
+                onClick={handleGenerateOKRs}
+                className="bg-blue-600 text-white text-sm font-medium py-2 px-4 rounded hover:bg-blue-700 transition"
+              >
+                Cadastrar OKRs no sistema
+              </button>
+            </div>
+          )}
           <div ref={chatEndRef} />
         </div>
 

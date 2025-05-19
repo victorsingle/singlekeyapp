@@ -10,7 +10,6 @@ export function OKRPreGenerator() {
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState('');
   const [parsedOKR, setParsedOKR] = useState<any | null>(null);
-  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   const { userId, organizationId } = useAuthStore.getState();
@@ -29,7 +28,6 @@ export function OKRPreGenerator() {
     setLoading(true);
     setCurrentResponse('');
     setParsedOKR(null);
-    setAwaitingConfirmation(false);
 
     const response = await fetch('/.netlify/functions/kai-chat', {
       method: 'POST',
@@ -77,7 +75,6 @@ export function OKRPreGenerator() {
       scrollToBottom();
     }
 
-    // Separa texto explicativo do JSON
     const match = accumulated.match(/\{[\s\S]*\}$/);
     let visibleText = accumulated;
     let estruturaJSON = null;
@@ -93,17 +90,15 @@ export function OKRPreGenerator() {
 
     if (estruturaJSON?.ciclo && Array.isArray(estruturaJSON.okrs)) {
       setParsedOKR(estruturaJSON);
-      setAwaitingConfirmation(true);
     }
 
-    // Adiciona texto visível da IA + pergunta de validação
     setMessages((prev) => [
       ...prev,
       ...(visibleText ? [{ role: 'assistant', content: visibleText }] : []),
       ...(estruturaJSON
         ? [{
             role: 'assistant',
-            content: 'Está alinhado com o que você tinha em mente? Se quiser cadastrar no sistema, clique no botão abaixo.',
+            content: 'Está alinhado com o que você tinha em mente? Se estiver tudo certo, clique no botão abaixo.',
           }]
         : []),
     ]);
@@ -126,7 +121,6 @@ export function OKRPreGenerator() {
         },
       ]);
       setParsedOKR(null);
-      setAwaitingConfirmation(false);
     } catch (err) {
       console.error('[❌ Erro ao cadastrar OKRs]', err);
       setMessages((prev) => [
@@ -163,16 +157,20 @@ export function OKRPreGenerator() {
               {currentResponse}
             </div>
           )}
-          {awaitingConfirmation && (
-            <div className="flex justify-end">
-              <button
-                onClick={handleGenerateOKRs}
-                className="bg-blue-600 text-white text-sm font-medium py-2 px-4 rounded hover:bg-blue-700 transition"
-              >
-                Cadastrar OKRs no sistema
-              </button>
-            </div>
-          )}
+          <div className="flex justify-end mt-2">
+            <button
+              onClick={handleGenerateOKRs}
+              disabled={!parsedOKR || loading}
+              className={clsx(
+                'text-sm font-medium py-2 px-4 rounded transition',
+                parsedOKR
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              )}
+            >
+              Cadastrar OKRs no sistema
+            </button>
+          </div>
           <div ref={chatEndRef} />
         </div>
 

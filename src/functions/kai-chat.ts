@@ -49,7 +49,6 @@ export default async function handler(req: Request): Promise<Response> {
 
     let promptSistema = '';
 
-    // 🔁 MODO CONVERSA
     if (modo === 'conversa') {
       const termosDeOKR = [
         'okr', 'objetivo', 'key result', 'resultado-chave',
@@ -66,8 +65,6 @@ Você é a Kai, uma IA especialista em planejamento com OKRs. Hoje é ${dataForm
 3. NÃO inclua a estrutura dentro do chat. Apenas diga que está pronta e pode ser gerada ao lado.
 4. Evite repetir emojis ou exagerar no uso deles.
 5. Se o conteúdo estiver pronto, diga: "Está alinhado com o que você tinha em mente? Se quiser acompanhar no sistema, é só clicar no botão ao lado."
-
-A estrutura será retornada apenas se o usuário confirmar explicitamente.
         `.trim();
       } else {
         promptSistema = `
@@ -95,6 +92,8 @@ Você é a Kai, uma IA especialista em OKRs. Responda de forma simpática e clar
 
       const stream = new ReadableStream({
         async start(controller) {
+          let buffer = '';
+
           while (true) {
             const { value, done } = await reader!.read();
             if (done) break;
@@ -103,10 +102,19 @@ Você é a Kai, uma IA especialista em OKRs. Responda de forma simpática e clar
             const lines = chunk.split('\n').filter(line => line.trim().startsWith('data:'));
 
             for (const line of lines) {
-              const content = line.replace(/^data:\s*/, '');
-              if (content === '[DONE]') continue;
+              const jsonStr = line.replace(/^data:\s*/, '');
+              if (jsonStr === '[DONE]') continue;
 
-              controller.enqueue(encoder.encode(`${line}\n\n`));
+              try {
+                const parsed = JSON.parse(jsonStr);
+                const content = parsed.choices?.[0]?.delta?.content;
+                if (content) {
+                  buffer += content;
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`));
+                }
+              } catch (err) {
+                console.warn('[⚠️ Erro ao parsear linha de streaming]', err);
+              }
             }
           }
 
@@ -125,7 +133,6 @@ Você é a Kai, uma IA especialista em OKRs. Responda de forma simpática e clar
       });
     }
 
-    // ✅ MODO GERAR
     if (modo === 'gerar') {
       const promptSistema = `
 Você é uma IA chamada KAI. Gere agora apenas a estrutura JSON completa e pura dos OKRs com base na conversa anterior. O formato deve ser exatamente este:

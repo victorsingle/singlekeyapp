@@ -49,6 +49,7 @@ export default async function handler(req: Request): Promise<Response> {
 
     let promptSistema = '';
 
+    // 🔁 MODO CONVERSA
     if (modo === 'conversa') {
       const termosDeOKR = [
         'okr', 'objetivo', 'key result', 'resultado-chave',
@@ -92,8 +93,6 @@ Você é a Kai, uma IA especialista em OKRs. Responda de forma simpática e clar
 
       const stream = new ReadableStream({
         async start(controller) {
-          let buffer = '';
-
           while (true) {
             const { value, done } = await reader!.read();
             if (done) break;
@@ -109,11 +108,10 @@ Você é a Kai, uma IA especialista em OKRs. Responda de forma simpática e clar
                 const parsed = JSON.parse(jsonStr);
                 const content = parsed.choices?.[0]?.delta?.content;
                 if (content) {
-                  buffer += content;
                   controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`));
                 }
               } catch (err) {
-                console.warn('[⚠️ Erro ao parsear linha de streaming]', err);
+                console.warn('[⚠️ Erro ao parsear linha do stream]', err);
               }
             }
           }
@@ -133,36 +131,24 @@ Você é a Kai, uma IA especialista em OKRs. Responda de forma simpática e clar
       });
     }
 
+    // ✅ MODO GERAR — estrutura final como texto
     if (modo === 'gerar') {
       const promptSistema = `
-Você é uma IA chamada KAI. Gere agora apenas a estrutura JSON completa e pura dos OKRs com base na conversa anterior. O formato deve ser exatamente este:
+Você é a Kai, uma IA especialista em planejamento com OKRs. Hoje é ${dataFormatada}.
 
-{
-  "ciclo": {
-    "nome": "...",
-    "dataInicio": "...",
-    "dataFim": "...",
-    "temaEstratégico": "..."
-  },
-  "okrs": [
-    {
-      "objetivo": "...",
-      "tipo": "moonshot | roofshot",
-      "resultadosChave": [
-        {
-          "texto": "...",
-          "métrica": "...",
-          "valorInicial": 0,
-          "valorAlvo": 100,
-          "unidade": "%"
-        }
-      ]
-    }
-  ],
-  "links": []
-}
+Com base na conversa anterior, gere uma proposta de estrutura de OKRs clara, objetiva e em português natural, pronta para ser interpretada pela própria IA do sistema SingleKey.
 
-Não inclua explicação, comentários ou emojis. Responda apenas com o JSON.
+A estrutura deve incluir:
+- Nome e datas do ciclo
+- Tema estratégico
+- Objetivos (com seus tipos)
+- Resultados-chave (com tipo e métrica)
+- Vínculos entre objetivos
+
+⚠️ Importante:
+- NÃO envie em JSON
+- NÃO use emojis
+- Retorne apenas o texto estruturado (ex: "**Objetivo 1: ...**", "- KR 1: ...")
       `.trim();
 
       const completion = await openai.createChatCompletion({
@@ -172,7 +158,7 @@ Não inclua explicação, comentários ou emojis. Responda apenas com o JSON.
           { role: 'system', content: promptSistema },
           ...messages,
         ],
-        temperature: 0.2,
+        temperature: 0.3,
       });
 
       const jsonRaw = await completion.json();

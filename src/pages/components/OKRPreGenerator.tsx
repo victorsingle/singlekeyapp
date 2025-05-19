@@ -4,22 +4,12 @@ import clsx from 'clsx';
 import { useAuthStore } from '../../stores/authStore';
 import { useOKRStore } from '../../stores/okrStore';
 
-interface ParsedOKR {
-  ciclo: {
-    nome: string;
-    inicio: string;
-    fim: string;
-  };
-  okrs: any[];
-  links: any[];
-}
-
 export function OKRPreGenerator() {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState('');
-  const [parsedOKR, setParsedOKR] = useState<ParsedOKR | null>(null);
+  const [parsedOKR, setParsedOKR] = useState<any | null>(null);
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -38,6 +28,8 @@ export function OKRPreGenerator() {
     setInput('');
     setLoading(true);
     setCurrentResponse('');
+    setParsedOKR(null);
+    setAwaitingConfirmation(false);
 
     const response = await fetch('/.netlify/functions/kai-chat', {
       method: 'POST',
@@ -85,38 +77,37 @@ export function OKRPreGenerator() {
       scrollToBottom();
     }
 
-    // Tenta extrair o JSON oculto da resposta
-    try {
-      const jsonMatch = accumulated.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const jsonData = JSON.parse(jsonMatch[0]);
-        if (jsonData?.ciclo && Array.isArray(jsonData.okrs)) {
-          setParsedOKR(jsonData);
-          setAwaitingConfirmation(true);
+    // Separa texto explicativo do JSON
+    const match = accumulated.match(/\{[\s\S]*\}$/);
+    let visibleText = accumulated;
+    let estruturaJSON = null;
 
-          // Remove o JSON da resposta visível
-          const textOnly = accumulated.replace(jsonMatch[0], '').trim();
-
-          setMessages((prev) => [
-            ...prev,
-            { role: 'assistant', content: textOnly },
-            {
-              role: 'assistant',
-              content: 'Está alinhado com o que você tinha em mente? Se estiver tudo certo, clique no botão abaixo para cadastrar no sistema.',
-            },
-          ]);
-
-          setCurrentResponse('');
-          setLoading(false);
-          return;
-        }
+    if (match) {
+      try {
+        estruturaJSON = JSON.parse(match[0]);
+        visibleText = accumulated.replace(match[0], '').trim();
+      } catch (err) {
+        console.warn('[⚠️ JSON malformado ou incompleto]', err);
       }
-    } catch (err) {
-      console.warn('[⚠️ Não foi possível interpretar JSON de OKRs]', err);
     }
 
-    // Resposta normal se não for estrutura de OKRs
-    setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
+    if (estruturaJSON?.ciclo && Array.isArray(estruturaJSON.okrs)) {
+      setParsedOKR(estruturaJSON);
+      setAwaitingConfirmation(true);
+    }
+
+    // Adiciona texto visível da IA + pergunta de validação
+    setMessages((prev) => [
+      ...prev,
+      ...(visibleText ? [{ role: 'assistant', content: visibleText }] : []),
+      ...(estruturaJSON
+        ? [{
+            role: 'assistant',
+            content: 'Está alinhado com o que você tinha em mente? Se quiser cadastrar no sistema, clique no botão abaixo.',
+          }]
+        : []),
+    ]);
+
     setCurrentResponse('');
     setLoading(false);
   };

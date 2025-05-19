@@ -79,10 +79,6 @@ Inclua os seguintes elementos:
 - **Objetivo 1 (Estratégico):** Expandir a presença da nova solução no mercado
   - KR1 (moonshot): Aumentar em 30% o número de leads qualificados — Métrica: Leads — Unidade: %
   - KR2 (roofshot): Obter 10 menções em mídias do setor — Métrica: Citações — Unidade: unidades
-- **Objetivo 2 (Tático):** ...
-  - KR1: ...
-- **Objetivo 3 (Operacional):** ...
-  - KR1: ...
 
 🔗 No fim, inclua vínculos como:
 - Vincular Objetivo 2 ao Objetivo 1
@@ -92,7 +88,7 @@ Finalize com:
 “Está tudo certo? Se quiser cadastrar no sistema, é só clicar no botão abaixo.”
 
 ⚠️ NUNCA use JSON, emojis ou estruturas de código. Apenas texto estruturado e limpo.
-`.trim();
+        `.trim();
       } else {
         promptSistema = `
 Você é a Kai, uma IA especialista em OKRs. Responda de forma simpática e clara.
@@ -164,7 +160,7 @@ Você é a Kai, uma IA especialista em OKRs. Responda de forma simpática e clar
       });
     }
 
-    // ✅ MODO GERAR — estrutura final como texto
+    // ✅ MODO GERAR — estrutura final como texto validado
     if (modo === 'gerar') {
       const promptSistema = `
 Você é a Kai, uma IA especialista em planejamento com OKRs. Hoje é ${dataFormatada}.

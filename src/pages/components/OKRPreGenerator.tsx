@@ -4,12 +4,22 @@ import clsx from 'clsx';
 import { useAuthStore } from '../../stores/authStore';
 import { useOKRStore } from '../../stores/okrStore';
 
+interface ParsedOKR {
+  ciclo: {
+    nome: string;
+    inicio: string;
+    fim: string;
+  };
+  okrs: any[];
+  links: any[];
+}
+
 export function OKRPreGenerator() {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState('');
-  const [parsedOKR, setParsedOKR] = useState<string | null>(null);
+  const [parsedOKR, setParsedOKR] = useState<ParsedOKR | null>(null);
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -75,22 +85,38 @@ export function OKRPreGenerator() {
       scrollToBottom();
     }
 
-    // Detecta estrutura de OKRs por padrão textual (ex: "**Objetivo")
-    if (accumulated.includes('**Objetivo') || accumulated.includes('**Objetivos')) {
-      setParsedOKR(accumulated);
-      setAwaitingConfirmation(true);
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: accumulated },
-        {
-          role: 'assistant',
-          content: 'Está alinhado com o que você tinha em mente? Se quiser cadastrar no sistema, clique no botão abaixo.',
-        },
-      ]);
-    } else {
-      setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
+    // Tenta extrair o JSON oculto da resposta
+    try {
+      const jsonMatch = accumulated.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const jsonData = JSON.parse(jsonMatch[0]);
+        if (jsonData?.ciclo && Array.isArray(jsonData.okrs)) {
+          setParsedOKR(jsonData);
+          setAwaitingConfirmation(true);
+
+          // Remove o JSON da resposta visível
+          const textOnly = accumulated.replace(jsonMatch[0], '').trim();
+
+          setMessages((prev) => [
+            ...prev,
+            { role: 'assistant', content: textOnly },
+            {
+              role: 'assistant',
+              content: 'Está alinhado com o que você tinha em mente? Se estiver tudo certo, clique no botão abaixo para cadastrar no sistema.',
+            },
+          ]);
+
+          setCurrentResponse('');
+          setLoading(false);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('[⚠️ Não foi possível interpretar JSON de OKRs]', err);
     }
 
+    // Resposta normal se não for estrutura de OKRs
+    setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
     setCurrentResponse('');
     setLoading(false);
   };
@@ -152,7 +178,7 @@ export function OKRPreGenerator() {
                 onClick={handleGenerateOKRs}
                 className="bg-blue-600 text-white text-sm font-medium py-2 px-4 rounded hover:bg-blue-700 transition"
               >
-                Implementar Indicadores
+                Cadastrar OKRs no sistema
               </button>
             </div>
           )}

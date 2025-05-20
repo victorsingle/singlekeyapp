@@ -112,7 +112,18 @@ export function OKRPreGenerator() {
       });
 
       const json = await res.json();
-      setMessages((prev) => [...prev, { role: 'assistant', content: json }]);
+      const content = json;
+
+      let displayed = '';
+      for (const char of content) {
+        displayed += char;
+        setCurrentResponse(displayed);
+        await new Promise((r) => setTimeout(r, 10)); // simula digitação
+      }
+
+      setMessages((prev) => [...prev, { role: 'assistant', content }]);
+      setCurrentResponse('');
+
       setLoading(false);
       return;
     }

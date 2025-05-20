@@ -85,7 +85,8 @@ Apenas responda com o JSON completo.
     });
 
     const json = await completion.json();
-    return new Response(JSON.stringify(json.choices[0].message.content));
+    const content = json?.choices?.[0]?.message?.content ?? '[❌ Erro: resposta vazia da IA]';
+    return new Response(JSON.stringify(content));
   }
 
   // Modos "conversa" e "gerar"

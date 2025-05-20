@@ -99,13 +99,21 @@ Apenas responda com o JSON completo.
       const content = json?.choices?.[0]?.message?.content;
       if (!content) {
         console.error('[❌ KAI JSON] Conteúdo vazio da IA');
-        return new Response(JSON.stringify('[❌ Erro: conteúdo da IA veio vazio.]'));
+        return new Response('[❌ Erro: conteúdo da IA veio vazio.]', {
+          status: 500,
+          headers: { 'Content-Type': 'text/plain' },
+        });
       }
 
-      return new Response(content); 
+      return new Response(content, {
+        headers: { 'Content-Type': 'application/json' },
+      });
     } catch (err) {
       console.error('[❌ KAI JSON] Erro de execução:', err);
-      return new Response(JSON.stringify('[❌ Erro inesperado ao gerar JSON.]'));
+      return new Response('[❌ Erro inesperado ao gerar JSON.]', {
+        status: 500,
+        headers: { 'Content-Type': 'text/plain' },
+      });
     }
   }
 
@@ -126,12 +134,20 @@ Apenas responda com o JSON completo.
     const content = json?.choices?.[0]?.message?.content?.trim();
     if (!content) {
       console.error('[❌ KAI GERAL] Conteúdo vazio da IA');
-      return new Response(JSON.stringify('[❌ A IA respondeu com conteúdo vazio. Tente reformular seu prompt.]'));
+      return new Response('[❌ A IA respondeu com conteúdo vazio. Tente reformular seu prompt.]', {
+        status: 500,
+        headers: { 'Content-Type': 'text/plain' },
+      });
     }
 
-    return new Response(content); 
+    return new Response(content, {
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    });
   } catch (err) {
     console.error('[❌ KAI GERAL] Erro de execução:', err);
-    return new Response(JSON.stringify('[❌ Erro inesperado ao processar a proposta.]'));
+    return new Response('[❌ Erro inesperado ao processar a proposta.]', {
+      status: 500,
+      headers: { 'Content-Type': 'text/plain' },
+    });
   }
 }

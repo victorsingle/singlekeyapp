@@ -33,6 +33,16 @@ export function OKRPreGenerator() {
   };
 
   useEffect(() => {
+  if (phase === 'awaiting_context' && messages.length === 0) {
+    const initialGreeting = {
+      role: 'assistant' as const,
+      content: `Olá! Me conte um pouco sobre o que sua equipe deseja alcançar neste próximo ciclo. Pode descrever o desafio ou meta principal.\n\nExemplo: “Queremos aumentar a base de clientes ativos e lançar novas funcionalidades até o fim do trimestre.”`
+    };
+    setMessages([initialGreeting]);
+  }
+}, [phase]);
+
+  useEffect(() => {
     scrollToBottom();
   }, [messages, currentResponse, phase]);
 
@@ -74,70 +84,70 @@ export function OKRPreGenerator() {
     }
 
     if (phase === 'awaiting_confirmation' && isApprovalMessage(input)) {
-      try {
-        const res = await fetch('/.netlify/functions/kai-chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messages: [...messages, newMessage],
-            userId,
-            organizationId,
-            modo: 'gerar',
-          }),
-        });
+  try {
+    const res = await fetch('/.netlify/functions/kai-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [...messages, newMessage],
+        userId,
+        organizationId,
+        modo: 'gerar',
+      }),
+    });
 
-        if (!res.ok || !res.body) throw new Error('Erro na resposta da IA');
+    if (!res.ok || !res.body) throw new Error('Erro na resposta da IA');
 
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let accumulated = '';
-        let done = false;
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let accumulated = '';
+    let done = false;
 
-        while (!done) {
-          const { value, done: readerDone } = await reader.read();
-          done = readerDone;
+    while (!done) {
+      const { value, done: readerDone } = await reader.read();
+      done = readerDone;
 
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n').filter((line) => line.trim().startsWith('data:'));
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n').filter((line) => line.trim().startsWith('data:'));
 
-          for (const line of lines) {
-            const jsonStr = line.replace(/^data:\s*/, '');
-            if (jsonStr === '[DONE]') continue;
+      for (const line of lines) {
+        const jsonStr = line.replace(/^data:\s*/, '');
+        if (jsonStr === '[DONE]') continue;
 
-            try {
-              const parsed = JSON.parse(jsonStr);
-              const content = parsed.content;
-              if (content) {
-                accumulated += content;
-                setCurrentResponse(accumulated);
-              }
-            } catch (err) {
-              console.error('[❌ Erro ao processar chunk da IA]', err);
-            }
+        try {
+          const parsed = JSON.parse(jsonStr);
+          const content = parsed.content;
+          if (content) {
+            accumulated += content;
+            setCurrentResponse(accumulated);
           }
+        } catch (err) {
+          console.error('[❌ Erro ao processar chunk da IA]', err);
         }
-
-        if (accumulated) {
-          setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
-          setConfirmedPrompt(accumulated);
-        }
-
-        setCurrentResponse('');
-        phaseTo('awaiting_adjustment');
-      } catch (err) {
-        console.error('[❌ Erro na fase awaiting_confirmation]', err);
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: 'assistant',
-            content: '❌ Algo deu errado ao gerar a proposta. Tente novamente ou recarregue a página.',
-          },
-        ]);
-      } finally {
-        setLoading(false);
       }
-      return;
     }
+
+    if (accumulated) {
+      setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
+      setConfirmedPrompt(accumulated);
+    }
+
+    setCurrentResponse('');
+    phaseTo('ready_to_generate'); // <<<<<< AJUSTE IMPORTANTE
+  } catch (err) {
+    console.error('[❌ Erro na fase awaiting_confirmation]', err);
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: 'assistant',
+        content: '❌ Algo deu errado ao gerar a proposta. Tente novamente ou recarregue a página.',
+      },
+    ]);
+  } finally {
+    setLoading(false);
+  }
+  return;
+}
 
     if (phase === 'awaiting_adjustment') {
       if (isApprovalMessage(input)) {

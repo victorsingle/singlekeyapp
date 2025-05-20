@@ -114,7 +114,7 @@ export function OKRPreGenerator() {
           throw new Error('[❌] Conteúdo inesperado ou vazio no front-end');
         }
 
-        setLoading(false); // Libera textarea ANTES da digitação
+        setLoading(false);
         await simulateKaiTyping(content);
         setMessages((prev) => [...prev, { role: 'assistant', content }]);
         setCurrentResponse('');

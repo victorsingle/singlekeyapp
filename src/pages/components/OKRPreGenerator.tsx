@@ -32,6 +32,18 @@ export function OKRPreGenerator() {
     }, 100);
   };
 
+
+async function simulateKaiTyping(content: string, setCurrent: (s: string) => void) {
+  let displayed = '';
+  for (const char of content) {
+    displayed += char;
+    setCurrent(displayed);
+    await new Promise((r) => setTimeout(r, 10));
+  }
+}
+
+
+
   useEffect(() => {
     scrollToBottom();
   }, [messages, currentResponse, phase]);
@@ -61,22 +73,20 @@ export function OKRPreGenerator() {
     // Fase 1: aguardando contexto
     if (phase === 'awaiting_context') {
       if (isGreeting(input)) {
-        setMessages((prev) => [
-          ...prev,
-          { role: 'assistant', content: 'Oi! Me conta um pouco sobre o que você gostaria de estruturar com indicadores hoje.' }
-        ]);
-        setLoading(false);
-        return;
+        await simulateKaiTyping('Oi! Me conta um pouco sobre os desafios desse ciclo que deseja planejar.', setCurrentResponse);
+          setMessages((prev) => [...prev, { role: 'assistant', content: 'Oi! Me conta um pouco sobre os desafios desse ciclo que deseja planejar' }]);
+          setCurrentResponse('');
+          setLoading(false);
+          return;
       }
 
       setPrompt(input);
       phaseTo('awaiting_confirmation');
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: 'Entendi! Posso gerar uma proposta de estruturação dos indicadores com base nisso?' }
-      ]);
-      setLoading(false);
-      return;
+      await simulateKaiTyping('Entendi! Posso gerar uma proposta de indicadores com base nisso?', setCurrentResponse);
+        setMessages((prev) => [...prev, { role: 'assistant', content: 'Entendi! Posso gerar uma proposta de indicadores com base nisso?' }]);
+        setCurrentResponse('');
+        setLoading(false);
+        return;
     }
 
     // Fase 2: confirmação para gerar estrutura

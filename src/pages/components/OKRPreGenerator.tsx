@@ -20,7 +20,7 @@ export function OKRPreGenerator() {
   const scrollToBottom = () => {
     setTimeout(() => {
       chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100); // atraso leve para garantir renderização
+    }, 100);
   };
 
   useEffect(() => {
@@ -50,12 +50,32 @@ export function OKRPreGenerator() {
 
     if (isConfirmation && messages.length > 0) {
       const lastAI = [...messages].reverse().find(m => m.role === 'assistant');
-      if (lastAI?.content) {
+      const pareceEstrutura = lastAI?.content?.includes('**Ciclo:**') || lastAI?.content?.includes('**Objetivo');
+
+      if (lastAI?.content && pareceEstrutura) {
         setConfirmedPrompt(lastAI.content);
         console.log('[✅ Confirmação recebida com texto estruturado]');
+        setLoading(false);
+        return;
+      } else {
+        // força gerar estrutura final
+        const gerarResponse = await fetch('/.netlify/functions/kai-chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [...messages, newMessage],
+            userId,
+            organizationId,
+            modo: 'gerar',
+          }),
+        });
+
+        const json = await gerarResponse.json();
+        setMessages((prev) => [...prev, { role: 'assistant', content: json }]);
+        setConfirmedPrompt(json);
+        setLoading(false);
+        return;
       }
-      setLoading(false);
-      return;
     }
 
     const response = await fetch('/.netlify/functions/kai-chat', {

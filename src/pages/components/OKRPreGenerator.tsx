@@ -32,20 +32,20 @@ export function OKRPreGenerator() {
     }, 100);
   };
 
-async function simulateKaiTyping(content: string) {
-  if (!content || typeof content !== 'string') {
-    console.warn('[⚠️ simulateKaiTyping] Conteúdo inválido:', content);
-    return;
-  }
+  async function simulateKaiTyping(content: string) {
+    if (!content || typeof content !== 'string') {
+      console.warn('[⚠️ simulateKaiTyping] Conteúdo inválido:', content);
+      return;
+    }
 
-  console.log('[DEBUG] Simulando conteúdo:', content);
-  let displayed = '';
-  for (const char of content) {
-    displayed += char;
-    setCurrentResponse(displayed);
-    await new Promise((r) => setTimeout(r, 10));
+    console.log('[DEBUG] Simulando conteúdo:', content);
+    let displayed = '';
+    for (const char of content) {
+      displayed += char;
+      setCurrentResponse(displayed);
+      await new Promise((r) => setTimeout(r, 10));
+    }
   }
-}
 
   useEffect(() => {
     scrollToBottom();
@@ -74,9 +74,7 @@ async function simulateKaiTyping(content: string) {
     setLoading(true);
     setCurrentResponse('');
 
-    // Fase 1: aguardando contexto
     if (phase === 'awaiting_context') {
-      
       if (isGreeting(input)) {
         const msg = 'Oi! Me conta um pouco sobre os desafios desse ciclo que deseja planejar.';
         await simulateKaiTyping(msg);
@@ -85,7 +83,6 @@ async function simulateKaiTyping(content: string) {
         setLoading(false);
         return;
       }
-
       setPrompt(input);
       phaseTo('awaiting_confirmation');
       const msg = 'Entendi! Posso gerar uma proposta de indicadores com base nisso?';
@@ -96,51 +93,47 @@ async function simulateKaiTyping(content: string) {
       return;
     }
 
-    // Fase 2: confirmação para gerar estrutura
-if (phase === 'awaiting_confirmation' && isApprovalMessage(input)) {
-  console.log('[DEBUG] Entrou em awaiting_confirmation');
-  try {
-    const res = await fetch('/.netlify/functions/kai-chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages: [...messages, newMessage],
-        userId,
-        organizationId,
-        modo: 'gerar',
-      }),
-    });
+    if (phase === 'awaiting_confirmation' && isApprovalMessage(input)) {
+      console.log('[DEBUG] Entrou em awaiting_confirmation');
+      try {
+        const res = await fetch('/.netlify/functions/kai-chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [...messages, newMessage],
+            userId,
+            organizationId,
+            modo: 'gerar',
+          }),
+        });
 
-    const content = await res.text();
-    console.log('[DEBUG] Conteúdo final recebido da IA:', content);
+        const content = await res.text();
+        console.log('[DEBUG] Conteúdo final recebido da IA:', content);
 
-    if (!content || content.length < 10) {
-      throw new Error('[❌] Conteúdo inesperado ou vazio no front-end');
+        if (!content || content.length < 10) {
+          throw new Error('[❌] Conteúdo inesperado ou vazio no front-end');
+        }
+
+        setLoading(false); // Libera textarea ANTES da digitação
+        await simulateKaiTyping(content);
+        setMessages((prev) => [...prev, { role: 'assistant', content }]);
+        setCurrentResponse('');
+        phaseTo('awaiting_adjustment');
+        setConfirmedPrompt(content);
+      } catch (err) {
+        console.error('[❌ Erro na fase awaiting_confirmation]', err);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: '❌ Algo deu errado ao gerar a proposta. Tente novamente ou recarregue a página.',
+          },
+        ]);
+        setLoading(false);
+      }
+      return;
     }
 
-    await simulateKaiTyping(content);
-    setMessages((prev) => [...prev, { role: 'assistant', content }]);
-    setCurrentResponse('');
-    phaseTo('awaiting_adjustment');
-    setConfirmedPrompt(content);
-  } catch (err) {
-    console.error('[❌ Erro na fase awaiting_confirmation]', err);
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: 'assistant',
-        content: '❌ Algo deu errado ao gerar a proposta. Tente novamente ou recarregue a página.',
-      },
-    ]);
-  } finally {
-    setLoading(false);
-  }
-
-  return;
-}
-
-
-    // Fase 3: ajustes
     if (phase === 'awaiting_adjustment') {
       console.log('[DEBUG] Entrou em awaiting_adjustment');
       if (isApprovalMessage(input)) {
@@ -173,11 +166,9 @@ if (phase === 'awaiting_confirmation' && isApprovalMessage(input)) {
       await simulateKaiTyping(content);
       setMessages((prev) => [...prev, { role: 'assistant', content }]);
       setCurrentResponse('');
-      
       return;
     }
 
-    // fallback: conversa inicial ou perguntas da IA
     const response = await fetch('/.netlify/functions/kai-chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

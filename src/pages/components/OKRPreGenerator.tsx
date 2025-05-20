@@ -39,6 +39,8 @@ export function OKRPreGenerator() {
       setCurrentResponse(displayed);
       await new Promise((r) => setTimeout(r, 10));
     }
+    console.log('[DEBUG] Simulando conteúdo:', content);
+    console.log('[DEBUG] Tipo do conteúdo:', typeof content);
   }
 
   useEffect(() => {
@@ -59,6 +61,7 @@ export function OKRPreGenerator() {
   };
 
   const handleSend = async () => {
+    console.log('[DEBUG] handleSend iniciado | fase:', phase, '| input:', input);
     if (!input.trim()) return;
 
     const newMessage = { role: 'user' as const, content: input };
@@ -69,6 +72,7 @@ export function OKRPreGenerator() {
 
     // Fase 1: aguardando contexto
     if (phase === 'awaiting_context') {
+      
       if (isGreeting(input)) {
         const msg = 'Oi! Me conta um pouco sobre os desafios desse ciclo que deseja planejar.';
         await simulateKaiTyping(msg);
@@ -90,6 +94,7 @@ export function OKRPreGenerator() {
 
     // Fase 2: confirmação para gerar estrutura
     if (phase === 'awaiting_confirmation' && isApprovalMessage(input)) {
+      console.log('[DEBUG] Entrou em awaiting_confirmation');
       const res = await fetch('/.netlify/functions/kai-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -121,6 +126,7 @@ export function OKRPreGenerator() {
 
     // Fase 3: ajustes
     if (phase === 'awaiting_adjustment') {
+      console.log('[DEBUG] Entrou em awaiting_adjustment');
       if (isApprovalMessage(input)) {
         phaseTo('ready_to_generate');
         setLoading(false);

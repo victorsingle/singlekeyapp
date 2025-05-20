@@ -13,6 +13,13 @@ export const config = {
 export default async function handler(req: NextRequest) {
   const { messages, modo, userId, organizationId } = await req.json();
 
+  console.log('🟡 [KAI] Request recebida:', {
+    modo,
+    userId,
+    organizationId,
+    ultimaMensagem: messages[messages.length - 1]?.content,
+  });
+
   const systemPromptBase = `
 Você é Kai, uma IA especialista em estruturação de OKRs (Objetivos e Resultados-Chave). 
 Você conversa de forma gentil, clara e estruturada, ajudando o usuário a refletir sobre seus desafios.
@@ -29,7 +36,8 @@ Regras:
 `;
 
   if (modo === 'json') {
-    const systemPrompt = `
+    try {
+      const systemPrompt = `
 Você é Kai, uma IA especializada em estruturar OKRs para cadastro no sistema.
 
 Receberá abaixo um TEXTO VALIDADO pelo usuário contendo a estrutura de OKRs.
@@ -75,44 +83,55 @@ Sua tarefa é CONVERTER esse conteúdo em um JSON exato, respeitando rigorosamen
 Apenas responda com o JSON completo.
 `;
 
+      const completion = await openai.createChatCompletion({
+        model: 'gpt-4o',
+        temperature: 0.2,
+        response_format: 'json_object',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...messages,
+        ],
+      });
+
+      const json = await completion.json();
+      console.log('✅ [KAI JSON] Resposta da IA:', JSON.stringify(json, null, 2));
+
+      const content = json?.choices?.[0]?.message?.content;
+      if (!content) {
+        console.error('[❌ KAI JSON] Conteúdo vazio da IA');
+        return new Response(JSON.stringify('[❌ Erro: conteúdo da IA veio vazio.]'));
+      }
+
+      return new Response(JSON.stringify(content));
+    } catch (err) {
+      console.error('[❌ KAI JSON] Erro de execução:', err);
+      return new Response(JSON.stringify('[❌ Erro inesperado ao gerar JSON.]'));
+    }
+  }
+
+  // Modos "conversa" e "gerar"
+  try {
     const completion = await openai.createChatCompletion({
       model: 'gpt-4o',
-      temperature: 0.2,
-      response_format: 'json_object',
+      temperature: 0.6,
       messages: [
-        { role: 'system', content: systemPrompt },
+        { role: 'system', content: systemPromptBase },
         ...messages,
       ],
     });
 
     const json = await completion.json();
-    const content = json?.choices?.[0]?.message?.content ?? '[❌ Erro: resposta vazia da IA]';
+    console.log('✅ [KAI GERAL] Resposta da IA:', JSON.stringify(json, null, 2));
+
+    const content = json?.choices?.[0]?.message?.content?.trim();
+    if (!content) {
+      console.error('[❌ KAI GERAL] Conteúdo vazio da IA');
+      return new Response(JSON.stringify('[❌ A IA respondeu com conteúdo vazio. Tente reformular seu prompt.]'));
+    }
+
     return new Response(JSON.stringify(content));
+  } catch (err) {
+    console.error('[❌ KAI GERAL] Erro de execução:', err);
+    return new Response(JSON.stringify('[❌ Erro inesperado ao processar a proposta.]'));
   }
-
-  // Modos "conversa" e "gerar"
-  const completion = await openai.createChatCompletion({
-  model: 'gpt-4o',
-  temperature: 0.6,
-  messages: [
-    { role: 'system', content: systemPromptBase },
-    ...messages,
-  ],
-});
-
-const json = await completion.json();
-
-if (!json || !json.choices || !json.choices[0] || !json.choices[0].message) {
-  console.error('[❌ Erro: resposta inválida da IA]', JSON.stringify(json, null, 2));
-  return new Response(JSON.stringify('[❌ A IA não conseguiu gerar a proposta. Tente novamente.]'));
-}
-
-const content = json.choices[0].message.content?.trim();
-
-if (!content) {
-  console.error('[❌ Erro: resposta vazia da IA]', JSON.stringify(json, null, 2));
-  return new Response(JSON.stringify('[❌ A IA respondeu com conteúdo vazio. Tente reformular seu prompt.]'));
-}
-
-return new Response(JSON.stringify(content));
 }

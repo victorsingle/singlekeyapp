@@ -4,18 +4,20 @@ import { ArrowUpCircle, Target } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../../stores/authStore';
 import { useOKRStore } from '../../stores/okrStore';
+import { useKaiChatStore } from '../../stores/useKaiChatStore';
 
 export function OKRPreGenerator() {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState('');
-  const [confirmedPrompt, setConfirmedPrompt] = useState<string | null>(null);
+
+  const { userId, organizationId } = useAuthStore.getState();
+  const generateFullOKRStructure = useOKRStore((state) => state.generateFullOKRStructure);
+  const { phase, prompt, setPrompt, phaseTo, reset } = useKaiChatStore();
 
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
-  const { userId, organizationId } = useAuthStore.getState();
-  const generateFullOKRStructure = useOKRStore((state) => state.generateFullOKRStructure);
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -25,59 +27,84 @@ export function OKRPreGenerator() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, currentResponse, confirmedPrompt]);
+  }, [messages, currentResponse, phase]);
+
+  const isApprovalMessage = (text: string) => {
+    const lower = text.toLowerCase();
+    return [
+      'pode cadastrar', 'vamos cadastrar', 'sim', 'top', 'perfeito',
+      'gostei', 'legal', 'está ótimo', 'vamos em frente', 'fechou', 'pode ir'
+    ].some(p => lower.includes(p));
+  };
 
   const handleSend = async () => {
     if (!input.trim()) return;
 
-    const lower = input.toLowerCase();
-    const confirmationPhrases = [
-      'pode gerar', 'vamos gerar', 'pode seguir', 'vamos seguir assim',
-      'pode cadastrar', 'vamos cadastrar', 'sim', 'top', 'perfeito',
-      'maneiro', 'massa', 'é isso', 'gostei', 'gostei bastante',
-      'legal', 'está ótimo', 'está ótimo assim', 'vamos em frente',
-      'tá bom', 'ok', 'fechou', 'tá certo', 'vamos nessa',
-      'segue assim', 'tá ótimo', 'pode ir'
-    ];
-
-    const isConfirmation = confirmationPhrases.some(f => lower.includes(f));
     const newMessage = { role: 'user' as const, content: input };
-
     setMessages((prev) => [...prev, newMessage]);
     setInput('');
     setLoading(true);
     setCurrentResponse('');
 
-    if (isConfirmation && messages.length > 0) {
-      const lastAI = [...messages].reverse().find(m => m.role === 'assistant');
-      const pareceEstrutura = lastAI?.content?.includes('**Ciclo:**') || lastAI?.content?.includes('**Objetivo');
-
-      if (lastAI?.content && pareceEstrutura) {
-        setConfirmedPrompt(lastAI.content);
-        console.log('[✅ Confirmação recebida com texto estruturado]');
-        setLoading(false);
-        return;
-      } else {
-        // força gerar estrutura final
-        const gerarResponse = await fetch('/.netlify/functions/kai-chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messages: [...messages, newMessage],
-            userId,
-            organizationId,
-            modo: 'gerar',
-          }),
-        });
-
-        const json = await gerarResponse.json();
-        setMessages((prev) => [...prev, { role: 'assistant', content: json }]);
-        setConfirmedPrompt(json);
-        setLoading(false);
-        return;
-      }
+    // Fase 1: usuário envia contexto inicial
+    if (phase === 'awaiting_context') {
+      setPrompt(input);
+      phaseTo('awaiting_confirmation');
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: 'Entendi! Posso gerar uma proposta de estruturação dos indicadores com base nisso?' }
+      ]);
+      setLoading(false);
+      return;
     }
 
+    // Fase 2: usuário confirma geração
+    if (phase === 'awaiting_confirmation' && isApprovalMessage(input)) {
+      const res = await fetch('/.netlify/functions/kai-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [...messages, newMessage],
+          userId,
+          organizationId,
+          modo: 'gerar',
+        }),
+      });
+
+      const json = await res.json();
+      setMessages((prev) => [...prev, { role: 'assistant', content: json }]);
+      phaseTo('awaiting_adjustment');
+      setLoading(false);
+      return;
+    }
+
+    // Fase 3: usuário pede ajustes
+    if (phase === 'awaiting_adjustment') {
+      const res = await fetch('/.netlify/functions/kai-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [...messages, newMessage],
+          userId,
+          organizationId,
+          modo: 'gerar',
+        }),
+      });
+
+      const json = await res.json();
+      setMessages((prev) => [...prev, { role: 'assistant', content: json }]);
+      setLoading(false);
+      return;
+    }
+
+    // Fase 4: usuário aprovou estrutura final
+    if (phase === 'awaiting_adjustment' && isApprovalMessage(input)) {
+      phaseTo('ready_to_generate');
+      setLoading(false);
+      return;
+    }
+
+    // fallback: conversa padrão
     const response = await fetch('/.netlify/functions/kai-chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -132,27 +159,20 @@ export function OKRPreGenerator() {
   };
 
   const handleGenerateOKRs = async () => {
-    if (!confirmedPrompt) return;
+    if (!prompt) return;
     setLoading(true);
-
     try {
-      const cicloId = await generateFullOKRStructure(confirmedPrompt);
+      const cicloId = await generateFullOKRStructure(prompt);
       setMessages((prev) => [
         ...prev,
-        {
-          role: 'assistant',
-          content: '✅ OKRs cadastrados no sistema com sucesso! Redirecionando para o ciclo...',
-        },
+        { role: 'assistant', content: '✅ OKRs cadastrados com sucesso! Redirecionando...' }
       ]);
       setTimeout(() => navigate(`/ciclos/${cicloId}`), 1500);
     } catch (err) {
       console.error('[❌ Erro ao cadastrar OKRs]', err);
       setMessages((prev) => [
         ...prev,
-        {
-          role: 'assistant',
-          content: 'Ocorreu um erro ao tentar cadastrar os OKRs. Tente novamente mais tarde.',
-        },
+        { role: 'assistant', content: 'Erro ao cadastrar OKRs. Tente novamente mais tarde.' }
       ]);
     } finally {
       setLoading(false);
@@ -181,7 +201,7 @@ export function OKRPreGenerator() {
               {currentResponse}
             </div>
           )}
-          {confirmedPrompt && (
+          {phase === 'ready_to_generate' && (
             <div className="flex justify-start mt-2">
               <button
                 onClick={handleGenerateOKRs}

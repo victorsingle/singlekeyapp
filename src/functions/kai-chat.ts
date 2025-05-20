@@ -1,198 +1,104 @@
 import { Configuration, OpenAIApi } from 'openai-edge';
-import { createClient } from '@supabase/supabase-js';
+import { OpenAIStream, StreamingTextResponse } from 'ai';
+import { NextRequest } from 'next/server';
 
-const openai = new OpenAIApi(
-  new Configuration({
-    apiKey: process.env.VITE_OPENAI_API_KEY!,
-  })
-);
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const config = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(config);
 
 export const config = {
   runtime: 'edge',
 };
 
-export default async function handler(req: Request): Promise<Response> {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
+export default async function handler(req: NextRequest) {
+  const { messages, modo, userId, organizationId } = await req.json();
+
+  const systemPromptBase = `
+Você é Kai, uma IA especialista em estruturação de OKRs (Objetivos e Resultados-Chave). 
+Você conversa de forma gentil, clara e estruturada, ajudando o usuário a refletir sobre seus desafios.
+
+Regras:
+- Só gere uma estrutura de OKRs se for claramente solicitado (modo "gerar").
+- Ao gerar, sempre entregue a estrutura COMPLETA: ciclo, objetivos, tipo, KRs, métricas (se mencionados).
+- Ao receber ajustes, reescreva tudo de novo, sem deixar partes antigas.
+- Nunca mostre JSON para o usuário. Fale em linguagem natural e estruturada.
+- Pergunte antes de agir. Confirme se deve prosseguir.
+- Seja leve, sem exagero nos emojis ou nas firulas.
+`;
+
+  if (modo === 'json') {
+    const systemPrompt = `
+Você é Kai, uma IA especializada em estruturar OKRs para cadastro no sistema.
+
+Receberá abaixo um TEXTO VALIDADO pelo usuário contendo a estrutura de OKRs.
+
+Sua tarefa é CONVERTER esse conteúdo em um JSON exato, respeitando rigorosamente o seguinte formato:
+
+{
+  "ciclo": {
+    "nome": "string",
+    "dataInicio": "YYYY-MM-DD",
+    "dataFim": "YYYY-MM-DD",
+    "temaEstratégico": "string"
+  },
+  "okrs": [
+    {
+      "id": "okr-1",
+      "objetivo": "string",
+      "tipo": "strategic" | "tactical" | "operational",
+      "resultadosChave": [
+        {
+          "texto": "string",
+          "tipo": "moonshot" | "roofshot",
+          "métrica": "string",
+          "valorInicial": number,
+          "valorAlvo": number,
+          "unidade": "string"
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "origem": "okr-1",
+      "destino": "okr-2",
+      "tipo": "hierarchy"
+    }
+  ]
+}
+
+⚠️ NÃO EXPLIQUE o que está fazendo.
+⚠️ NÃO insira nenhum texto fora do JSON.
+
+Apenas responda com o JSON completo.
+`;
+
+    const completion = await openai.createChatCompletion({
+      model: 'gpt-4o',
+      temperature: 0.2,
+      response_format: 'json',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...messages,
+      ],
     });
+
+    const completionJSON = await completion.json();
+    return new Response(JSON.stringify(completionJSON.choices[0].message.content));
   }
 
-  if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 });
-  }
+  // para modos "conversa" e "gerar"
+  const completion = await openai.createChatCompletion({
+    model: 'gpt-4o',
+    temperature: 0.6,
+    stream: true,
+    messages: [
+      { role: 'system', content: systemPromptBase },
+      ...messages,
+    ],
+  });
 
-  try {
-    const { messages, userId, organizationId, modo = 'conversa' } = await req.json();
-
-    if (!userId || !organizationId || !Array.isArray(messages)) {
-      return new Response('Unauthorized', { status: 401 });
-    }
-
-    const dataAtual = new Date();
-    const dataFormatada = dataAtual.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).replace('.', '');
-
-    const ultimoPrompt = messages[messages.length - 1]?.content?.toLowerCase() || '';
-    const promptVago = ['não sei', 'pensando', 'ainda não sei', 'em dúvida'].some((p) =>
-      ultimoPrompt.includes(p)
-    );
-
-    let promptSistema = '';
-
-    if (modo === 'conversa') {
-      const termosDeOKR = [
-        'okr',
-        'objetivo',
-        'key result',
-        'resultado-chave',
-        'ciclo',
-        'estrutura',
-        'meta',
-        'estruturar',
-        'desdobrar',
-      ];
-      const querGerarOKRs =
-        termosDeOKR.some((p) => ultimoPrompt.includes(p)) && !promptVago;
-
-      if (querGerarOKRs) {
-        promptSistema = `
-Você é a Kai, uma IA especialista em planejamento com OKRs. Hoje é ${dataFormatada}.
-
-Seu papel é ajudar o usuário a montar uma estrutura completa de OKRs para o ciclo atual.
-
-✅ Você deve gerar:
-- Nome do ciclo
-- Data de início e fim (3 meses a partir de hoje)
-- Tema estratégico
-- De 3 a 6 objetivos com tipo: estratégico, tático ou operacional
-- De 2 a 5 KRs por objetivo, com tipo (moonshot | roofshot), métrica e unidade
-- Vínculos entre objetivos (ex: Vincular Objetivo 3 ao Objetivo 2)
-
-🧠 Se o usuário solicitar ajustes, atualize apenas a parte solicitada, mantendo o restante como está. Nunca sobrescreva tudo a cada mensagem.
-
-⚠️ Nunca use JSON ou emojis. Responda com texto limpo e estruturado.
-
-Comece sempre perguntando:
-“Posso gerar uma proposta de estruturação dos indicadores para você aprovar?”
-        `.trim();
-      } else {
-        promptSistema = `
-Você é a Kai, uma IA especialista em OKRs. Responda de forma simpática e clara.
-
-Se o usuário estiver indeciso, faça perguntas para entender melhor o contexto e só proponha estrutura quando houver clareza suficiente.
-
-Nunca use JSON ou emojis. Seja natural, humana e objetiva.
-        `.trim();
-      }
-
-      const completion = await openai.createChatCompletion({
-        model: 'gpt-4o',
-        stream: true,
-        messages: [{ role: 'system', content: promptSistema }, ...messages],
-        temperature: 0.7,
-      });
-
-      const encoder = new TextEncoder();
-      const reader = completion.body?.getReader();
-      const decoder = new TextDecoder();
-
-      const stream = new ReadableStream({
-        async start(controller) {
-          let buffer = '';
-          while (true) {
-            const { value, done } = await reader!.read();
-            if (done) break;
-
-            const chunk = decoder.decode(value);
-            const lines = chunk.split('\n').filter((line) =>
-              line.trim().startsWith('data:')
-            );
-
-            for (const line of lines) {
-              const jsonStr = line.replace(/^data:\s*/, '');
-              if (jsonStr === '[DONE]') continue;
-
-              try {
-                const parsed = JSON.parse(jsonStr);
-                const content = parsed.choices?.[0]?.delta?.content;
-                if (content) {
-                  buffer += content;
-                  controller.enqueue(
-                    encoder.encode(`data: ${JSON.stringify({ content })}\n\n`)
-                  );
-                }
-              } catch (err) {
-                console.warn('[⚠️ Erro ao parsear linha de streaming]', err);
-              }
-            }
-          }
-
-          controller.close();
-        },
-      });
-
-      return new Response(stream, {
-        headers: {
-          'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache',
-          'Connection': 'keep-alive',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        },
-      });
-    }
-
-    if (modo === 'gerar') {
-      const promptSistema = `
-Você é a Kai, uma IA especialista em OKRs. Hoje é ${dataFormatada}.
-
-Sua tarefa agora é gerar a estrutura completa e final de OKRs APROVADA pelo usuário em formato textual.
-
-Inclua:
-- Nome do ciclo e datas (3 meses)
-- Tema estratégico
-- Objetivos (com tipo)
-- KRs com tipo, métrica e unidade
-- Vínculos entre objetivos
-
-⚠️ Não use JSON. Retorne texto puro, bem estruturado, fiel ao que foi validado. Finalize com: “Está de acordo com o que imaginava? Posso ajustar se precisar.”
-      `.trim();
-
-      const completion = await openai.createChatCompletion({
-        model: 'gpt-4o',
-        stream: false,
-        messages: [{ role: 'system', content: promptSistema }, ...messages],
-        temperature: 0.3,
-      });
-
-      const jsonRaw = await completion.json();
-      const content = jsonRaw.choices?.[0]?.message?.content || '';
-
-      return new Response(content, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      });
-    }
-
-    return new Response('Modo inválido', { status: 400 });
-  } catch (err) {
-    console.error('[❌ Erro na função kai-chat]', err);
-    return new Response('Erro interno da IA', { status: 500 });
-  }
+  const stream = OpenAIStream(completion);
+  return new StreamingTextResponse(stream);
 }

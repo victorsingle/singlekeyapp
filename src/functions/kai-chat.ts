@@ -92,15 +92,27 @@ Apenas responda com o JSON completo.
 
   // Modos "conversa" e "gerar"
   const completion = await openai.createChatCompletion({
-    model: 'gpt-4o',
-    temperature: 0.6,
-    messages: [
-      { role: 'system', content: systemPromptBase },
-      ...messages,
-    ],
-  });
+  model: 'gpt-4o',
+  temperature: 0.6,
+  messages: [
+    { role: 'system', content: systemPromptBase },
+    ...messages,
+  ],
+});
 
-  const json = await completion.json();
-  const content = json?.choices?.[0]?.message?.content ?? '[❌ Erro: resposta da IA veio vazia]';
-  return new Response(JSON.stringify(content));
+const json = await completion.json();
+
+if (!json || !json.choices || !json.choices[0] || !json.choices[0].message) {
+  console.error('[❌ Erro: resposta inválida da IA]', JSON.stringify(json, null, 2));
+  return new Response(JSON.stringify('[❌ A IA não conseguiu gerar a proposta. Tente novamente.]'));
+}
+
+const content = json.choices[0].message.content?.trim();
+
+if (!content) {
+  console.error('[❌ Erro: resposta vazia da IA]', JSON.stringify(json, null, 2));
+  return new Response(JSON.stringify('[❌ A IA respondeu com conteúdo vazio. Tente reformular seu prompt.]'));
+}
+
+return new Response(JSON.stringify(content));
 }

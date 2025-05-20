@@ -14,7 +14,7 @@ export function OKRPreGenerator() {
 
   const { userId, organizationId } = useAuthStore.getState();
   const generateFullOKRStructure = useOKRStore((state) => state.generateFullOKRStructure);
-  const { phase, prompt, setPrompt, phaseTo, reset } = useKaiChatStore();
+  const { phase, prompt, setPrompt, phaseTo } = useKaiChatStore();
 
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
@@ -37,6 +37,11 @@ export function OKRPreGenerator() {
     ].some(p => lower.includes(p));
   };
 
+  const isGreeting = (text: string) => {
+    return ['oi', 'olá', 'bom dia', 'boa tarde', 'boa noite']
+      .some(p => text.toLowerCase().includes(p));
+  };
+
   const handleSend = async () => {
     if (!input.trim()) return;
 
@@ -46,8 +51,17 @@ export function OKRPreGenerator() {
     setLoading(true);
     setCurrentResponse('');
 
-    // Fase 1: usuário envia contexto inicial
+    // Fase 1: aguardando contexto
     if (phase === 'awaiting_context') {
+      if (isGreeting(input)) {
+        setMessages((prev) => [
+          ...prev,
+          { role: 'assistant', content: 'Oi! Me conta um pouco sobre o que você gostaria de estruturar com indicadores hoje.' }
+        ]);
+        setLoading(false);
+        return;
+      }
+
       setPrompt(input);
       phaseTo('awaiting_confirmation');
       setMessages((prev) => [
@@ -58,7 +72,7 @@ export function OKRPreGenerator() {
       return;
     }
 
-    // Fase 2: usuário confirma geração
+    // Fase 2: confirmação para gerar estrutura
     if (phase === 'awaiting_confirmation' && isApprovalMessage(input)) {
       const res = await fetch('/.netlify/functions/kai-chat', {
         method: 'POST',
@@ -78,8 +92,14 @@ export function OKRPreGenerator() {
       return;
     }
 
-    // Fase 3: usuário pede ajustes
+    // Fase 3: ajustes
     if (phase === 'awaiting_adjustment') {
+      if (isApprovalMessage(input)) {
+        phaseTo('ready_to_generate');
+        setLoading(false);
+        return;
+      }
+
       const res = await fetch('/.netlify/functions/kai-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -97,14 +117,7 @@ export function OKRPreGenerator() {
       return;
     }
 
-    // Fase 4: usuário aprovou estrutura final
-    if (phase === 'awaiting_adjustment' && isApprovalMessage(input)) {
-      phaseTo('ready_to_generate');
-      setLoading(false);
-      return;
-    }
-
-    // fallback: conversa padrão
+    // fallback: conversa inicial ou perguntas da IA
     const response = await fetch('/.netlify/functions/kai-chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

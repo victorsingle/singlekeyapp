@@ -1,8 +1,7 @@
 import { Configuration, OpenAIApi } from 'openai-edge';
-import { OpenAIStream, StreamingTextResponse } from 'ai';
 import { NextRequest } from 'next/server';
 
-const openaiConfig  = new Configuration({
+const openaiConfig = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(openaiConfig);
@@ -20,11 +19,12 @@ Você conversa de forma gentil, clara e estruturada, ajudando o usuário a refle
 
 Regras:
 - Só gere uma estrutura de OKRs se for claramente solicitado (modo "gerar").
-- Ao gerar, sempre entregue a estrutura COMPLETA: ciclo, objetivos, tipo, KRs, métricas (se mencionados).
+- NÃO gere proposta de OKRs até ter contexto suficiente (área, escopo, foco do ciclo).
+- Ao gerar, sempre entregue a estrutura COMPLETA: ciclo, objetivos, tipo, KRs.
 - Ao receber ajustes, reescreva tudo de novo, sem deixar partes antigas.
 - Nunca mostre JSON para o usuário. Fale em linguagem natural e estruturada.
 - Pergunte antes de agir. Confirme se deve prosseguir.
-- Seja leve, sem exagero nos emojis ou nas firulas.
+- Seja leve, sem exagero nas firulas.
 `;
 
   if (modo === 'json') {
@@ -84,21 +84,20 @@ Apenas responda com o JSON completo.
       ],
     });
 
-    const completionJSON = await completion.json();
-    return new Response(JSON.stringify(completionJSON.choices[0].message.content));
+    const json = await completion.json();
+    return new Response(JSON.stringify(json.choices[0].message.content));
   }
 
-  // para modos "conversa" e "gerar"
+  // Modos "conversa" e "gerar"
   const completion = await openai.createChatCompletion({
     model: 'gpt-4o',
     temperature: 0.6,
-    stream: true,
     messages: [
       { role: 'system', content: systemPromptBase },
       ...messages,
     ],
   });
 
-  const stream = OpenAIStream(completion);
-  return new StreamingTextResponse(stream);
+  const json = await completion.json();
+  return new Response(JSON.stringify(json.choices[0].message.content));
 }

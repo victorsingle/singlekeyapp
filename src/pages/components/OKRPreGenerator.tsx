@@ -101,7 +101,14 @@ export function OKRPreGenerator() {
         }),
       });
 
-      const content = await res.text(); 
+      const raw = await res.text();
+      let content = '';
+
+      try {
+        content = JSON.parse(raw);
+      } catch {
+        content = raw.replace(/^"|"$/g, ''); // remove aspas caso venha serializado
+      }
 
       await simulateKaiTyping(content);
       setMessages((prev) => [...prev, { role: 'assistant', content }]);
@@ -132,7 +139,13 @@ export function OKRPreGenerator() {
       });
 
       const raw = await res.text();
-      const content = JSON.parse(raw);
+      let content = '';
+
+      try {
+        content = JSON.parse(raw);
+      } catch {
+        content = raw.replace(/^"|"$/g, '');
+      }
 
       await simulateKaiTyping(content);
       setMessages((prev) => [...prev, { role: 'assistant', content }]);

@@ -131,8 +131,8 @@ export function OKRPreGenerator() {
         }),
       });
 
-      const json = await res.json();
-      const content = json;
+      const raw = await res.text();
+      const content = JSON.parse(raw);
 
       await simulateKaiTyping(content);
       setMessages((prev) => [...prev, { role: 'assistant', content }]);

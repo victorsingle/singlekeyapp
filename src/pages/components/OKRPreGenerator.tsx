@@ -32,16 +32,20 @@ export function OKRPreGenerator() {
     }, 100);
   };
 
-  async function simulateKaiTyping(content: string) {
-    let displayed = '';
-    for (const char of content) {
-      displayed += char;
-      setCurrentResponse(displayed);
-      await new Promise((r) => setTimeout(r, 10));
-    }
-    console.log('[DEBUG] Simulando conteúdo:', content);
-    console.log('[DEBUG] Tipo do conteúdo:', typeof content);
+async function simulateKaiTyping(content: string) {
+  if (typeof content !== 'string' || !content.trim()) {
+    console.warn('[⚠️ simulateKaiTyping] Conteúdo inválido:', content);
+    return;
   }
+
+  console.log('[DEBUG] Simulando conteúdo:', content);
+  let displayed = '';
+  for (const char of content) {
+    displayed += char;
+    setCurrentResponse(displayed);
+    await new Promise((r) => setTimeout(r, 10));
+  }
+}
 
   useEffect(() => {
     scrollToBottom();

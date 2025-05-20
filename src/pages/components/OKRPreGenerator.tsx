@@ -33,7 +33,7 @@ export function OKRPreGenerator() {
   };
 
 async function simulateKaiTyping(content: string) {
-  if (typeof content !== 'string' || !content.trim()) {
+  if (!content || typeof content !== 'string') {
     console.warn('[⚠️ simulateKaiTyping] Conteúdo inválido:', content);
     return;
   }
@@ -111,13 +111,23 @@ async function simulateKaiTyping(content: string) {
       });
 
       const raw = await res.text();
-      let content = '';
+      let content: string = '';
 
       try {
-        content = JSON.parse(raw);
-      } catch {
-        content = raw.replace(/^"|"$/g, ''); // remove aspas caso venha serializado
+        const parsed = JSON.parse(raw);
+        if (typeof parsed === 'string') {
+          content = parsed;
+        } else if (parsed?.choices?.[0]?.message?.content) {
+          content = parsed.choices[0].message.content;
+        } else {
+          content = '[❌ Resposta inesperada da IA]';
+        }
+      } catch (err) {
+        console.warn('[⚠️ Erro ao parsear JSON da IA]', err, raw);
+        content = raw.replace(/^"|"$/g, '');
       }
+
+      console.log('[DEBUG] Conteúdo final recebido da IA:', content);
 
       await simulateKaiTyping(content);
       setMessages((prev) => [...prev, { role: 'assistant', content }]);

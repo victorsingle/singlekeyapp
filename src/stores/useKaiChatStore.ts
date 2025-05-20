@@ -9,16 +9,25 @@ export type ChatPhase =
 
 interface KaiChatState {
   phase: ChatPhase;
-  prompt: string;
-  setPrompt: (prompt: string) => void;
-  phaseTo: (phase: ChatPhase) => void;
+  prompt: string; // entrada inicial
+  confirmedPrompt: string; // estrutura aprovada
+  setPrompt: (p: string) => void;
+  setConfirmedPrompt: (p: string) => void;
+  phaseTo: (p: ChatPhase) => void;
   reset: () => void;
 }
 
 export const useKaiChatStore = create<KaiChatState>((set) => ({
   phase: 'awaiting_context',
   prompt: '',
-  setPrompt: (prompt) => set({ prompt }),
-  phaseTo: (phase) => set({ phase }),
-  reset: () => set({ phase: 'awaiting_context', prompt: '' }),
+  confirmedPrompt: '',
+  setPrompt: (p) => set({ prompt: p }),
+  setConfirmedPrompt: (p) => set({ confirmedPrompt: p }),
+  phaseTo: (p) => set({ phase: p }),
+  reset: () =>
+    set({
+      phase: 'awaiting_context',
+      prompt: '',
+      confirmedPrompt: '',
+    }),
 }));

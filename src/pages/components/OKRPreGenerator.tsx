@@ -14,7 +14,14 @@ export function OKRPreGenerator() {
 
   const { userId, organizationId } = useAuthStore.getState();
   const generateFullOKRStructure = useOKRStore((state) => state.generateFullOKRStructure);
-  const { phase, prompt, setPrompt, phaseTo } = useKaiChatStore();
+  const {
+    phase,
+    prompt,
+    confirmedPrompt,
+    setPrompt,
+    setConfirmedPrompt,
+    phaseTo
+  } = useKaiChatStore();
 
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
@@ -95,10 +102,12 @@ export function OKRPreGenerator() {
       await new Promise((r) => setTimeout(r, 10)); // simula digitação
     }
 
+    
     setMessages((prev) => [...prev, { role: 'assistant', content }]);
     setCurrentResponse('');
     phaseTo('awaiting_adjustment');
     setLoading(false);
+    setConfirmedPrompt(content);
     return;
   }
 
@@ -196,7 +205,7 @@ export function OKRPreGenerator() {
     if (!prompt) return;
     setLoading(true);
     try {
-      const cicloId = await generateFullOKRStructure(prompt);
+      const cicloId = await generateFullOKRStructure(confirmedPrompt);
       setMessages((prev) => [
         ...prev,
         { role: 'assistant', content: '✅ OKRs cadastrados com sucesso! Redirecionando...' }

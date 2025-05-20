@@ -93,8 +93,7 @@ Apenas responda com o JSON completo.
         ],
       });
 
-      const json = await completion.json();
-      console.log('✅ [KAI JSON] Resposta da IA:', JSON.stringify(json, null, 2));
+      const content = await res.text();
 
       const content = json?.choices?.[0]?.message?.content;
       if (!content) {

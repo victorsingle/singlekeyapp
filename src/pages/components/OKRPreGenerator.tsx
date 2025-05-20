@@ -32,21 +32,6 @@ export function OKRPreGenerator() {
     }, 100);
   };
 
-  async function simulateKaiTyping(content: string) {
-    if (!content || typeof content !== 'string') {
-      console.warn('[⚠️ simulateKaiTyping] Conteúdo inválido:', content);
-      return;
-    }
-
-    console.log('[DEBUG] Simulando conteúdo:', content);
-    let displayed = '';
-    for (const char of content) {
-      displayed += char;
-      setCurrentResponse(displayed);
-      await new Promise((r) => setTimeout(r, 10));
-    }
-  }
-
   useEffect(() => {
     scrollToBottom();
   }, [messages, currentResponse, phase]);
@@ -65,7 +50,6 @@ export function OKRPreGenerator() {
   };
 
   const handleSend = async () => {
-    console.log('[DEBUG] handleSend iniciado | fase:', phase, '| input:', input);
     if (!input.trim()) return;
 
     const newMessage = { role: 'user' as const, content: input };
@@ -77,24 +61,19 @@ export function OKRPreGenerator() {
     if (phase === 'awaiting_context') {
       if (isGreeting(input)) {
         const msg = 'Oi! Me conta um pouco sobre os desafios desse ciclo que deseja planejar.';
-        await simulateKaiTyping(msg);
         setMessages((prev) => [...prev, { role: 'assistant', content: msg }]);
-        setCurrentResponse('');
         setLoading(false);
         return;
       }
       setPrompt(input);
       phaseTo('awaiting_confirmation');
       const msg = 'Entendi! Posso gerar uma proposta de indicadores com base nisso?';
-      await simulateKaiTyping(msg);
       setMessages((prev) => [...prev, { role: 'assistant', content: msg }]);
-      setCurrentResponse('');
       setLoading(false);
       return;
     }
 
     if (phase === 'awaiting_confirmation' && isApprovalMessage(input)) {
-      console.log('[DEBUG] Entrou em awaiting_confirmation');
       try {
         const res = await fetch('/.netlify/functions/kai-chat', {
           method: 'POST',
@@ -107,19 +86,44 @@ export function OKRPreGenerator() {
           }),
         });
 
-        const content = await res.text();
-        console.log('[DEBUG] Conteúdo final recebido da IA:', content);
+        if (!res.ok || !res.body) throw new Error('Erro na resposta da IA');
 
-        if (!content || content.length < 10) {
-          throw new Error('[❌] Conteúdo inesperado ou vazio no front-end');
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let accumulated = '';
+        let done = false;
+
+        while (!done) {
+          const { value, done: readerDone } = await reader.read();
+          done = readerDone;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n').filter((line) => line.trim().startsWith('data:'));
+
+          for (const line of lines) {
+            const jsonStr = line.replace(/^data:\s*/, '');
+            if (jsonStr === '[DONE]') continue;
+
+            try {
+              const parsed = JSON.parse(jsonStr);
+              const content = parsed.content;
+              if (content) {
+                accumulated += content;
+                setCurrentResponse(accumulated);
+              }
+            } catch (err) {
+              console.error('[❌ Erro ao processar chunk da IA]', err);
+            }
+          }
         }
 
-        setLoading(false);
-        await simulateKaiTyping(content);
-        setMessages((prev) => [...prev, { role: 'assistant', content }]);
+        if (accumulated) {
+          setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
+          setConfirmedPrompt(accumulated);
+        }
+
         setCurrentResponse('');
         phaseTo('awaiting_adjustment');
-        setConfirmedPrompt(content);
       } catch (err) {
         console.error('[❌ Erro na fase awaiting_confirmation]', err);
         setMessages((prev) => [
@@ -129,13 +133,13 @@ export function OKRPreGenerator() {
             content: '❌ Algo deu errado ao gerar a proposta. Tente novamente ou recarregue a página.',
           },
         ]);
+      } finally {
         setLoading(false);
       }
       return;
     }
 
     if (phase === 'awaiting_adjustment') {
-      console.log('[DEBUG] Entrou em awaiting_adjustment');
       if (isApprovalMessage(input)) {
         phaseTo('ready_to_generate');
         setLoading(false);
@@ -153,22 +157,50 @@ export function OKRPreGenerator() {
         }),
       });
 
-      const raw = await res.text();
-      let content = '';
-
-      try {
-        content = JSON.parse(raw);
-      } catch {
-        content = raw.replace(/^"|"$/g, '');
+      if (!res.ok || !res.body) {
+        setLoading(false);
+        return;
       }
 
-      setLoading(false);
-      await simulateKaiTyping(content);
-      setMessages((prev) => [...prev, { role: 'assistant', content }]);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = '';
+      let done = false;
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n').filter((line) => line.trim().startsWith('data:'));
+
+        for (const line of lines) {
+          const jsonStr = line.replace(/^data:\s*/, '');
+          if (jsonStr === '[DONE]') continue;
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.content;
+            if (content) {
+              accumulated += content;
+              setCurrentResponse(accumulated);
+            }
+          } catch (err) {
+            console.error('[❌ Erro ao processar chunk da IA]', err);
+          }
+        }
+      }
+
+      if (accumulated) {
+        setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
+      }
+
       setCurrentResponse('');
+      setLoading(false);
       return;
     }
 
+    // fallback para conversa (stream)
     const response = await fetch('/.netlify/functions/kai-chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

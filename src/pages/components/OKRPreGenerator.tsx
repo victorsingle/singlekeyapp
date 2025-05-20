@@ -36,7 +36,7 @@ export function OKRPreGenerator() {
   if (phase === 'awaiting_context' && messages.length === 0) {
     const initialGreeting = {
       role: 'assistant' as const,
-      content: `Olá! Me conte um pouco sobre o que sua equipe deseja alcançar neste próximo ciclo. Pode descrever o desafio ou meta principal.\n\nExemplo: “Queremos aumentar a base de clientes ativos e lançar novas funcionalidades até o fim do trimestre.”`
+      content: `Olá! Me conte um pouco sobre o que sua equipe deseja alcançar neste próximo ciclo.\nExemplo: “Queremos aumentar a base de clientes ativos e lançar novas funcionalidades até o fim do trimestre.”`
     };
     setMessages([initialGreeting]);
   }

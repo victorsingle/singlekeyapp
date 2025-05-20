@@ -32,17 +32,14 @@ export function OKRPreGenerator() {
     }, 100);
   };
 
-
-async function simulateKaiTyping(content: string, setCurrent: (s: string) => void) {
-  let displayed = '';
-  for (const char of content) {
-    displayed += char;
-    setCurrent(displayed);
-    await new Promise((r) => setTimeout(r, 10));
+  async function simulateKaiTyping(content: string) {
+    let displayed = '';
+    for (const char of content) {
+      displayed += char;
+      setCurrentResponse(displayed);
+      await new Promise((r) => setTimeout(r, 10));
+    }
   }
-}
-
-
 
   useEffect(() => {
     scrollToBottom();
@@ -73,53 +70,48 @@ async function simulateKaiTyping(content: string, setCurrent: (s: string) => voi
     // Fase 1: aguardando contexto
     if (phase === 'awaiting_context') {
       if (isGreeting(input)) {
-        await simulateKaiTyping('Oi! Me conta um pouco sobre os desafios desse ciclo que deseja planejar.', setCurrentResponse);
-          setMessages((prev) => [...prev, { role: 'assistant', content: 'Oi! Me conta um pouco sobre os desafios desse ciclo que deseja planejar' }]);
-          setCurrentResponse('');
-          setLoading(false);
-          return;
+        const msg = 'Oi! Me conta um pouco sobre os desafios desse ciclo que deseja planejar.';
+        await simulateKaiTyping(msg);
+        setMessages((prev) => [...prev, { role: 'assistant', content: msg }]);
+        setCurrentResponse('');
+        setLoading(false);
+        return;
       }
 
       setPrompt(input);
       phaseTo('awaiting_confirmation');
-      await simulateKaiTyping('Entendi! Posso gerar uma proposta de indicadores com base nisso?', setCurrentResponse);
-        setMessages((prev) => [...prev, { role: 'assistant', content: 'Entendi! Posso gerar uma proposta de indicadores com base nisso?' }]);
-        setCurrentResponse('');
-        setLoading(false);
-        return;
+      const msg = 'Entendi! Posso gerar uma proposta de indicadores com base nisso?';
+      await simulateKaiTyping(msg);
+      setMessages((prev) => [...prev, { role: 'assistant', content: msg }]);
+      setCurrentResponse('');
+      setLoading(false);
+      return;
     }
 
     // Fase 2: confirmação para gerar estrutura
     if (phase === 'awaiting_confirmation' && isApprovalMessage(input)) {
-    const res = await fetch('/.netlify/functions/kai-chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages: [...messages, newMessage],
-        userId,
-        organizationId,
-        modo: 'gerar',
-      }),
-    });
+      const res = await fetch('/.netlify/functions/kai-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [...messages, newMessage],
+          userId,
+          organizationId,
+          modo: 'gerar',
+        }),
+      });
 
-    const json = await res.json();
-    const content = json;
+      const json = await res.json();
+      const content = json;
 
-    let displayed = '';
-    for (const char of content) {
-      displayed += char;
-      setCurrentResponse(displayed);
-      await new Promise((r) => setTimeout(r, 10)); // simula digitação
+      await simulateKaiTyping(content);
+      setMessages((prev) => [...prev, { role: 'assistant', content }]);
+      setCurrentResponse('');
+      phaseTo('awaiting_adjustment');
+      setConfirmedPrompt(content);
+      setLoading(false);
+      return;
     }
-
-    
-    setMessages((prev) => [...prev, { role: 'assistant', content }]);
-    setCurrentResponse('');
-    phaseTo('awaiting_adjustment');
-    setLoading(false);
-    setConfirmedPrompt(content);
-    return;
-  }
 
     // Fase 3: ajustes
     if (phase === 'awaiting_adjustment') {
@@ -143,16 +135,9 @@ async function simulateKaiTyping(content: string, setCurrent: (s: string) => voi
       const json = await res.json();
       const content = json;
 
-      let displayed = '';
-      for (const char of content) {
-        displayed += char;
-        setCurrentResponse(displayed);
-        await new Promise((r) => setTimeout(r, 10)); // simula digitação
-      }
-
+      await simulateKaiTyping(content);
       setMessages((prev) => [...prev, { role: 'assistant', content }]);
       setCurrentResponse('');
-
       setLoading(false);
       return;
     }

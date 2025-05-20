@@ -110,8 +110,30 @@ async function simulateKaiTyping(content: string) {
         }),
       });
 
-      const content = await res.text();
-      console.log('[DEBUG] Conteúdo final recebido da IA:', content);
+      try {
+          const content = await res.text();
+          console.log('[DEBUG] Conteúdo final recebido da IA:', content);
+          if (!content || content.length < 10) {
+            throw new Error('[❌] Conteúdo inesperado ou vazio no front-end');
+          }
+
+          await simulateKaiTyping(content);
+          setMessages((prev) => [...prev, { role: 'assistant', content }]);
+          setCurrentResponse('');
+          phaseTo('awaiting_adjustment');
+          setConfirmedPrompt(content);
+        } catch (err) {
+          console.error('[❌ Erro na fase awaiting_confirmation]', err);
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: 'assistant',
+              content: '❌ Algo deu errado ao gerar a proposta. Tente novamente ou recarregue a página.',
+            },
+          ]);
+        } finally {
+          setLoading(false);
+        }
 
       await simulateKaiTyping(content);
       setMessages((prev) => [...prev, { role: 'assistant', content }]);

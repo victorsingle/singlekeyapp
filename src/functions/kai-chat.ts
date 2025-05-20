@@ -100,5 +100,6 @@ Apenas responda com o JSON completo.
   });
 
   const json = await completion.json();
-  return new Response(JSON.stringify(json.choices[0].message.content));
+  const content = json?.choices?.[0]?.message?.content ?? '[❌ Erro: resposta da IA veio vazia]';
+  return new Response(JSON.stringify(content));
 }

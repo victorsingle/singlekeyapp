@@ -74,23 +74,33 @@ export function OKRPreGenerator() {
 
     // Fase 2: confirmação para gerar estrutura
     if (phase === 'awaiting_confirmation' && isApprovalMessage(input)) {
-      const res = await fetch('/.netlify/functions/kai-chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [...messages, newMessage],
-          userId,
-          organizationId,
-          modo: 'gerar',
-        }),
-      });
+    const res = await fetch('/.netlify/functions/kai-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [...messages, newMessage],
+        userId,
+        organizationId,
+        modo: 'gerar',
+      }),
+    });
 
-      const json = await res.json();
-      setMessages((prev) => [...prev, { role: 'assistant', content: json }]);
-      phaseTo('awaiting_adjustment');
-      setLoading(false);
-      return;
+    const json = await res.json();
+    const content = json;
+
+    let displayed = '';
+    for (const char of content) {
+      displayed += char;
+      setCurrentResponse(displayed);
+      await new Promise((r) => setTimeout(r, 10)); // simula digitação
     }
+
+    setMessages((prev) => [...prev, { role: 'assistant', content }]);
+    setCurrentResponse('');
+    phaseTo('awaiting_adjustment');
+    setLoading(false);
+    return;
+  }
 
     // Fase 3: ajustes
     if (phase === 'awaiting_adjustment') {

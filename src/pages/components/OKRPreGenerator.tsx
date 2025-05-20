@@ -101,8 +101,7 @@ export function OKRPreGenerator() {
         }),
       });
 
-      const json = await res.json();
-      const content = typeof json === 'string' ? json : json?.choices?.[0]?.message?.content;
+      const content = await res.text(); 
 
       await simulateKaiTyping(content);
       setMessages((prev) => [...prev, { role: 'assistant', content }]);

@@ -2,10 +2,10 @@ import { Configuration, OpenAIApi } from 'openai-edge';
 import { OpenAIStream, StreamingTextResponse } from 'ai';
 import { NextRequest } from 'next/server';
 
-const config = new Configuration({
+const openaiConfig  = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(config);
+const openai = new OpenAIApi(openaiConfig);
 
 export const config = {
   runtime: 'edge',

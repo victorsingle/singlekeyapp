@@ -2,7 +2,7 @@ import { Configuration, OpenAIApi } from 'openai-edge';
 import { NextRequest } from 'next/server';
 
 const openaiConfig = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.VITE_OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(openaiConfig);
 

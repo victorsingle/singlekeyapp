@@ -86,7 +86,7 @@ Apenas responda com o JSON completo.
       const completion = await openai.createChatCompletion({
         model: 'gpt-4o',
         temperature: 0.2,
-        response_format: 'json_object',
+        response_format: 'json',
         messages: [
           { role: 'system', content: systemPrompt },
           ...messages,

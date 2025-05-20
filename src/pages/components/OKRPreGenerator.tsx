@@ -169,10 +169,11 @@ if (phase === 'awaiting_confirmation' && isApprovalMessage(input)) {
         content = raw.replace(/^"|"$/g, '');
       }
 
+      setLoading(false);
       await simulateKaiTyping(content);
       setMessages((prev) => [...prev, { role: 'assistant', content }]);
       setCurrentResponse('');
-      setLoading(false);
+      
       return;
     }
 

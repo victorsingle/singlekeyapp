@@ -110,23 +110,7 @@ async function simulateKaiTyping(content: string) {
         }),
       });
 
-      const raw = await res.text();
-      let content: string = '';
-
-      try {
-        const parsed = JSON.parse(raw);
-        if (typeof parsed === 'string') {
-          content = parsed;
-        } else if (parsed?.choices?.[0]?.message?.content) {
-          content = parsed.choices[0].message.content;
-        } else {
-          content = '[❌ Resposta inesperada da IA]';
-        }
-      } catch (err) {
-        console.warn('[⚠️ Erro ao parsear JSON da IA]', err, raw);
-        content = raw.replace(/^"|"$/g, '');
-      }
-
+      const content = await res.text();
       console.log('[DEBUG] Conteúdo final recebido da IA:', content);
 
       await simulateKaiTyping(content);

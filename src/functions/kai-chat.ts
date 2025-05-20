@@ -102,7 +102,7 @@ Apenas responda com o JSON completo.
         return new Response(JSON.stringify('[❌ Erro: conteúdo da IA veio vazio.]'));
       }
 
-      return new Response(JSON.stringify(content));
+      return new Response(content); 
     } catch (err) {
       console.error('[❌ KAI JSON] Erro de execução:', err);
       return new Response(JSON.stringify('[❌ Erro inesperado ao gerar JSON.]'));
@@ -129,7 +129,7 @@ Apenas responda com o JSON completo.
       return new Response(JSON.stringify('[❌ A IA respondeu com conteúdo vazio. Tente reformular seu prompt.]'));
     }
 
-    return new Response(JSON.stringify(content));
+    return new Response(content); 
   } catch (err) {
     console.error('[❌ KAI GERAL] Erro de execução:', err);
     return new Response(JSON.stringify('[❌ Erro inesperado ao processar a proposta.]'));

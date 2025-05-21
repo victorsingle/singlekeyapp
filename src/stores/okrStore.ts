@@ -353,184 +353,28 @@ getCycleAverageProgress: (cycleId) => {
 
 
 //KAI Generator
-
-generateFullOKRStructure: async (prompt: string) => {
+generateFullOKRStructureFromJson: async (estrutura: ParsedOKRStructure) => {
   const { userId, organizationId } = useAuthStore.getState();
-  
-  const dataAtual = new Date();
+  const { ciclo, okrs, links } = estrutura;
 
-  const dataAtualFormatada = dataAtual.toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  }).replace('.', '');
-  console.log(dataAtualFormatada);
-
-  const completion = await openai.chat.completions.create({
-  model: 'gpt-4o',
-  response_format: { type: 'json_object' },
-  messages: [
-    {
-      role: 'system',
-      content: `
-Você é a Kai, uma IA especialista em OKRs.
-
-Você receberá abaixo um TEXTO JÁ VALIDADO PELO USUÁRIO contendo a estrutura final de OKRs aprovada por ele.
-
-⚠️ Sua única tarefa é CONVERTER esse conteúdo em formato JSON, seguindo a estrutura abaixo, sem alterar absolutamente nada.
-
-🚫 Não reformule textos, não reorganize, não corrija frases.
-✅ Apenas converta fielmente o conteúdo textual em estrutura JSON.
-
-Formato JSON esperado:
-{
-  "ciclo": {
-    "nome": "string",
-    "dataInicio": "YYYY-MM-DD",
-    "dataFim": "YYYY-MM-DD",
-    "temaEstratégico": "string"
-  },
-  "okrs": [
-    {
-      "id": "okr-1",
-      "objetivo": "string",
-      "tipo": "strategic" | "tactical" | "operational",
-      "resultadosChave": [
-        {
-          "texto": "string",
-          "tipo": "moonshot" | "roofshot",
-          "métrica": "string",
-          "valorInicial": number,
-          "valorAlvo": number,
-          "unidade": "string"
-        }
-      ]
-    }
-  ],
-  "links": [
-    {
-      "origem": "okr-1",
-      "destino": "okr-2",
-      "tipo": "hierarchy"
-    }
-  ]
-}
-
-Retorne APENAS o JSON sem comentários ou explicações.
-
-Texto validado:
-"""
-${prompt}
-"""
-`.trim()
-    }
-  ]
-});
-
-  const raw = completion.choices[0].message.content;
-  const totalTokens = completion.usage?.total_tokens ?? 0;
-
+  if (!ciclo?.nome || !ciclo.dataInicio || !ciclo.dataFim || !ciclo.temaEstratégico) {
+    throw new Error('Dados do ciclo incompletos.');
+  }
 
   const hoje = new Date();
-  const mesReferencia = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-01`;
-
-  if (organizationId && totalTokens > 0) {
-    const { data: rowExistente, error: erroExistente } = await supabase
-      .from('usage_tokens')
-      .select('id, tokens_utilizados')
-      .eq('account_id', organizationId)
-      .eq('mes_referencia', mesReferencia)
-      .maybeSingle();
-  
-    if (erroExistente) {
-      console.warn('[❌ Erro ao verificar uso existente]', erroExistente);
-    }
-  
-    if (rowExistente) {
-      await supabase
-        .from('usage_tokens')
-        .update({
-          tokens_utilizados: rowExistente.tokens_utilizados + totalTokens
-        })
-        .eq('id', rowExistente.id);
-    } else {
-      await supabase.rpc('criar_usage_tokens', {
-        p_account_id: organizationId,
-        p_mes: mesReferencia,
-        p_tokens: totalTokens
-      });
-    }
-  
-    console.log('[🔢 Tokens registrados com sucesso]', {
-      organizationId,
-      mesReferencia,
-      totalTokens
-    });
-  }
-
-  if (!raw) throw new Error('Resposta da IA veio vazia');
-
-  let parsed;
-  try {
-    parsed = JSON.parse(raw);
-  } catch (err) {
-    console.error('[❌ Erro ao fazer parse do JSON da IA]', err, raw);
-    throw new Error('Erro ao interpretar resposta da IA');
-  }
-
-  if (!parsed?.ciclo || !Array.isArray(parsed.okrs) || !Array.isArray(parsed.links)) {
-    console.error('[❌ Estrutura inesperada da IA]', parsed);
-    throw new Error('A estrutura retornada pela IA não está no formato esperado.');
-  }
-  
-  const { ciclo, okrs, links } = parsed;
-
-  await logKaiPrompt(prompt, ciclo.temaEstratégico);
-
-  if (Array.isArray(parsed.ciclo)) {
-    throw new Error('A IA gerou múltiplos ciclos. Refine o prompt para gerar apenas um ciclo por vez.');
-  }
-
-  if (okrs.length > 20) {
-    throw new Error('Foram gerados muitos OKRs. Refine o prompt para limitar a quantidade.');
-  }
-  
-  const totalKRs = okrs.reduce((acc, o) => acc + (o.resultadosChave?.length || 0), 0);
-  if (totalKRs > 60) {
-    throw new Error('A IA gerou um volume excessivo de Key Results. Tente um prompt mais focado.');
-  }
-
-  // Verifica e ajusta datas do ciclo se necessário
-  const existingCycles = get().cycles;
-  const latestCycle = existingCycles.length > 0
-    ? existingCycles.reduce((prev, curr) => {
-        if (!prev?.end_date || !curr?.end_date) return prev;
-        return new Date(prev.end_date) > new Date(curr.end_date) ? prev : curr;
-      })
-    : null;
-
   const dataInicioGerado = new Date(`${ciclo.dataInicio}T00:00:00`);
-  const precisaAjustar = !ciclo.dataInicio || dataInicioGerado <= hoje;
+  const precisaAjustar = dataInicioGerado <= hoje;
 
   if (precisaAjustar) {
-    const novaDataInicio = latestCycle?.end_date
-      ? new Date(`${latestCycle.end_date}T00:00:00`)
-      : new Date();
+    const novaDataInicio = new Date();
     novaDataInicio.setDate(novaDataInicio.getDate() + 1);
-
     const novaDataFim = new Date(novaDataInicio);
     novaDataFim.setMonth(novaDataInicio.getMonth() + 3);
 
     ciclo.dataInicio = novaDataInicio.toISOString().split('T')[0];
     ciclo.dataFim = novaDataFim.toISOString().split('T')[0];
-
-    console.log('[✅ Datas ajustadas automaticamente]', {
-      dataInicio: ciclo.dataInicio,
-      dataFim: ciclo.dataFim,
-    });
   }
 
-  // 1. Cria ciclo
   const { data: cicloCriado, error: erroCiclo } = await supabase
     .from('okr_cycles')
     .insert({
@@ -545,10 +389,8 @@ ${prompt}
     .single();
 
   if (erroCiclo) throw erroCiclo;
-
   const cicloId = cicloCriado.id;
 
-  // 2. Cria OKRs
   for (const okr of okrs) {
     const { data: okrCriado, error: erroOKR } = await supabase
       .from('okrs')
@@ -565,8 +407,7 @@ ${prompt}
 
     if (erroOKR) throw erroOKR;
 
-    // 3. Cria KRs com estrutura completa
-    const krPayload = okr.resultadosChave.map((kr: any) => ({
+    const krPayload = okr.resultadosChave.map((kr) => ({
       okr_id: okrCriado.id,
       text: kr.texto,
       kr_type: kr.tipo,
@@ -581,15 +422,12 @@ ${prompt}
     const { error: erroKRs } = await supabase.from('key_results').insert(krPayload);
     if (erroKRs) throw erroKRs;
 
-    // Marca ID
     okr._generatedId = okrCriado.id;
   }
 
-  // 4. Cria vínculos com regras de hierarquia
   for (const link of links) {
     const sourceOkr = okrs.find((o) => o.id === link.origem);
     const targetOkr = okrs.find((o) => o.id === link.destino);
-
     const source = sourceOkr?._generatedId;
     const target = targetOkr?._generatedId;
 
@@ -597,28 +435,17 @@ ${prompt}
 
     const from = sourceOkr?.tipo;
     const to = targetOkr?.tipo;
-
-    // Regras válidas de hierarquia
     const hierarquiasValidas = [
       ['strategic', 'tactical'],
       ['tactical', 'operational'],
       ['operational', 'tactical'],
       ['tactical', 'strategic'],
     ];
+    const isValido = hierarquiasValidas.some(([origem, destino]) => origem === from && destino === to);
+    if (!isValido) continue;
 
-    const isValido = hierarquiasValidas.some(
-      ([origem, destino]) => origem === from && destino === to
-    );
-
-    if (!isValido) {
-      console.warn('[⚠️ Vínculo ignorado por hierarquia inválida]', { from, to });
-      continue;
-    }
-
-    // Mapeia tipo
     let tipoLink = 'strategic_to_tactical';
-    if (from === 'strategic' && to === 'tactical') tipoLink = 'strategic_to_tactical';
-    else if (from === 'tactical' && to === 'operational') tipoLink = 'tactical_to_operational';
+    if (from === 'tactical' && to === 'operational') tipoLink = 'tactical_to_operational';
     else if (from === 'operational' && to === 'tactical') tipoLink = 'operational_to_tactical';
     else if (from === 'tactical' && to === 'strategic') tipoLink = 'tactical_to_strategic';
 
@@ -629,12 +456,10 @@ ${prompt}
     });
   }
 
-
   await get().loadCycles(organizationId);
   await get().loadOKRs(organizationId, cicloId);
   await get().fetchLinks(organizationId);
 
-  // Após carregar os OKRs
   const novosIds = okrs.map(o => o._generatedId).filter(Boolean);
   set((state) => ({
     expandedIds: [...new Set([...state.expandedIds, ...novosIds])]

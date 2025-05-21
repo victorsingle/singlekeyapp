@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowUpCircle, Target } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../../stores/authStore';
+import { parseStructuredTextToJSON } from '../../utils/parseOKRTextToJSON';
 import { useOKRStore } from '../../stores/okrStore';
 import { useKaiChatStore } from '../../stores/useKaiChatStore';
 
@@ -12,8 +13,7 @@ export function OKRPreGenerator() {
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState('');
 
-  const { userId, organizationId } = useAuthStore.getState();
-  const generateFullOKRStructure = useOKRStore((state) => state.generateFullOKRStructure);
+  const { generateFullOKRStructureFromJson } = useOKRStore();
   const {
     phase,
     prompt,
@@ -33,14 +33,14 @@ export function OKRPreGenerator() {
   };
 
   useEffect(() => {
-  if (phase === 'awaiting_context' && messages.length === 0) {
-    const initialGreeting = {
-      role: 'assistant' as const,
-      content: `Olá! Me conte um pouco sobre o que sua equipe deseja alcançar neste próximo ciclo.\nExemplo: “Queremos aumentar a base de clientes ativos e lançar novas funcionalidades até o fim do trimestre.”`
-    };
-    setMessages([initialGreeting]);
-  }
-}, [phase]);
+    if (phase === 'awaiting_context' && messages.length === 0) {
+      const initialGreeting = {
+        role: 'assistant' as const,
+        content: `Olá! Me conte um pouco sobre o que sua equipe deseja alcançar neste próximo ciclo.\nExemplo: “Queremos aumentar a base de clientes ativos e lançar novas funcionalidades até o fim do trimestre.”`
+      };
+      setMessages([initialGreeting]);
+    }
+  }, [phase]);
 
   useEffect(() => {
     scrollToBottom();
@@ -84,129 +84,83 @@ export function OKRPreGenerator() {
     }
 
     if (phase === 'awaiting_confirmation' && isApprovalMessage(input)) {
-  try {
-    const res = await fetch('/.netlify/functions/kai-chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages: [...messages, newMessage],
-        userId,
-        organizationId,
-        modo: 'gerar',
-      }),
-    });
+      try {
+        const res = await fetch('/.netlify/functions/kai-chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [...messages, newMessage],
+            userId: useAuthStore.getState().userId,
+            organizationId: useAuthStore.getState().organizationId,
+            modo: 'gerar',
+          }),
+        });
 
-    if (!res.ok || !res.body) throw new Error('Erro na resposta da IA');
+        if (!res.ok || !res.body) throw new Error('Erro na resposta da IA');
 
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let accumulated = '';
-    let done = false;
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let accumulated = '';
+        let done = false;
 
-    while (!done) {
-      const { value, done: readerDone } = await reader.read();
-      done = readerDone;
-
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n').filter((line) => line.trim().startsWith('data:'));
-
-      for (const line of lines) {
-        const jsonStr = line.replace(/^data:\s*/, '');
-        if (jsonStr === '[DONE]') continue;
-
-        try {
-          const parsed = JSON.parse(jsonStr);
-          const content = parsed.content;
-          if (content) {
-            accumulated += content;
-            setCurrentResponse(accumulated);
-          }
-        } catch (err) {
-          console.error('[❌ Erro ao processar chunk da IA]', err);
-        }
-      }
-    }
-
-    if (accumulated) {
-      setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
-      setConfirmedPrompt(accumulated);
-    }
-
-    setCurrentResponse('');
-    phaseTo('ready_to_generate'); // <<<<<< AJUSTE IMPORTANTE
-  } catch (err) {
-    console.error('[❌ Erro na fase awaiting_confirmation]', err);
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: 'assistant',
-        content: '❌ Algo deu errado ao gerar a proposta. Tente novamente ou recarregue a página.',
-      },
-    ]);
-  } finally {
-    setLoading(false);
-  }
-  return;
-}
-
-    if (phase === 'awaiting_adjustment') {
-      if (isApprovalMessage(input)) {
-        phaseTo('ready_to_generate');
-        setLoading(false);
-        return;
-      }
-
-      const res = await fetch('/.netlify/functions/kai-chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [...messages, newMessage],
-          userId,
-          organizationId,
-          modo: 'gerar',
-        }),
-      });
-
-      if (!res.ok || !res.body) {
-        setLoading(false);
-        return;
-      }
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let accumulated = '';
-      let done = false;
-
-      while (!done) {
-        const { value, done: readerDone } = await reader.read();
-        done = readerDone;
-
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n').filter((line) => line.trim().startsWith('data:'));
-
-        for (const line of lines) {
-          const jsonStr = line.replace(/^data:\s*/, '');
-          if (jsonStr === '[DONE]') continue;
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.content;
-            if (content) {
-              accumulated += content;
-              setCurrentResponse(accumulated);
+        while (!done) {
+          const { value, done: readerDone } = await reader.read();
+          done = readerDone;
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n').filter((line) => line.trim().startsWith('data:'));
+          for (const line of lines) {
+            const jsonStr = line.replace(/^data:\s*/, '');
+            if (jsonStr === '[DONE]') continue;
+            try {
+              const parsed = JSON.parse(jsonStr);
+              const content = parsed.content;
+              if (content) {
+                accumulated += content;
+                setCurrentResponse(accumulated);
+              }
+            } catch (err) {
+              console.error('[❌ Erro ao processar chunk da IA]', err);
             }
-          } catch (err) {
-            console.error('[❌ Erro ao processar chunk da IA]', err);
           }
         }
-      }
 
-      if (accumulated) {
-        setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
-      }
+        if (accumulated) {
+          setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
+          setConfirmedPrompt(accumulated);
+        }
 
-      setCurrentResponse('');
-      setLoading(false);
+        setCurrentResponse('');
+        phaseTo('ready_to_generate');
+      } catch (err) {
+        console.error('[❌ Erro na fase awaiting_confirmation]', err);
+        setMessages((prev) => [
+          ...prev,
+          { role: 'assistant', content: '❌ Algo deu errado ao gerar a proposta. Tente novamente ou recarregue a página.' }
+        ]);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    if (phase === 'ready_to_generate' && isApprovalMessage(input)) {
+      try {
+        const estrutura = parseStructuredTextToJSON(confirmedPrompt);
+        const cicloId = await generateFullOKRStructureFromJson(estrutura);
+        setMessages((prev) => [
+          ...prev,
+          { role: 'assistant', content: '✅ OKRs cadastrados com sucesso! Redirecionando...' }
+        ]);
+        setTimeout(() => navigate(`/ciclos/${cicloId}`), 1500);
+      } catch (err) {
+        console.error('[❌ Erro ao cadastrar OKRs]', err);
+        setMessages((prev) => [
+          ...prev,
+          { role: 'assistant', content: '❌ O formato do texto está incorreto. Verifique a estrutura e tente novamente.' }
+        ]);
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 
@@ -216,8 +170,8 @@ export function OKRPreGenerator() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         messages: [...messages, newMessage],
-        userId,
-        organizationId,
+        userId: useAuthStore.getState().userId,
+        organizationId: useAuthStore.getState().organizationId,
         modo: 'conversa',
       }),
     });
@@ -235,14 +189,11 @@ export function OKRPreGenerator() {
     while (!done) {
       const { value, done: readerDone } = await reader.read();
       done = readerDone;
-
       const chunk = decoder.decode(value);
       const lines = chunk.split('\n').filter((line) => line.trim().startsWith('data:'));
-
       for (const line of lines) {
         const jsonStr = line.replace(/^data:\s*/, '');
         if (jsonStr === '[DONE]') continue;
-
         try {
           const parsed = JSON.parse(jsonStr);
           const content = parsed.content;
@@ -262,27 +213,6 @@ export function OKRPreGenerator() {
 
     setCurrentResponse('');
     setLoading(false);
-  };
-
-  const handleGenerateOKRs = async () => {
-    if (!prompt) return;
-    setLoading(true);
-    try {
-      const cicloId = await generateFullOKRStructure(confirmedPrompt);
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: '✅ OKRs cadastrados com sucesso! Redirecionando...' }
-      ]);
-      setTimeout(() => navigate(`/ciclos/${cicloId}`), 1500);
-    } catch (err) {
-      console.error('[❌ Erro ao cadastrar OKRs]', err);
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: 'Erro ao cadastrar OKRs. Tente novamente mais tarde.' }
-      ]);
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
@@ -305,16 +235,6 @@ export function OKRPreGenerator() {
           {currentResponse && (
             <div className="bg-blue-50 text-gray-800 text-sm p-3 rounded-xl animate-pulse whitespace-pre-wrap">
               {currentResponse}
-            </div>
-          )}
-          {phase === 'ready_to_generate' && (
-            <div className="flex justify-start mt-2">
-              <button
-                onClick={handleGenerateOKRs}
-                className="bg-blue-600 text-white text-sm font-medium py-2 px-4 rounded hover:bg-blue-700 transition"
-              >
-                Cadastrar Indicadores
-              </button>
             </div>
           )}
           <div ref={chatEndRef} />

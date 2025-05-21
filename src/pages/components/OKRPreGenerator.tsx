@@ -92,6 +92,21 @@ export function OKRPreGenerator() {
           if (content) {
             buffer += content;
             setCurrentResponse(buffer);
+
+            // fallback para detectar JSON vindo dentro do content
+            if (!json && content.includes('"ciclo"') && content.includes('"okrs"')) {
+              try {
+                const match = content.match(/```json[\s\n]*([\s\S]+?)```/);
+                if (match && match[1]) {
+                  const extracted = match[1].trim();
+                  const parsedJson = JSON.parse(extracted);
+                  console.log('[⚠️ JSON capturado manualmente do content]', parsedJson);
+                  setEstruturaJson(parsedJson);
+                }
+              } catch (e) {
+                console.warn('[⚠️ Falha ao tentar extrair JSON do content]', e);
+              }
+            }
           }
 
           if (json) {

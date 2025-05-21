@@ -65,7 +65,7 @@ Formato JSON:
 ⚠️ SEMPRE que o usuário confirmar que deseja gerar a proposta final — ou solicitar qualquer ajuste na proposta anterior —, você deve REGERAR a estrutura COMPLETA em formato JSON, refletindo todas as alterações solicitadas.
 ⚠️ Após o JSON, você deve escrever uma explicação textual clara e objetiva da nova proposta.
 ⚠️ Não espere outro comando. Gere a nova proposta automaticamente assim que a intenção do usuário for confirmada.
-      `.trim();
+`.trim();
 
       const resposta = await openai.createChatCompletion({
         model: 'gpt-4o',
@@ -116,6 +116,7 @@ Formato JSON:
       });
     }
 
+    // modo conversa
     const systemPromptConversa = `
 Você é a Kai, uma agente conversacional especialista em OKRs.
 
@@ -124,7 +125,7 @@ Seu papel é entender o que o usuário deseja estruturar, fazer perguntas para e
 ⚠️ Quando a estrutura estiver pronta e o usuário confirmar, você deve RESPONDER da seguinte forma:
 
 1. Envie a estrutura de OKRs apenas internamente, como um objeto JSON no padrão abaixo — sem exibir no chat.
-2. No chat, envie apenas a EXPLICAÇÃO textual da proposta de forma clara, natural e objetiva — sem nenhum bloco de código, sem formatação ``, e sem mostrar o JSON.
+2. No chat, envie apenas a EXPLICAÇÃO textual da proposta de forma clara, natural e objetiva — sem nenhum bloco de código, sem formatação \`\`\`, e sem mostrar o JSON.
 
 Formato JSON:
 {
@@ -162,7 +163,7 @@ Formato JSON:
 
 ⚠️ Nunca mostre esse JSON no chat.
 ⚠️ Gere os dados automaticamente quando a intenção do usuário estiver clara.
-    `.trim();
+`.trim();
 
     const completion = await openai.createChatCompletion({
       model: 'gpt-4o',
@@ -186,24 +187,27 @@ Formato JSON:
           const lines = chunk.split('\n');
 
           for (const line of lines) {
-            if (line.startsWith('data:')) {
-              const jsonStr = line.replace('data: ', '');
-              if (jsonStr === '[DONE]') {
-                controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-                controller.close();
-                return;
+            if (!line.startsWith('data:')) continue;
+
+            const jsonStr = line.replace('data: ', '');
+            if (jsonStr === '[DONE]') {
+              controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+              controller.close();
+              return;
+            }
+
+            try {
+              const parsed = JSON.parse(jsonStr);
+
+              if (parsed.json) {
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ json: parsed.json })}\n\n`));
               }
-              try {
-                const parsed = JSON.parse(jsonStr);
-                if (parsed.json) {
-                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ json: parsed.json })}\n\n`));
-                }
-                if (parsed.choices?.[0]?.delta?.content) {
-                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: parsed.choices[0].delta.content })}\n\n`));
-                }
-              } catch (e) {
-                console.error('[Erro ao parsear SSE]', e);
+
+              if (parsed.choices?.[0]?.delta?.content) {
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: parsed.choices[0].delta.content })}\n\n`));
               }
+            } catch (e) {
+              console.error('[Erro ao parsear SSE]', e);
             }
           }
         }

@@ -11,84 +11,132 @@ export const config = {
   runtime: 'edge',
 };
 
-function createSSEStream(controller) {
-  return new ReadableStream({
-    start() {
-      controller.enqueue('data: [START]\n\n');
-    },
-    async pull(controller) {
-      // placeholder, not used since we manually control
-    },
-    cancel() {
-      controller.enqueue('data: [DONE]\n\n');
-      controller.close();
-    },
-  });
-}
-
 export default async function handler(req: NextRequest) {
-  const { messages, modo, userId, organizationId } = await req.json();
+  const { messages, modo } = await req.json();
 
   const systemPromptBase = `
 Você é a Kai, uma IA especialista em OKRs.
 
-Com base no contexto enviado, sua tarefa é gerar uma proposta textual estruturada de OKRs para o ciclo, seguindo exatamente o modelo abaixo. Esse texto será convertido automaticamente em JSON depois — por isso, mantenha o formato fielmente.
+Sua tarefa é gerar uma estrutura de OKRs em formato JSON e, depois, explicar a estrutura em texto claro para o usuário.
 
-Use exatamente esta estrutura textual:
+1. Ao receber o modo "gerar":
+  - GERE primeiro o JSON na estrutura abaixo (sem explicações).
+  - Depois, GERE uma explicação textual baseada nesse JSON.
 
----
+2. Quando o modo for diferente de "gerar", continue a conversa normalmente.
 
-Nome do Ciclo: Trimestre 3 / 2025  
-Data Início: 01 de julho de 2025  
-Data Fim: 30 de setembro de 2025  
-Tema Estratégico: Crescimento e expansão de mercado
+Formato JSON:
+{
+  "ciclo": {
+    "nome": "string",
+    "dataInicio": "YYYY-MM-DD",
+    "dataFim": "YYYY-MM-DD",
+    "temaEstratégico": "string"
+  },
+  "okrs": [
+    {
+      "id": "okr-1",
+      "objetivo": "string",
+      "tipo": "strategic" | "tactical" | "operational",
+      "resultadosChave": [
+        {
+          "texto": "string",
+          "tipo": "moonshot" | "roofshot",
+          "métrica": "string",
+          "valorInicial": number,
+          "valorAlvo": number,
+          "unidade": "string"
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "origem": "okr-1",
+      "destino": "okr-2",
+      "tipo": "hierarchy"
+    }
+  ]
+}
 
----
-
-Objetivo 1 (Estratégico): Aumentar o número de clientes ativos  
-KR 1 (Moonshot): Aumentar o número de clientes ativos em 30% até o final do ciclo  
-KR 2 (Roofshot): Implementar uma campanha de marketing digital que gere 100 leads qualificados  
-KR 3 (Roofshot): Realizar 20 demonstrações de produto com potenciais clientes
-
-Objetivo 2 (Tático): Melhorar a retenção de clientes  
-KR 1 (Roofshot): Reduzir a taxa de churn em 15%  
-KR 2 (Moonshot): Aumentar o NPS médio para 8  
-KR 3 (Roofshot): Aumentar a conclusão do onboarding de 60% para 90%
-
-Objetivo 3 (Operacional): Acelerar o desenvolvimento de funcionalidades  
-KR 1 (Roofshot): Reduzir o tempo médio de desenvolvimento de funcionalidades em 20%  
-KR 2 (Moonshot): Concluir o desenvolvimento de 3 funcionalidades prioritárias da roadmap  
-KR 3 (Roofshot): Aumentar a cobertura de testes automatizados para 70%
-
----
-
-⚠️ Atenção:  
-- Use exatamente esse formato textual acima, sem bullets, sem negritos, sem emojis.  
-- Use os termos “Moonshot” e “Roofshot” nos KRs, e “Estratégico”, “Tático” ou “Operacional” nos objetivos.  
-- Nunca inclua marcações de Markdown, listas numeradas ou símbolos especiais.  
-- Nunca retorne JSON para o usuário — somente texto estruturado como no exemplo. 
-- Ao final da resposta, sempre pergunte se o usuário deseja ajustar algo ou se está tudo certo para cadastrar os indicadores. Use uma frase simples como: “Gostaria de fazer algum ajuste ou vamos seguir com essa proposta?
-- Ao receber ajustes do usuário, reescreva toda a estrutura com as mudanças aplicadas.  
-- Somente gere essa estrutura quando o modo for “gerar” e o contexto estiver claro.  
-- Se o contexto estiver incompleto, SEMPRE PEÇA mais informações antes de gerar uma proposta de OKRs.  
-- Confirme com o usuário antes de seguir e mantenha o tom leve e direto.
-- Quando o usuário aprovar a proposta com alguma mensagem de confirmação (como “gostei”, “tá ótimo”, “vamos em frente”), você deve responder dizendo claramente que vamos seguir com o cadastro.
-- Exemplo: “Perfeito! Vamos seguir com essa proposta e cadastrar os indicadores agora?”
-⚠️ Use obrigatoriamente a frase “Vamos seguir com essa proposta e cadastrar os indicadores?” quando o usuário confirmar. Não responda mais nada e não substitua essa frase por variações criativas.
+⚠️ NUNCA inclua explicações no JSON.
+⚠️ O primeiro bloco da resposta deve conter apenas o JSON.
+⚠️ O segundo bloco deve conter uma explicação clara em linguagem natural da estrutura gerada.
 `.trim();
 
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+
+  if (modo === 'gerar') {
+    const response = await openai.createChatCompletion({
+      model: 'gpt-4o',
+      temperature: 0.4,
+      response_format: 'json_object',
+      stream: false,
+      messages: [
+        { role: 'system', content: systemPromptBase },
+        ...messages,
+      ],
+    });
+
+    const resposta = await response.json();
+    const estrutura = resposta?.choices?.[0]?.message?.content;
+
+    if (!estrutura) {
+      return new Response('Erro ao gerar estrutura JSON', { status: 500 });
+    }
+
+    const estruturaJSON = JSON.parse(estrutura);
+
+    // Segunda chamada: explicação textual com base na estrutura gerada
+    const explicacaoResponse = await openai.createChatCompletion({
+      model: 'gpt-4o',
+      temperature: 0.6,
+      stream: false,
+      messages: [
+        {
+          role: 'system',
+          content: 'Com base na estrutura abaixo, escreva uma explicação clara e direta dos OKRs para o usuário entender a proposta.',
+        },
+        {
+          role: 'user',
+          content: JSON.stringify(estruturaJSON),
+        },
+      ],
+    });
+
+    const explicacao = await explicacaoResponse.json();
+    const textoExplicativo = explicacao?.choices?.[0]?.message?.content;
+
+    const stream = new ReadableStream({
+      async start(controller) {
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ estrutura: estruturaJSON })}\n\n`));
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: textoExplicativo })}\n\n`));
+        controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+        controller.close();
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive',
+      },
+    });
+  }
+
+  // fallback para conversa normal
   const completion = await openai.createChatCompletion({
     model: 'gpt-4o',
-    temperature: 0.6,
+    temperature: 0.7,
     stream: true,
     messages: [
-      { role: 'system', content: systemPromptBase },
+      { role: 'system', content: 'Você é uma IA especialista em OKRs. Continue a conversa com clareza e objetividade.' },
       ...messages,
     ],
   });
 
-  const encoder = new TextEncoder();
-  const decoder = new TextDecoder();
   const stream = completion.body;
 
   const sseStream = new ReadableStream({

@@ -7,14 +7,27 @@ export type ChatPhase =
   | 'ready_to_generate'
   | 'finished';
 
+interface EstruturaOKRs {
+  ciclo: {
+    nome: string;
+    dataInicio: string;
+    dataFim: string;
+    temaEstratégico: string;
+  };
+  okrs: any[];
+  links: any[];
+}
+
 interface KaiChatState {
   phase: ChatPhase;
   prompt: string; // entrada inicial
-  confirmedPrompt: string; // estrutura aprovada
-  propostaGerada: string; // estrutura da proposta em texto
+  confirmedPrompt: string; // resposta de confirmação da IA
+  propostaGerada: string; // resposta em texto explicativo
+  estruturaJson: EstruturaOKRs | null; // estrutura OKR em formato JSON
   setPrompt: (p: string) => void;
   setConfirmedPrompt: (p: string) => void;
   setPropostaGerada: (p: string) => void;
+  setEstruturaJson: (data: EstruturaOKRs) => void;
   phaseTo: (p: ChatPhase) => void;
   reset: () => void;
 }
@@ -24,9 +37,11 @@ export const useKaiChatStore = create<KaiChatState>((set) => ({
   prompt: '',
   confirmedPrompt: '',
   propostaGerada: '',
+  estruturaJson: null,
   setPrompt: (p) => set({ prompt: p }),
   setConfirmedPrompt: (p) => set({ confirmedPrompt: p }),
   setPropostaGerada: (p) => set({ propostaGerada: p }),
+  setEstruturaJson: (data) => set({ estruturaJson: data }),
   phaseTo: (p) => set({ phase: p }),
   reset: () =>
     set({
@@ -34,5 +49,6 @@ export const useKaiChatStore = create<KaiChatState>((set) => ({
       prompt: '',
       confirmedPrompt: '',
       propostaGerada: '',
+      estruturaJson: null,
     }),
 }));

@@ -65,7 +65,7 @@ Formato JSON:
 ⚠️ SEMPRE que o usuário confirmar que deseja gerar a proposta final — ou solicitar qualquer ajuste na proposta anterior —, você deve REGERAR a estrutura COMPLETA em formato JSON, refletindo todas as alterações solicitadas.
 ⚠️ Após o JSON, você deve escrever uma explicação textual clara e objetiva da nova proposta.
 ⚠️ Não espere outro comando. Gere a nova proposta automaticamente assim que a intenção do usuário for confirmada.
-`.trim();
+      `.trim();
 
       const resposta = await openai.createChatCompletion({
         model: 'gpt-4o',
@@ -163,7 +163,7 @@ Formato JSON:
 
 ⚠️ Nunca mostre esse JSON no chat.
 ⚠️ Gere os dados automaticamente quando a intenção do usuário estiver clara.
-`.trim();
+    `.trim();
 
     const completion = await openai.createChatCompletion({
       model: 'gpt-4o',
@@ -179,6 +179,7 @@ Formato JSON:
     const sseStream = new ReadableStream({
       async start(controller) {
         const reader = stream.getReader();
+
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
@@ -198,13 +199,30 @@ Formato JSON:
 
             try {
               const parsed = JSON.parse(jsonStr);
+              const content = parsed.content;
+              const json = parsed.json;
 
-              if (parsed.json) {
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ json: parsed.json })}\n\n`));
+              if (content) {
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`));
+
+                // Tentativa de fallback para capturar o JSON embutido no texto
+                if (!json && content.includes('"ciclo"') && content.includes('"okrs"')) {
+                  try {
+                    const match = content.match(/{\s*"ciclo"[\s\S]+?"links"\s*:\s*\[[\s\S]*?\]\s*}/);
+                    if (match && match[0]) {
+                      const parsedJson = JSON.parse(match[0]);
+                      console.log('[⚠️ JSON capturado do content via regex]', parsedJson);
+                      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ json: parsedJson })}\n\n`));
+                    }
+                  } catch (e) {
+                    console.warn('[⚠️ Falha ao tentar extrair JSON do content]', e);
+                  }
+                }
               }
 
-              if (parsed.choices?.[0]?.delta?.content) {
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: parsed.choices[0].delta.content })}\n\n`));
+              if (json) {
+                console.log('[✅ JSON estruturado recebido]', json);
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ json })}\n\n`));
               }
             } catch (e) {
               console.error('[Erro ao parsear SSE]', e);

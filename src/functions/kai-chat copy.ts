@@ -7,7 +7,9 @@ const openai = new OpenAIApi(
   })
 );
 
-export const config = { runtime: 'edge' };
+export const config = {
+  runtime: 'edge',
+};
 
 export default async function handler(req: NextRequest) {
   try {
@@ -24,6 +26,8 @@ Sua tarefa é gerar uma estrutura de OKRs em formato JSON e, depois, explicar a 
 1. Ao receber o modo "gerar":
   - GERE primeiro o JSON na estrutura abaixo (sem explicações).
   - Depois, GERE uma explicação textual baseada nesse JSON.
+
+2. Quando o modo for diferente de "gerar", continue a conversa normalmente.
 
 Formato JSON:
 {
@@ -59,9 +63,9 @@ Formato JSON:
   ]
 }
 
-⚠️ Nunca inclua explicações no JSON.
+⚠️ NUNCA inclua explicações no JSON.
 ⚠️ O primeiro bloco da resposta deve conter apenas o JSON.
-⚠️ O segundo bloco deve conter uma explicação clara e objetiva da estrutura gerada.
+⚠️ O segundo bloco deve conter uma explicação clara em linguagem natural da estrutura gerada.
       `.trim();
 
       const resposta = await openai.createChatCompletion({
@@ -76,9 +80,13 @@ Formato JSON:
 
       const raw = await resposta.json();
       const fullResponse = raw?.choices?.[0]?.message?.content;
-      if (!fullResponse) return new Response('Erro ao gerar estrutura JSON', { status: 500 });
 
-      let estruturaJSON = null;
+      if (!fullResponse) {
+        console.error('[❌ Resposta da IA está vazia]', raw);
+        return new Response('Erro ao gerar estrutura JSON', { status: 500 });
+      }
+
+      let estruturaJSON: any = null;
       let explicacaoTexto = '';
 
       try {
@@ -88,10 +96,14 @@ Formato JSON:
         const jsonStr = match[1].trim();
         estruturaJSON = JSON.parse(jsonStr);
 
-        explicacaoTexto = fullResponse.replace(match[0], '').trim() +
-          '\n\nEstá de acordo? Se quiser ajustar algo, é só dizer!';
+        explicacaoTexto = fullResponse.replace(match[0], '',).trim() +
+        '\n\nEstá de acordo? Se quiser ajustar algo, é só dizer!';
+
+
+        console.log('[✅ JSON extraído e parseado]', estruturaJSON);
+        console.log('[✅ Texto explicativo isolado]', explicacaoTexto);
       } catch (err) {
-        console.error('[❌ Falha ao parsear estrutura JSON]', fullResponse);
+        console.error('[❌ Falha ao separar ou parsear JSON da resposta]', fullResponse);
         return new Response('Erro ao interpretar estrutura JSON gerada', { status: 500 });
       }
 
@@ -113,22 +125,13 @@ Formato JSON:
       });
     }
 
-    // modo conversa
+    // Modo conversa padrão
     const completion = await openai.createChatCompletion({
       model: 'gpt-4o',
       temperature: 0.7,
       stream: true,
       messages: [
-        {
-          role: 'system',
-          content: `
-Você é a Kai, uma agente conversacional especialista em OKRs.
-Seu papel é entender o que o usuário quer estruturar, perguntar o que for necessário para esclarecer o contexto, e só então sugerir uma proposta de OKRs.
-Não antecipe. Primeiro entenda. Quando estiver claro, pergunte: "Posso gerar uma proposta com base nisso?"
-Quando o usuário disser que sim, um novo modo 'gerar' será acionado.
-Responda com fluidez, naturalidade e empatia.
-          `.trim()
-        },
+        { role: 'system', content: 'Você é uma IA especialista em OKRs. Continue a conversa com clareza e objetividade.' },
         ...messages,
       ],
     });
@@ -153,6 +156,7 @@ Responda com fluidez, naturalidade e empatia.
                 controller.close();
                 return;
               }
+
               try {
                 const parsed = JSON.parse(jsonStr);
                 const content = parsed.choices?.[0]?.delta?.content;
@@ -175,8 +179,8 @@ Responda com fluidez, naturalidade e empatia.
         Connection: 'keep-alive',
       },
     });
-  } catch (err) {
-    console.error('[❌ ERRO INTERNO kai-chat]', err);
+  } catch (err: any) {
+    console.error('[❌ ERRO INTERNO kai-chat]', err.message || err);
     return new Response('Erro interno no processamento da função Kai.', { status: 500 });
   }
 }

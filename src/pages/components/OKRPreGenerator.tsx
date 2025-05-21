@@ -14,12 +14,10 @@ export function OKRPreGenerator() {
 
   const { generateFullOKRStructureFromJson } = useOKRStore();
   const {
-    phase,
     estruturaJson,
-    prompt,
-    setPrompt,
     setEstruturaJson,
-    phaseTo
+    propostaConfirmada,
+    setPropostaConfirmada
   } = useKaiChatStore();
 
   const chatEndRef = useRef<HTMLDivElement | null>(null);
@@ -32,24 +30,17 @@ export function OKRPreGenerator() {
   };
 
   useEffect(() => {
-    if (phase === 'awaiting_context' && messages.length === 0) {
-      setMessages([
-        {
-          role: 'assistant',
-          content: `Olá! Me conte um pouco sobre o que sua equipe deseja alcançar neste próximo ciclo.\nExemplo: “Queremos aumentar a base de clientes ativos e lançar novas funcionalidades até o fim do trimestre.”`,
-        },
-      ]);
+    if (messages.length === 0) {
+      setMessages([{
+        role: 'assistant',
+        content: 'Olá! Sou a Kai, sua assistente para estruturar OKRs. Como posso te ajudar hoje?'
+      }]);
     }
-  }, [phase]);
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, currentResponse, phase]);
-
-  const isGreeting = (text: string) =>
-    ['oi', 'olá', 'bom dia', 'boa tarde', 'boa noite'].some((p) =>
-      text.toLowerCase().includes(p)
-    );
+  }, [messages, currentResponse]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -60,124 +51,22 @@ export function OKRPreGenerator() {
     setLoading(true);
     setCurrentResponse('');
 
-    // Contexto inicial
-    if (phase === 'awaiting_context') {
-      if (isGreeting(input)) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: 'assistant',
-            content: 'Oi! Me conta um pouco sobre os desafios desse ciclo que deseja planejar.',
-          },
-        ]);
-        setLoading(false);
-        return;
-      }
-      setPrompt(input);
+    // Caso tenha confirmado estrutura e o usuário respondeu algo tipo "ok"
+    const lower = input.trim().toLowerCase();
+    const confirmacoes = ['ok', 'pode gerar', 'confirmado', 'perfeito', 'está ótimo', 'sim'];
+    if (estruturaJson && !propostaConfirmada && confirmacoes.some(c => lower.includes(c))) {
+      setPropostaConfirmada(true);
       setMessages((prev) => [
         ...prev,
         {
           role: 'assistant',
-          content: 'Entendi! Posso gerar uma proposta de indicadores com base nisso?',
+          content: '✅ Estrutura confirmada! Clique no botão abaixo para cadastrar os indicadores no sistema.'
         },
       ]);
-      phaseTo('awaiting_confirmation');
       setLoading(false);
       return;
     }
 
-    // Aprovação: gerar estrutura
-    if (phase === 'awaiting_confirmation') {
-      const res = await fetch('/.netlify/functions/kai-chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [...messages, newMessage],
-          userId: useAuthStore.getState().userId,
-          organizationId: useAuthStore.getState().organizationId,
-          modo: 'gerar',
-        }),
-      });
-
-      if (!res.ok || !res.body) {
-        setMessages((prev) => [
-          ...prev,
-          { role: 'assistant', content: '❌ Erro ao gerar proposta. Tente novamente.' },
-        ]);
-        setLoading(false);
-        return;
-      }
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-      let done = false;
-
-      while (!done) {
-        const { value, done: readerDone } = await reader.read();
-        done = readerDone;
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n').filter((line) => line.startsWith('data:'));
-
-        for (const line of lines) {
-          const data = line.replace(/^data:\s*/, '');
-          if (data === '[DONE]') continue;
-
-          try {
-            const parsed = JSON.parse(data);
-            const content = parsed.content;
-            const json = parsed.json;
-
-            if (content) {
-              buffer += content;
-              setCurrentResponse(buffer);
-            }
-
-            if (json) {
-              console.log('[✅ JSON estruturado recebido]', json);
-              setEstruturaJson(json);
-            }
-          } catch (e) {
-            console.error('Erro no parse do chunk:', e);
-          }
-        }
-      }
-
-      setMessages((prev) => [...prev, { role: 'assistant', content: buffer }]);
-      setCurrentResponse('');
-      phaseTo('awaiting_adjustment');
-      setLoading(false);
-      return;
-    }
-
-    // Confirmação do usuário após ver a proposta
-    const phaseAtual = useKaiChatStore.getState().phase;
-    if (phaseAtual === 'awaiting_adjustment') {
-      const confirmacoes = ['Show','ok', 'perfeito', 'pode gerar', 'pode cadastrar', 'tudo certo', 'confirmado', 'é isso', 'está ótimo', 'exatamente assim', 'massa'];
-      const respostaNormalizada = input.trim().toLowerCase();
-
-      if (confirmacoes.some(c => respostaNormalizada.startsWith(c))) {
-        phaseTo('ready_to_generate');
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: 'assistant',
-            content: '✅ Estrutura confirmada! Clique no botão abaixo para cadastrar os indicadores no sistema.',
-          },
-        ]);
-        console.log('[DEBUG] Tentando confirmar estrutura com fase:', phaseAtual, 'e resposta:', respostaNormalizada);
-        setLoading(false);
-        return;
-      }
-    }
-
-    // Confirmação final: OK para enviar
-    if (phase === 'ready_to_generate') {
-      await handleGenerateOKRs();
-      return;
-    }
-
-    // Default: conversa
     const res = await fetch('/.netlify/functions/kai-chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -185,18 +74,22 @@ export function OKRPreGenerator() {
         messages: [...messages, newMessage],
         userId: useAuthStore.getState().userId,
         organizationId: useAuthStore.getState().organizationId,
-        modo: 'conversa',
+        modo: estruturaJson && !propostaConfirmada ? 'conversa' : 'conversa'
       }),
     });
 
     if (!res.ok || !res.body) {
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: '❌ Ocorreu um erro ao processar. Tente novamente.' },
+      ]);
       setLoading(false);
       return;
     }
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
-    let accumulated = '';
+    let buffer = '';
     let done = false;
 
     while (!done) {
@@ -212,20 +105,25 @@ export function OKRPreGenerator() {
         try {
           const parsed = JSON.parse(data);
           const content = parsed.content;
+          const json = parsed.json;
+
           if (content) {
-            accumulated += content;
-            setCurrentResponse(accumulated);
+            buffer += content;
+            setCurrentResponse(buffer);
+          }
+
+          if (json) {
+            console.log('[✅ JSON estruturado recebido]', json);
+            setEstruturaJson(json);
+            setPropostaConfirmada(false);
           }
         } catch (e) {
-          console.error('[Erro parse fallback]', e);
+          console.error('Erro no parse do chunk:', e);
         }
       }
     }
 
-    if (accumulated) {
-      setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
-    }
-
+    setMessages((prev) => [...prev, { role: 'assistant', content: buffer }]);
     setCurrentResponse('');
     setLoading(false);
   };
@@ -275,7 +173,7 @@ export function OKRPreGenerator() {
               {currentResponse}
             </div>
           )}
-          {phase === 'ready_to_generate' && (
+          {estruturaJson && propostaConfirmada && (
             <div className="flex justify-start mt-2">
               <button
                 onClick={handleGenerateOKRs}
@@ -296,7 +194,7 @@ export function OKRPreGenerator() {
             rows={3}
             disabled={loading}
             className="w-full text-sm pl-10 pr-10 py-3 rounded-xl border border-gray-300 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
-            placeholder="Descreva aqui o desafio do ciclo..."
+            placeholder="Fale comigo..."
           />
           <button
             type="submit"

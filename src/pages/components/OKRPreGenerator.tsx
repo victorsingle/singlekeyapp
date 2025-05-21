@@ -150,6 +150,25 @@ export function OKRPreGenerator() {
       return;
     }
 
+    // Confirmação do usuário após ver a proposta
+    if (phase === 'awaiting_adjustment') {
+      const confirmacoes = ['ok', 'perfeito', 'pode gerar', 'pode cadastrar', 'tudo certo', 'confirmado'];
+      const respostaNormalizada = input.trim().toLowerCase();
+
+      if (confirmacoes.some(c => respostaNormalizada.startsWith(c))) {
+        phaseTo('ready_to_generate');
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: '✅ Estrutura confirmada! Clique no botão abaixo para cadastrar os indicadores no sistema.',
+          },
+        ]);
+        setLoading(false);
+        return;
+      }
+    }
+
     // Confirmação final: OK para enviar
     if (phase === 'ready_to_generate') {
       await handleGenerateOKRs();

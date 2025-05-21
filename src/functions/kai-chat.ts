@@ -96,7 +96,9 @@ Formato JSON:
         const jsonStr = match[1].trim();
         estruturaJSON = JSON.parse(jsonStr);
 
-        explicacaoTexto = fullResponse.replace(match[0], '').trim();
+        explicacaoTexto = fullResponse.replace(match[0], '',).trim() +
+        '\n\nEstá de acordo? Se quiser ajustar algo, é só dizer!';
+
 
         console.log('[✅ JSON extraído e parseado]', estruturaJSON);
         console.log('[✅ Texto explicativo isolado]', explicacaoTexto);

@@ -62,6 +62,9 @@ Formato JSON:
 ⚠️ Nunca inclua explicações no JSON.
 ⚠️ O primeiro bloco da resposta deve conter apenas o JSON.
 ⚠️ O segundo bloco deve conter uma explicação clara e objetiva da estrutura gerada.
+⚠️ SEMPRE que o usuário confirmar que deseja gerar a proposta final — ou solicitar qualquer ajuste na proposta anterior —, você deve REGERAR a estrutura COMPLETA em formato JSON, refletindo todas as alterações solicitadas.
+⚠️ Após o JSON, você deve escrever uma explicação textual clara e objetiva da nova proposta.
+⚠️ Não espere outro comando. Gere a nova proposta automaticamente assim que a intenção do usuário for confirmada.
       `.trim();
 
       const resposta = await openai.createChatCompletion({

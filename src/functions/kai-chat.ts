@@ -17,7 +17,6 @@ export default async function handler(req: NextRequest) {
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
 
-    // MODO GERAR: estrutura + explicação
     if (modo === 'gerar') {
       const systemPrompt = `
 Você é a Kai, uma IA especialista em OKRs.
@@ -80,47 +79,31 @@ Formato JSON:
       });
 
       const raw = await resposta.json();
-      const estruturaString = raw?.choices?.[0]?.message?.content;
+      const fullResponse = raw?.choices?.[0]?.message?.content;
 
-      if (!estruturaString) {
+      if (!fullResponse) {
         console.error('[❌ Resposta da IA está vazia]', raw);
         return new Response('Erro ao gerar estrutura JSON', { status: 500 });
       }
 
-      let estruturaJSON;
+      let estruturaJSON: any = null;
+      let explicacaoTexto = '';
+
       try {
-        const estruturaLimpa = estruturaString
-          .replace(/```json/g, '')
-          .replace(/```/g, '')
-          .trim();
+        const match = fullResponse.match(/```json\s*([\s\S]+?)\s*```/);
+        if (!match || !match[1]) throw new Error('Bloco JSON não encontrado');
 
-        estruturaJSON = JSON.parse(estruturaLimpa);
-        console.log('[✅ Estrutura JSON parseada com sucesso]', estruturaJSON);
+        const jsonStr = match[1].trim();
+        estruturaJSON = JSON.parse(jsonStr);
+
+        explicacaoTexto = fullResponse.replace(match[0], '').trim();
+
+        console.log('[✅ JSON extraído e parseado]', estruturaJSON);
+        console.log('[✅ Texto explicativo isolado]', explicacaoTexto);
       } catch (err) {
-        console.error('[❌ Falha ao fazer parse do JSON gerado]', estruturaString);
-        return new Response('Erro ao interpretar estrutura JSON', { status: 500 });
+        console.error('[❌ Falha ao separar ou parsear JSON da resposta]', fullResponse);
+        return new Response('Erro ao interpretar estrutura JSON gerada', { status: 500 });
       }
-
-      // Gerar explicação textual com base no JSON
-      const explicacaoResposta = await openai.createChatCompletion({
-        model: 'gpt-4o',
-        temperature: 0.6,
-        stream: false,
-        messages: [
-          {
-            role: 'system',
-            content: 'Com base na estrutura abaixo, escreva uma explicação clara e direta dos OKRs para o usuário entender a proposta.',
-          },
-          {
-            role: 'user',
-            content: JSON.stringify(estruturaJSON),
-          },
-        ],
-      });
-
-      const explicacao = await explicacaoResposta.json();
-      const explicacaoTexto = explicacao?.choices?.[0]?.message?.content ?? '';
-      console.log('[✅ Explicação textual gerada]', explicacaoTexto);
 
       const stream = new ReadableStream({
         async start(controller) {
@@ -140,7 +123,7 @@ Formato JSON:
       });
     }
 
-    // MODO CONVERSA: fluxo normal
+    // Modo conversa padrão
     const completion = await openai.createChatCompletion({
       model: 'gpt-4o',
       temperature: 0.7,

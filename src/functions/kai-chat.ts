@@ -14,10 +14,10 @@ export const config = {
 export default async function handler(req: NextRequest) {
   try {
     const { messages, modo } = await req.json();
-
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
 
+    // MODO GERAR: estrutura + explicação
     if (modo === 'gerar') {
       const systemPrompt = `
 Você é a Kai, uma IA especialista em OKRs.
@@ -79,28 +79,29 @@ Formato JSON:
         ],
       });
 
-      const json = await resposta.json();
-      const estruturaString = json?.choices?.[0]?.message?.content;
+      const raw = await resposta.json();
+      const estruturaString = raw?.choices?.[0]?.message?.content;
 
       if (!estruturaString) {
-        console.error('[❌ Resposta da IA está vazia]', json);
+        console.error('[❌ Resposta da IA está vazia]', raw);
         return new Response('Erro ao gerar estrutura JSON', { status: 500 });
       }
 
       let estruturaJSON;
       try {
         const estruturaLimpa = estruturaString
-          .replace(/```json/, '')
-          .replace(/```/, '')
+          .replace(/```json/g, '')
+          .replace(/```/g, '')
           .trim();
 
         estruturaJSON = JSON.parse(estruturaLimpa);
-
+        console.log('[✅ Estrutura JSON parseada com sucesso]', estruturaJSON);
       } catch (err) {
-        console.error('[❌ Falha ao fazer parse do JSON]', estruturaString);
+        console.error('[❌ Falha ao fazer parse do JSON gerado]', estruturaString);
         return new Response('Erro ao interpretar estrutura JSON', { status: 500 });
       }
 
+      // Gerar explicação textual com base no JSON
       const explicacaoResposta = await openai.createChatCompletion({
         model: 'gpt-4o',
         temperature: 0.6,
@@ -119,10 +120,11 @@ Formato JSON:
 
       const explicacao = await explicacaoResposta.json();
       const explicacaoTexto = explicacao?.choices?.[0]?.message?.content ?? '';
+      console.log('[✅ Explicação textual gerada]', explicacaoTexto);
 
       const stream = new ReadableStream({
         async start(controller) {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ estrutura: estruturaJSON })}\n\n`));
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ json: estruturaJSON })}\n\n`));
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: explicacaoTexto })}\n\n`));
           controller.enqueue(encoder.encode('data: [DONE]\n\n'));
           controller.close();
@@ -138,7 +140,7 @@ Formato JSON:
       });
     }
 
-    // Conversa normal
+    // MODO CONVERSA: fluxo normal
     const completion = await openai.createChatCompletion({
       model: 'gpt-4o',
       temperature: 0.7,

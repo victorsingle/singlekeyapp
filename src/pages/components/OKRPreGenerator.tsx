@@ -12,6 +12,7 @@ export function OKRPreGenerator() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState('');
+  const [userConfirmed, setUserConfirmed] = useState(false);
 
   const { generateFullOKRStructureFromJson } = useOKRStore();
   const {
@@ -49,14 +50,15 @@ export function OKRPreGenerator() {
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
     if (
+      phase === 'awaiting_adjustment' &&
       lastMessage?.role === 'user' &&
       ['está ótimo', 'pode seguir', 'vamos seguir', 'confirmado', 'tá bom'].some((txt) =>
         lastMessage.content.toLowerCase().includes(txt)
       )
     ) {
-      setUserConfirmed(true);
+      phaseTo('ready_to_generate');
     }
-  }, [messages]);
+  }, [messages, phase, phaseTo]);
 
   const isApprovalMessage = (text: string) => {
     const lower = text.toLowerCase();
@@ -91,12 +93,6 @@ export function OKRPreGenerator() {
       phaseTo('awaiting_confirmation');
       const msg = 'Entendi! Posso gerar uma proposta de indicadores com base nisso?';
       setMessages((prev) => [...prev, { role: 'assistant', content: msg }]);
-      setLoading(false);
-      return;
-    }
-
-    if (phase === 'awaiting_adjustment' && isApprovalMessage(input)) {
-      phaseTo('ready_to_generate');
       setLoading(false);
       return;
     }
@@ -145,7 +141,7 @@ export function OKRPreGenerator() {
         if (accumulated) {
           setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
           setConfirmedPrompt(accumulated);
-          phaseTo('awaiting_adjustment'); // <- ajuste aqui
+          phaseTo('awaiting_adjustment');
         }
 
         setCurrentResponse('');

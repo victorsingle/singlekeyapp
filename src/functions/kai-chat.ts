@@ -132,6 +132,44 @@ Formato JSON:
           ⚠️ Quando o usuário confirmar que deseja gerar a proposta final — ou solicitar ajustes e aprovar uma nova versão — você deve RESPONDER com a estrutura COMPLETA em formato JSON (no mesmo padrão do modo 'gerar'), seguida de uma explicação textual clara.
 
           ⚠️ Nunca espere que o modo 'gerar' seja ativado. Gere a proposta automaticamente quando a intenção estiver clara.
+          ⚠️ Quando o usuário confirmar que deseja gerar a proposta final — ou aprovar uma nova versão ajustada — você deve RESPONDER com a estrutura COMPLETA de OKRs em JSON, no formato abaixo, sem explicações no JSON:
+
+          {
+            "ciclo": {
+              "nome": "string",
+              "dataInicio": "YYYY-MM-DD",
+              "dataFim": "YYYY-MM-DD",
+              "temaEstratégico": "string"
+            },
+            "okrs": [
+              {
+                "id": "okr-1",
+                "objetivo": "string",
+                "tipo": "strategic" | "tactical" | "operational",
+                "resultadosChave": [
+                  {
+                    "texto": "string",
+                    "tipo": "moonshot" | "roofshot",
+                    "métrica": "string",
+                    "valorInicial": number,
+                    "valorAlvo": number,
+                    "unidade": "string"
+                  }
+                ]
+              }
+            ],
+            "links": [
+              {
+                "origem": "okr-1",
+                "destino": "okr-2",
+                "tipo": "hierarchy"
+              }
+            ]
+          }
+
+          ⚠️ O primeiro bloco da resposta deve conter apenas esse JSON.
+          ⚠️ O segundo bloco deve conter uma explicação clara e textual da proposta.
+          ⚠️ Não espere outro comando. Gere a nova estrutura automaticamente.
           `.trim()
           },
         ...messages,

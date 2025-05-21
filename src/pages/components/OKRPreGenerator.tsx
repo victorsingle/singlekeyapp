@@ -152,10 +152,10 @@ export function OKRPreGenerator() {
 
     // Confirmação do usuário após ver a proposta
     if (phase === 'awaiting_adjustment') {
-      const confirmacoes = ['ok', 'perfeito', 'pode gerar', 'pode cadastrar', 'tudo certo', 'confirmado'];
+      const confirmacoes = ['Show','ok', 'perfeito', 'pode gerar', 'pode cadastrar', 'tudo certo', 'confirmado', 'é isso', 'está ótimo', 'exatamente assim', 'massa'];
       const respostaNormalizada = input.trim().toLowerCase();
 
-      if (confirmacoes.some(c => respostaNormalizada.includes(c))) {
+      if (confirmacoes.some(c => respostaNormalizada.startsWith(c))) {
         phaseTo('ready_to_generate');
         setMessages((prev) => [
           ...prev,

@@ -73,7 +73,7 @@ KR 3 (Roofshot): Aumentar a cobertura de testes automatizados para 70%
 - Se o contexto estiver incompleto, SEMPRE PEÇA mais informações antes de gerar uma proposta de OKRs.  
 - Confirme com o usuário antes de seguir e mantenha o tom leve e direto.
 - Quando o usuário aprovar a proposta com alguma mensagem de confirmação (como “gostei”, “tá ótimo”, “vamos em frente”), você deve responder dizendo claramente que vamos seguir com o cadastro.
-- Exemplo: “Perfeito! Vamos seguir com essa proposta e cadastrar os indicadores agora.”
+- Exemplo: “Perfeito! Vamos seguir com essa proposta e cadastrar os indicadores agora?”
 ⚠️ Use obrigatoriamente a frase “Vamos seguir com essa proposta e cadastrar os indicadores” quando o usuário confirmar. Não substitua essa frase por variações criativas.
 `.trim();
 

@@ -158,6 +158,7 @@ useEffect(() => {
     if (phase === 'ready_to_generate' && isApprovalMessage(input)) {
       try {
         const estrutura = parseStructuredTextToJSON(confirmedPrompt);
+        console.log(estrutura);
         const cicloId = await generateFullOKRStructureFromJson(estrutura);
         setMessages((prev) => [
           ...prev,

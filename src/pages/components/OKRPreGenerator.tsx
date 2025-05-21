@@ -46,6 +46,18 @@ export function OKRPreGenerator() {
     scrollToBottom();
   }, [messages, currentResponse, phase]);
 
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1];
+    if (
+      lastMessage?.role === 'user' &&
+      ['está ótimo', 'pode seguir', 'vamos seguir', 'confirmado', 'tá bom'].some((txt) =>
+        lastMessage.content.toLowerCase().includes(txt)
+      )
+    ) {
+      setUserConfirmed(true);
+    }
+  }, [messages]);
+
   const isApprovalMessage = (text: string) => {
     const lower = text.toLowerCase();
     return [

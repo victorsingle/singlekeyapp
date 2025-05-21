@@ -69,10 +69,8 @@ Formato JSON:
 ⚠️ O segundo bloco deve conter uma explicação clara em linguagem natural da estrutura gerada.
       `.trim();
 
-      // 1. Gera o JSON estruturado (não precisa fazer JSON.parse!)
       const resposta = await openai.createChatCompletion({
         model: 'gpt-4o',
-        response_format: 'json_object',
         temperature: 0.4,
         stream: false,
         messages: [
@@ -82,18 +80,25 @@ Formato JSON:
       });
 
       const json = await resposta.json();
-      const estruturaJSON = json?.choices?.[0]?.message?.content;
+      const estruturaString = json?.choices?.[0]?.message?.content;
 
-      if (!estruturaJSON || typeof estruturaJSON !== 'object') {
-        console.error('[❌ Estrutura inválida recebida]', json);
+      if (!estruturaString) {
+        console.error('[❌ Resposta da IA está vazia]', json);
         return new Response('Erro ao gerar estrutura JSON', { status: 500 });
       }
 
-      // 2. Gera a explicação textual com base na estrutura
+      let estruturaJSON;
+      try {
+        estruturaJSON = JSON.parse(estruturaString);
+      } catch (err) {
+        console.error('[❌ Falha ao fazer parse do JSON]', estruturaString);
+        return new Response('Erro ao interpretar estrutura JSON', { status: 500 });
+      }
+
       const explicacaoResposta = await openai.createChatCompletion({
         model: 'gpt-4o',
-        stream: false,
         temperature: 0.6,
+        stream: false,
         messages: [
           {
             role: 'system',
@@ -127,7 +132,7 @@ Formato JSON:
       });
     }
 
-    // fallback para conversa normal
+    // Conversa normal
     const completion = await openai.createChatCompletion({
       model: 'gpt-4o',
       temperature: 0.7,

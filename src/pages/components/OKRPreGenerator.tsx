@@ -86,6 +86,7 @@ export function OKRPreGenerator() {
 
         try {
           const parsed = JSON.parse(data);
+          console.log('[🔍 STREAMING RECEBIDO]', parsed);
           const content = parsed.content;
           const json = parsed.json;
 
@@ -96,10 +97,9 @@ export function OKRPreGenerator() {
             // fallback para detectar JSON vindo dentro do content
             if (!json && content.includes('"ciclo"') && content.includes('"okrs"')) {
               try {
-                const match = content.match(/```json[\s\n]*([\s\S]+?)```/);
-                if (match && match[1]) {
-                  const extracted = match[1].trim();
-                  const parsedJson = JSON.parse(extracted);
+                const match = content.match(/{\s*"ciclo"[\s\S]+"links"\s*:\s*\[[\s\S]*?\]\s*}/);
+                if (match && match[0]) {
+                  const parsedJson = JSON.parse(match[0]);
                   console.log('[⚠️ JSON capturado manualmente do content]', parsedJson);
                   setEstruturaJson(parsedJson);
                 }

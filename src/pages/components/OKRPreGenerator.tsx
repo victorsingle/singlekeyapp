@@ -89,7 +89,7 @@ export function OKRPreGenerator() {
           console.log('[🔍 STREAMING RECEBIDO]', parsed);
           const content = parsed.content;
           const json = parsed.json;
-
+          console.log('[🔍 STREAMING JSON]', json);
           if (content) {
             buffer += content;
             setCurrentResponse(buffer);

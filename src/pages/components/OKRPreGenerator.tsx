@@ -47,18 +47,16 @@ export function OKRPreGenerator() {
     scrollToBottom();
   }, [messages, currentResponse, phase]);
 
-  useEffect(() => {
-    const lastMessage = messages[messages.length - 1];
-    if (
-      phase === 'awaiting_adjustment' &&
-      lastMessage?.role === 'user' &&
-      ['está ótimo', 'pode seguir', 'vamos seguir', 'confirmado', 'tá bom'].some((txt) =>
-        lastMessage.content.toLowerCase().includes(txt)
-      )
-    ) {
-      phaseTo('ready_to_generate');
-    }
-  }, [messages, phase, phaseTo]);
+useEffect(() => {
+  const lastAssistant = messages[messages.length - 1];
+  if (
+    phase === 'awaiting_adjustment' &&
+    lastAssistant?.role === 'assistant' &&
+    lastAssistant.content.toLowerCase().includes('cadastrar os indicadores')
+  ) {
+    phaseTo('ready_to_generate');
+  }
+}, [messages, phase]);
 
   const isApprovalMessage = (text: string) => {
     const lower = text.toLowerCase();

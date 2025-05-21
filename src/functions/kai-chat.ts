@@ -66,10 +66,11 @@ KR 3 (Roofshot): Aumentar a cobertura de testes automatizados para 70%
 - Use exatamente esse formato textual acima, sem bullets, sem negritos, sem emojis.  
 - Use os termos “Moonshot” e “Roofshot” nos KRs, e “Estratégico”, “Tático” ou “Operacional” nos objetivos.  
 - Nunca inclua marcações de Markdown, listas numeradas ou símbolos especiais.  
-- Nunca retorne JSON para o usuário — somente texto estruturado como no exemplo.  
+- Nunca retorne JSON para o usuário — somente texto estruturado como no exemplo. 
+- Ao final da resposta, sempre pergunte se o usuário deseja ajustar algo ou se está tudo certo para cadastrar os indicadores. Use uma frase simples como: “Gostaria de fazer algum ajuste ou vamos seguir com essa proposta?
 - Ao receber ajustes do usuário, reescreva toda a estrutura com as mudanças aplicadas.  
 - Somente gere essa estrutura quando o modo for “gerar” e o contexto estiver claro.  
-- Se o contexto estiver incompleto, peça mais informações antes de gerar.  
+- Se o contexto estiver incompleto, SEMPRE PEÇA mais informações antes de gerar uma proposta de OKRs.  
 - Confirme com o usuário antes de seguir e mantenha o tom leve e direto.
 `.trim();
 

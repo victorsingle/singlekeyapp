@@ -133,10 +133,10 @@ export function OKRPreGenerator() {
         if (accumulated) {
           setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
           setConfirmedPrompt(accumulated);
+          phaseTo('awaiting_adjustment'); // <- ajuste aqui
         }
 
         setCurrentResponse('');
-        phaseTo('ready_to_generate');
       } catch (err) {
         console.error('[❌ Erro na fase awaiting_confirmation]', err);
         setMessages((prev) => [
@@ -170,7 +170,6 @@ export function OKRPreGenerator() {
       return;
     }
 
-    // fallback para conversa (stream)
     const response = await fetch('/.netlify/functions/kai-chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -241,6 +240,16 @@ export function OKRPreGenerator() {
           {currentResponse && (
             <div className="bg-blue-50 text-gray-800 text-sm p-3 rounded-xl animate-pulse whitespace-pre-wrap">
               {currentResponse}
+            </div>
+          )}
+          {phase === 'ready_to_generate' && (
+            <div className="flex justify-start mt-2">
+              <button
+                onClick={() => handleSend()}
+                className="bg-blue-600 text-white text-sm font-medium py-2 px-4 rounded hover:bg-blue-700 transition"
+              >
+                Cadastrar Indicadores
+              </button>
             </div>
           )}
           <div ref={chatEndRef} />

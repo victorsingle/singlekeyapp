@@ -226,6 +226,27 @@ useEffect(() => {
     setLoading(false);
   };
 
+  const handleGenerateOKRs = async () => {
+    setLoading(true);
+    try {
+      const estrutura = parseStructuredTextToJSON(confirmedPrompt);
+      const cicloId = await generateFullOKRStructureFromJson(estrutura);
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: '✅ OKRs cadastrados com sucesso! Redirecionando...' }
+      ]);
+      setTimeout(() => navigate(`/ciclos/${cicloId}`), 1500);
+    } catch (err) {
+      console.error('[❌ Erro ao cadastrar OKRs]', err);
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: '❌ O formato do texto está incorreto. Verifique a estrutura e tente novamente.' }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-4xl mx-auto px-6 py-10">
       <div className="bg-white rounded-xl shadow p-4 flex flex-col justify-between h-[500px] border border-gray-100">
@@ -251,7 +272,7 @@ useEffect(() => {
           {phase === 'ready_to_generate' && (
             <div className="flex justify-start mt-2">
               <button
-                onClick={() => handleSend()}
+                onClick={handleGenerateOKRs}
                 className="bg-blue-600 text-white text-sm font-medium py-2 px-4 rounded hover:bg-blue-700 transition"
               >
                 Cadastrar Indicadores

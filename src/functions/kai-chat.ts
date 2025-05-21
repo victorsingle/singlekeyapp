@@ -80,7 +80,7 @@ Formato JSON:
     });
 
     const resposta = await response.json();
-    const estrutura = resposta?.choices?.[0]?.message?.content;
+    const estruturaJSON = resposta?.choices?.[0]?.message?.content;
 
     if (!estrutura) {
       return new Response('Erro ao gerar estrutura JSON', { status: 500 });

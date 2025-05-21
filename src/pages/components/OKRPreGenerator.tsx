@@ -83,6 +83,12 @@ export function OKRPreGenerator() {
       return;
     }
 
+    if (phase === 'awaiting_adjustment' && isApprovalMessage(input)) {
+      phaseTo('ready_to_generate');
+      setLoading(false);
+      return;
+    }
+
     if (phase === 'awaiting_confirmation' && isApprovalMessage(input)) {
       try {
         const res = await fetch('/.netlify/functions/kai-chat', {

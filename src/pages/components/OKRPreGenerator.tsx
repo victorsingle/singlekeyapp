@@ -155,7 +155,7 @@ export function OKRPreGenerator() {
       const confirmacoes = ['ok', 'perfeito', 'pode gerar', 'pode cadastrar', 'tudo certo', 'confirmado'];
       const respostaNormalizada = input.trim().toLowerCase();
 
-      if (confirmacoes.some(c => respostaNormalizada.startsWith(c))) {
+      if (confirmacoes.some(c => respostaNormalizada.includes(c))) {
         phaseTo('ready_to_generate');
         setMessages((prev) => [
           ...prev,
@@ -164,6 +164,7 @@ export function OKRPreGenerator() {
             content: '✅ Estrutura confirmada! Clique no botão abaixo para cadastrar os indicadores no sistema.',
           },
         ]);
+        console.log('[⚠️ Resposta do usuário detectada como confirmação]', respostaNormalizada);
         setLoading(false);
         return;
       }

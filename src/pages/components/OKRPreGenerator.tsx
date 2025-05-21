@@ -12,6 +12,7 @@ export function OKRPreGenerator() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState('');
+  const [okrText, setOkrText] = useState('');
   const [userConfirmed, setUserConfirmed] = useState(false);
 
   const { generateFullOKRStructureFromJson } = useOKRStore();
@@ -19,7 +20,6 @@ export function OKRPreGenerator() {
     phase,
     prompt,
     confirmedPrompt,
-    propostaGerada,
     setPrompt,
     setConfirmedPrompt,
     setPropostaGerada,
@@ -37,11 +37,12 @@ export function OKRPreGenerator() {
 
   useEffect(() => {
     if (phase === 'awaiting_context' && messages.length === 0) {
-      const initialGreeting = {
-        role: 'assistant' as const,
-        content: `Olá! Me conte um pouco sobre o que sua equipe deseja alcançar neste próximo ciclo.\nExemplo: “Queremos aumentar a base de clientes ativos e lançar novas funcionalidades até o fim do trimestre.”`
-      };
-      setMessages([initialGreeting]);
+      setMessages([
+        {
+          role: 'assistant',
+          content: `Olá! Me conte um pouco sobre o que sua equipe deseja alcançar neste próximo ciclo.\nExemplo: “Queremos aumentar a base de clientes ativos e lançar novas funcionalidades até o fim do trimestre.”`
+        }
+      ]);
     }
   }, [phase]);
 
@@ -50,15 +51,14 @@ export function OKRPreGenerator() {
   }, [messages, currentResponse, phase]);
 
   useEffect(() => {
-    const lastAssistant = messages[messages.length - 1];
-    if (
-      phase === 'awaiting_adjustment' &&
-      lastAssistant?.role === 'assistant' &&
-      lastAssistant.content.toLowerCase().includes('cadastrar os indicadores')
-    ) {
+    const last = messages[messages.length - 1];
+    if (last?.role === 'assistant' && last.content.toLowerCase().includes('cadastrar os indicadores')) {
       phaseTo('ready_to_generate');
     }
-  }, [messages, phase]);
+    if (last?.role === 'user' && isApprovalMessage(last.content)) {
+      setUserConfirmed(true);
+    }
+  }, [messages]);
 
   const isApprovalMessage = (text: string) => {
     const lower = text.toLowerCase();
@@ -84,15 +84,13 @@ export function OKRPreGenerator() {
 
     if (phase === 'awaiting_context') {
       if (isGreeting(input)) {
-        const msg = 'Oi! Me conta um pouco sobre os desafios desse ciclo que deseja planejar.';
-        setMessages((prev) => [...prev, { role: 'assistant', content: msg }]);
+        setMessages((prev) => [...prev, { role: 'assistant', content: 'Oi! Me conta um pouco sobre os desafios desse ciclo que deseja planejar.' }]);
         setLoading(false);
         return;
       }
       setPrompt(input);
       phaseTo('awaiting_confirmation');
-      const msg = 'Entendi! Posso gerar uma proposta de indicadores com base nisso?';
-      setMessages((prev) => [...prev, { role: 'assistant', content: msg }]);
+      setMessages((prev) => [...prev, { role: 'assistant', content: 'Entendi! Posso gerar uma proposta de indicadores com base nisso?' }]);
       setLoading(false);
       return;
     }
@@ -106,8 +104,8 @@ export function OKRPreGenerator() {
             messages: [...messages, newMessage],
             userId: useAuthStore.getState().userId,
             organizationId: useAuthStore.getState().organizationId,
-            modo: 'gerar',
-          }),
+            modo: 'gerar'
+          })
         });
 
         if (!res.ok || !res.body) throw new Error('Erro na resposta da IA');
@@ -142,6 +140,7 @@ export function OKRPreGenerator() {
           setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
           setConfirmedPrompt(accumulated);
           setPropostaGerada(accumulated);
+          setOkrText(accumulated); // ✅ Salva a estrutura para o botão
           phaseTo('awaiting_adjustment');
         }
 
@@ -158,28 +157,6 @@ export function OKRPreGenerator() {
       return;
     }
 
-    if (phase === 'ready_to_generate' && isApprovalMessage(input)) {
-      try {
-        const estrutura = parseStructuredTextToJSON(propostaGerada);
-        console.log(estrutura);
-        const cicloId = await generateFullOKRStructureFromJson(estrutura);
-        setMessages((prev) => [
-          ...prev,
-          { role: 'assistant', content: '✅ OKRs cadastrados com sucesso! Redirecionando...' }
-        ]);
-        setTimeout(() => navigate(`/ciclos/${cicloId}`), 1500);
-      } catch (err) {
-        console.error('[❌ Erro ao cadastrar OKRs]', err);
-        setMessages((prev) => [
-          ...prev,
-          { role: 'assistant', content: '❌ O formato do texto está incorreto. Verifique a estrutura e tente novamente.' }
-        ]);
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
-
     const response = await fetch('/.netlify/functions/kai-chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -187,8 +164,8 @@ export function OKRPreGenerator() {
         messages: [...messages, newMessage],
         userId: useAuthStore.getState().userId,
         organizationId: useAuthStore.getState().organizationId,
-        modo: 'conversa',
-      }),
+        modo: 'conversa'
+      })
     });
 
     if (!response.ok || !response.body) {
@@ -232,9 +209,9 @@ export function OKRPreGenerator() {
 
   const handleGenerateOKRs = async () => {
     setLoading(true);
-    console.log('[🧪 Proposta recebida para parse]', propostaGerada);
+    console.log('[🧪 Proposta recebida para parse]', okrText);
     try {
-      const estrutura = parseStructuredTextToJSON(propostaGerada);
+      const estrutura = parseStructuredTextToJSON(okrText);
       const cicloId = await generateFullOKRStructureFromJson(estrutura);
       setMessages((prev) => [
         ...prev,
@@ -274,7 +251,7 @@ export function OKRPreGenerator() {
               {currentResponse}
             </div>
           )}
-          {phase === 'ready_to_generate' && (
+          {phase === 'ready_to_generate' && userConfirmed && (
             <div className="flex justify-start mt-2">
               <button
                 onClick={handleGenerateOKRs}
@@ -300,9 +277,9 @@ export function OKRPreGenerator() {
           <button
             type="submit"
             disabled={loading}
-            className="absolute right-3 top-3 text-blue-600 hover:text-blue-800"
+            className="absolute right-3 bottom-3 text-blue-600 hover:text-blue-800"
           >
-            <ArrowUpCircle className="w-7 h-7" />
+            <ArrowUpCircle className="w-5 h-5" />
           </button>
         </form>
       </div>

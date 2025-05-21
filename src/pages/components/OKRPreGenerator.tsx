@@ -151,7 +151,8 @@ export function OKRPreGenerator() {
     }
 
     // Confirmação do usuário após ver a proposta
-    if (phase === 'awaiting_adjustment') {
+    const phaseAtual = useKaiChatStore.getState().phase;
+    if (phaseAtual === 'awaiting_adjustment') {
       const confirmacoes = ['Show','ok', 'perfeito', 'pode gerar', 'pode cadastrar', 'tudo certo', 'confirmado', 'é isso', 'está ótimo', 'exatamente assim', 'massa'];
       const respostaNormalizada = input.trim().toLowerCase();
 
@@ -164,7 +165,7 @@ export function OKRPreGenerator() {
             content: '✅ Estrutura confirmada! Clique no botão abaixo para cadastrar os indicadores no sistema.',
           },
         ]);
-        console.log('[⚠️ Resposta do usuário detectada como confirmação]', respostaNormalizada);
+        console.log('[DEBUG] Tentando confirmar estrutura com fase:', phaseAtual, 'e resposta:', respostaNormalizada);
         setLoading(false);
         return;
       }

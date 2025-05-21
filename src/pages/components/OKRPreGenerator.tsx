@@ -19,8 +19,10 @@ export function OKRPreGenerator() {
     phase,
     prompt,
     confirmedPrompt,
+    propostaGerada,
     setPrompt,
     setConfirmedPrompt,
+    setPropostaGerada,
     phaseTo
   } = useKaiChatStore();
 
@@ -47,16 +49,16 @@ export function OKRPreGenerator() {
     scrollToBottom();
   }, [messages, currentResponse, phase]);
 
-useEffect(() => {
-  const lastAssistant = messages[messages.length - 1];
-  if (
-    phase === 'awaiting_adjustment' &&
-    lastAssistant?.role === 'assistant' &&
-    lastAssistant.content.toLowerCase().includes('cadastrar os indicadores')
-  ) {
-    phaseTo('ready_to_generate');
-  }
-}, [messages, phase]);
+  useEffect(() => {
+    const lastAssistant = messages[messages.length - 1];
+    if (
+      phase === 'awaiting_adjustment' &&
+      lastAssistant?.role === 'assistant' &&
+      lastAssistant.content.toLowerCase().includes('cadastrar os indicadores')
+    ) {
+      phaseTo('ready_to_generate');
+    }
+  }, [messages, phase]);
 
   const isApprovalMessage = (text: string) => {
     const lower = text.toLowerCase();
@@ -139,6 +141,7 @@ useEffect(() => {
         if (accumulated) {
           setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
           setConfirmedPrompt(accumulated);
+          setPropostaGerada(accumulated);
           phaseTo('awaiting_adjustment');
         }
 
@@ -157,7 +160,7 @@ useEffect(() => {
 
     if (phase === 'ready_to_generate' && isApprovalMessage(input)) {
       try {
-        const estrutura = parseStructuredTextToJSON(confirmedPrompt);
+        const estrutura = parseStructuredTextToJSON(propostaGerada);
         console.log(estrutura);
         const cicloId = await generateFullOKRStructureFromJson(estrutura);
         setMessages((prev) => [
@@ -230,7 +233,7 @@ useEffect(() => {
   const handleGenerateOKRs = async () => {
     setLoading(true);
     try {
-      const estrutura = parseStructuredTextToJSON(confirmedPrompt);
+      const estrutura = parseStructuredTextToJSON(propostaGerada);
       const cicloId = await generateFullOKRStructureFromJson(estrutura);
       setMessages((prev) => [
         ...prev,

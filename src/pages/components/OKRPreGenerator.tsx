@@ -232,6 +232,7 @@ export function OKRPreGenerator() {
 
   const handleGenerateOKRs = async () => {
     setLoading(true);
+    console.log('[🧪 Proposta recebida para parse]', propostaGerada);
     try {
       const estrutura = parseStructuredTextToJSON(propostaGerada);
       const cicloId = await generateFullOKRStructureFromJson(estrutura);

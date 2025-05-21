@@ -168,7 +168,7 @@ Formato JSON:
     const completion = await openai.createChatCompletion({
       model: 'gpt-4o',
       temperature: 0.7,
-      stream: true,
+      stream: false,
       messages: [
         { role: 'system', content: systemPromptConversa },
         ...messages,

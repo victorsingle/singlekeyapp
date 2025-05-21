@@ -89,7 +89,13 @@ Formato JSON:
 
       let estruturaJSON;
       try {
-        estruturaJSON = JSON.parse(estruturaString);
+        const estruturaLimpa = estruturaString
+          .replace(/```json/, '')
+          .replace(/```/, '')
+          .trim();
+
+        estruturaJSON = JSON.parse(estruturaLimpa);
+
       } catch (err) {
         console.error('[❌ Falha ao fazer parse do JSON]', estruturaString);
         return new Response('Erro ao interpretar estrutura JSON', { status: 500 });

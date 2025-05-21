@@ -15,9 +15,7 @@ export function OKRPreGenerator() {
   const { generateFullOKRStructureFromJson } = useOKRStore();
   const {
     estruturaJson,
-    setEstruturaJson,
-    propostaConfirmada,
-    setPropostaConfirmada
+    setEstruturaJson
   } = useKaiChatStore();
 
   const chatEndRef = useRef<HTMLDivElement | null>(null);
@@ -51,22 +49,6 @@ export function OKRPreGenerator() {
     setLoading(true);
     setCurrentResponse('');
 
-    // Caso tenha confirmado estrutura e o usuário respondeu algo tipo "ok"
-    const lower = input.trim().toLowerCase();
-    const confirmacoes = ['ok', 'pode gerar', 'confirmado', 'perfeito', 'está ótimo', 'sim'];
-    if (estruturaJson && !propostaConfirmada && confirmacoes.some(c => lower.includes(c))) {
-      setPropostaConfirmada(true);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'assistant',
-          content: '✅ Estrutura confirmada! Clique no botão abaixo para cadastrar os indicadores no sistema.'
-        },
-      ]);
-      setLoading(false);
-      return;
-    }
-
     const res = await fetch('/.netlify/functions/kai-chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -74,7 +56,7 @@ export function OKRPreGenerator() {
         messages: [...messages, newMessage],
         userId: useAuthStore.getState().userId,
         organizationId: useAuthStore.getState().organizationId,
-        modo: estruturaJson && !propostaConfirmada ? 'conversa' : 'conversa'
+        modo: 'conversa'
       }),
     });
 
@@ -115,7 +97,6 @@ export function OKRPreGenerator() {
           if (json) {
             console.log('[✅ JSON estruturado recebido]', json);
             setEstruturaJson(json);
-            setPropostaConfirmada(false);
           }
         } catch (e) {
           console.error('Erro no parse do chunk:', e);
@@ -173,7 +154,7 @@ export function OKRPreGenerator() {
               {currentResponse}
             </div>
           )}
-          {estruturaJson && propostaConfirmada && (
+          {estruturaJson && (
             <div className="flex justify-start mt-2">
               <button
                 onClick={handleGenerateOKRs}

@@ -116,64 +116,60 @@ Formato JSON:
       });
     }
 
-    // modo conversa
+    const systemPromptConversa = `
+Você é a Kai, uma agente conversacional especialista em OKRs.
+
+Seu papel é entender o que o usuário deseja estruturar, fazer perguntas para esclarecer o contexto, e só então propor OKRs.
+
+⚠️ Quando a estrutura estiver pronta e o usuário confirmar, você deve RESPONDER da seguinte forma:
+
+1. Envie a estrutura de OKRs apenas internamente, como um objeto JSON no padrão abaixo — sem exibir no chat.
+2. No chat, envie apenas a EXPLICAÇÃO textual da proposta de forma clara, natural e objetiva — sem nenhum bloco de código, sem formatação ``, e sem mostrar o JSON.
+
+Formato JSON:
+{
+  "ciclo": {
+    "nome": "string",
+    "dataInicio": "YYYY-MM-DD",
+    "dataFim": "YYYY-MM-DD",
+    "temaEstratégico": "string"
+  },
+  "okrs": [
+    {
+      "id": "okr-1",
+      "objetivo": "string",
+      "tipo": "strategic" | "tactical" | "operational",
+      "resultadosChave": [
+        {
+          "texto": "string",
+          "tipo": "moonshot" | "roofshot",
+          "métrica": "string",
+          "valorInicial": number,
+          "valorAlvo": number,
+          "unidade": "string"
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "origem": "okr-1",
+      "destino": "okr-2",
+      "tipo": "hierarchy"
+    }
+  ]
+}
+
+⚠️ Nunca mostre esse JSON no chat.
+⚠️ Gere os dados automaticamente quando a intenção do usuário estiver clara.
+    `.trim();
+
     const completion = await openai.createChatCompletion({
       model: 'gpt-4o',
       temperature: 0.7,
       stream: true,
       messages: [
-        {
-          role: 'system',
-          content: `
-        Você é a Kai, uma agente conversacional especialista em OKRs.
-
-        Seu papel é entender o que o usuário deseja estruturar, fazer perguntas para esclarecer o contexto, e só então propor OKRs.
-
-        ⚠️ Quando a estrutura estiver pronta e o usuário confirmar, você deve RESPONDER da seguinte forma:
-
-        1. Envie a estrutura de OKRs apenas internamente, como um objeto JSON no padrão abaixo — sem exibir no chat.
-
-        2. No chat, envie apenas a EXPLICAÇÃO textual da proposta de forma clara, natural e objetiva — sem nenhum bloco de código, sem formatação \`\`\`, e sem mostrar o JSON.
-
-        Este é o formato JSON que você deve usar internamente (sem explicar):
-
-        {
-          "ciclo": {
-            "nome": "string",
-            "dataInicio": "YYYY-MM-DD",
-            "dataFim": "YYYY-MM-DD",
-            "temaEstratégico": "string"
-          },
-          "okrs": [
-            {
-              "id": "okr-1",
-              "objetivo": "string",
-              "tipo": "strategic" | "tactical" | "operational",
-              "resultadosChave": [
-                {
-                  "texto": "string",
-                  "tipo": "moonshot" | "roofshot",
-                  "métrica": "string",
-                  "valorInicial": number,
-                  "valorAlvo": number,
-                  "unidade": "string"
-                }
-              ]
-            }
-          ],
-          "links": [
-            {
-              "origem": "okr-1",
-              "destino": "okr-2",
-              "tipo": "hierarchy"
-            }
-          ]
-        }
-
-        ⚠️ Nunca mostre esse JSON no chat.
-        ⚠️ Gere os dados automaticamente quando a intenção do usuário estiver clara.
-        `.trim()
-        },
+        { role: 'system', content: systemPromptConversa },
         ...messages,
       ],
     });
@@ -182,7 +178,6 @@ Formato JSON:
     const sseStream = new ReadableStream({
       async start(controller) {
         const reader = stream.getReader();
-
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
@@ -200,9 +195,11 @@ Formato JSON:
               }
               try {
                 const parsed = JSON.parse(jsonStr);
-                const content = parsed.choices?.[0]?.delta?.content;
-                if (content) {
-                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`));
+                if (parsed.json) {
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ json: parsed.json })}\n\n`));
+                }
+                if (parsed.choices?.[0]?.delta?.content) {
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: parsed.choices[0].delta.content })}\n\n`));
                 }
               } catch (e) {
                 console.error('[Erro ao parsear SSE]', e);

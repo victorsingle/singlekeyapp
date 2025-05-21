@@ -112,6 +112,7 @@ export function OKRPreGenerator() {
   const handleGenerateOKRs = async () => {
     try {
       setLoading(true);
+      console.log('[🚀 Enviando JSON para cadastro]', estruturaJson);
       const cicloId = await generateFullOKRStructureFromJson(estruturaJson);
       setMessages((prev) => [
         ...prev,

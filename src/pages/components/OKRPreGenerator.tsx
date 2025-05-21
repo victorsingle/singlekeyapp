@@ -141,17 +141,14 @@ export function OKRPreGenerator() {
         if (accumulated) {
           setMessages((prev) => [...prev, { role: 'assistant', content: accumulated }]);
           setConfirmedPrompt(accumulated);
-          //setPropostaGerada(accumulated);
-          
-          const match = accumulated.match(/Nome do Ciclo:([\s\S]*?)---/gm);
-          if (match && match.length > 0) {
-            const estruturaSomente = match[0].trim() + '\n---'; // Garante que termina com ---
-            setPropostaGerada(estruturaSomente);
-            console.log('[🧩 Estrutura capturada para parse]', estruturaSomente);
-          } else {
-            console.warn('[⚠️ Estrutura não encontrada na resposta da IA]', accumulated);
-          }
 
+          const index = accumulated.lastIndexOf('---');
+          const estruturaSomente = index !== -1
+            ? accumulated.slice(0, index + 3).trim()
+            : accumulated.trim();
+
+          console.log('[✅ Estrutura isolada da proposta]', estruturaSomente);
+          setPropostaGerada(estruturaSomente);
           phaseTo('awaiting_adjustment');
         }
 

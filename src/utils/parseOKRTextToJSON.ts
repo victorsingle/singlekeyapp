@@ -56,9 +56,11 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
 
   let currentOKR: any = null;
   let okrCount = 0;
+  let currentKR: any = null;
 
-  for (const line of lines) {
-    const clean = line.replace(/^[-*\s]+/, '').trim();
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const clean = line.replace(/^[-#*\s]+/, '').trim();
 
     // Ciclo
     if (/^Nome do Ciclo:/i.test(clean)) {
@@ -71,14 +73,14 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
       ciclo.temaEstratégico = clean.replace(/^Tema:/i, '').trim();
     }
 
-    // Objetivos
-    else if (/^Objetivo (Estratégico|Tático|Operacional)/i.test(clean)) {
+    // Objetivo
+    else if (/^Objetivo (Estratégico|Tático|Operacional) \d+:/i.test(clean)) {
       if (currentOKR) okrs.push(currentOKR);
       okrCount++;
-      const match = clean.match(/^Objetivo (.*?)(\d+)?:\s*(.+)/i);
+      const match = clean.match(/^Objetivo (.*?)(?:\s*\d+)?:\s*(.+)/i);
       if (!match) continue;
       const tipo = normalizarTipoObjetivo(match[1]);
-      const texto = match[3];
+      const texto = match[2];
       currentOKR = {
         id: `okr-${okrCount}`,
         objetivo: texto.trim(),
@@ -87,41 +89,37 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
       };
     }
 
-    // Resultados-chave
-    else if (/^Resultado-Chave/i.test(clean)) {
-      const match = clean.match(/^Resultado-Chave.*?:\s*(.+)/i);
+    // KR principal
+    else if (/^Resultado-Chave \d+:/i.test(clean)) {
+      const match = clean.match(/^Resultado-Chave \d+:\s*(.+)/i);
       if (!match) continue;
-      const texto = match[1].trim();
-      const tipo = texto.toLowerCase().includes('crescimento') ? 'moonshot' : 'roofshot';
-
-      let valorInicial = 0;
-      let valorAlvo = 0;
-      let unidade = '';
-      let métrica = '';
-
-      const valorMatch = texto.match(/de\s+([\d.,R$%]+)\s+para\s+([\d.,R$%]+)/i);
-      if (valorMatch) {
-        valorInicial = parseFloat(valorMatch[1].replace(/[R$\s]/g, '').replace(',', '.'));
-        valorAlvo = parseFloat(valorMatch[2].replace(/[R$\s]/g, '').replace(',', '.'));
-        unidade = valorMatch[2].includes('%') ? '%' : valorMatch[2].includes('R$') ? 'R$' : '';
-      }
-
-      const metricaMatch = texto.match(/(aumentar|elevar|reduzir|incrementar|diminuir|melhorar|conquistar|capturar|elevar).*?\s+([a-zç\s]+)/i);
-      if (metricaMatch) {
-        métrica = metricaMatch[2].trim();
-      }
-
-      currentOKR?.resultadosChave.push({
-        texto,
-        tipo,
-        métrica,
-        valorInicial,
-        valorAlvo,
-        unidade
-      });
+      currentKR = {
+        texto: match[1].trim(),
+        tipo: 'roofshot', // default
+        métrica: '',
+        valorInicial: 0,
+        valorAlvo: 0,
+        unidade: ''
+      };
+      currentOKR?.resultadosChave.push(currentKR);
     }
 
-    // Vínculos
+    // Subcampos do KR (seguem após o KR principal)
+    else if (/^\*\*?Tipo:\*\*/i.test(line)) {
+      const tipoTexto = line.replace(/^\s*[-*\s]*\*?Tipo:\*?/i, '').trim();
+      if (currentKR) {
+        currentKR.tipo = tipoTexto.toLowerCase().includes('moon') || tipoTexto.toLowerCase().includes('crescimento') ? 'moonshot' : 'roofshot';
+      }
+    }
+
+    else if (/^\*\*?Métrica:\*\*/i.test(line)) {
+      const metricaTexto = line.replace(/^\s*[-*\s]*\*?Métrica:\*?/i, '').trim();
+      if (currentKR) {
+        currentKR.métrica = metricaTexto;
+      }
+    }
+
+    // Vínculo
     else if (/Objetivo .*?(\d+).*?(->|➝).*?Objetivo .*?(\d+)/i.test(clean)) {
       const match = clean.match(/Objetivo .*?(\d+).*?(?:->|➝).*?Objetivo .*?(\d+)/i);
       if (match) {

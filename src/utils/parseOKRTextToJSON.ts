@@ -74,13 +74,13 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
     }
 
     // Objetivo
-    else if (/^Objetivo (Estratégico|Tático|Operacional) \d+:/i.test(clean)) {
+    else if (/^Objetivo \d+ \((Estratégico|Tático|Operacional)\):/i.test(clean)) {
       if (currentOKR) okrs.push(currentOKR);
       okrCount++;
-      const match = clean.match(/^Objetivo (.*?)(?:\s*\d+)?:\s*(.+)/i);
+      const match = clean.match(/^Objetivo (\d+) \((.*?)\):\s*(.+)/i);
       if (!match) continue;
-      const tipo = normalizarTipoObjetivo(match[1]);
-      const texto = match[2];
+      const tipo = normalizarTipoObjetivo(match[2]);
+      const texto = match[3];
       currentOKR = {
         id: `okr-${okrCount}`,
         objetivo: texto.trim(),
@@ -90,20 +90,19 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
     }
 
     // KR principal
-   else if (/Resultado-Chave \d+(\.\d+)?:/i.test(clean.replace(/\*\*/g, ''))) {
-      const match = clean.replace(/\*\*/g, '').match(/Resultado-Chave \d+(\.\d+)?:\s*(.+)/i);
-      if (!match) continue;
-      currentKR = {
-        texto: match[2].trim(),
-        tipo: 'roofshot',
-        métrica: '',
-        valorInicial: 0,
-        valorAlvo: 0,
-        unidade: ''
-      };
-      currentOKR?.resultadosChave.push(currentKR);
-    }
-
+   else if (/^Resultado-Chave \d+(\.\d+)? \((moonshot|roofshot)\):/i.test(clean)) {
+    const match = clean.match(/^Resultado-Chave \d+(\.\d+)? \((.*?)\):\s*(.+)/i);
+    if (!match) continue;
+    currentKR = {
+      texto: match[3].trim(),
+      tipo: match[2].toLowerCase() === 'moonshot' ? 'moonshot' : 'roofshot',
+      métrica: '',
+      valorInicial: 0,
+      valorAlvo: 0,
+      unidade: ''
+    };
+    currentOKR?.resultadosChave.push(currentKR);
+  }
     else if (/^Valor Inicial:/i.test(clean)) {
       const valor = parseFloat(clean.replace(/^Valor Inicial:/i, '').replace(/[R$\s]/g, '').replace(',', '.'));
       if (currentKR && !isNaN(valor)) currentKR.valorInicial = valor;
@@ -135,12 +134,13 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
     }
 
     // Vínculo
-    else if (/Objetivo .*?(\d+).*?(->|➝).*?Objetivo .*?(\d+)/i.test(clean)) {
-      const match = clean.match(/Objetivo .*?(\d+).*?(?:->|➝).*?Objetivo .*?(\d+)/i);
-      if (match) {
+    else if (/^Origem:/i.test(clean)) {
+      const origem = clean.replace(/^Origem:\s*/i, '').trim();
+      const destino = lines[i + 1]?.replace(/^Destino:\s*/i, '').trim();
+      if (origem && destino) {
         links.push({
-          origem: `okr-${match[1]}`,
-          destino: `okr-${match[2]}`,
+          origem,
+          destino,
           tipo: 'hierarchy'
         });
       }

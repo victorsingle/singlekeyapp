@@ -70,7 +70,7 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
     } else if (/^Data de Fim:/i.test(clean)) {
       ciclo.dataFim = extrairDatas(clean);
     } else if (/^Tema:/i.test(clean)) {
-      ciclo.temaEstratégico = clean.replace(/^Tema:/i, '').trim();
+      ciclo.temaEstratégico = clean.replace(/^Tema:/i, '').replace(/\*\*/g, '').trim();
     }
 
     // Objetivo
@@ -90,19 +90,19 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
     }
 
     // KR principal
-   else if (/^Resultado-Chave \d+(\.\d+)?:/i.test(clean)) {
-    const match = clean.match(/^Resultado-Chave \d+(\.\d+)?:\s*(.+)/i);
-    if (!match) continue;
-    currentKR = {
-      texto: match[2].trim(),
-      tipo: 'roofshot',
-      métrica: '',
-      valorInicial: 0,
-      valorAlvo: 0,
-      unidade: ''
-    };
-    currentOKR?.resultadosChave.push(currentKR);
-  }
+   else if (/Resultado-Chave \d+(\.\d+)?:/i.test(clean.replace(/\*\*/g, ''))) {
+      const match = clean.replace(/\*\*/g, '').match(/Resultado-Chave \d+(\.\d+)?:\s*(.+)/i);
+      if (!match) continue;
+      currentKR = {
+        texto: match[2].trim(),
+        tipo: 'roofshot',
+        métrica: '',
+        valorInicial: 0,
+        valorAlvo: 0,
+        unidade: ''
+      };
+      currentOKR?.resultadosChave.push(currentKR);
+    }
 
     // Subcampos do KR (seguem após o KR principal)
     else if (/^\*\*?Tipo:\*\*/i.test(line)) {

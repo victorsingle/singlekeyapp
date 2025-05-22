@@ -41,7 +41,7 @@ export default async function handler(req: NextRequest) {
           - Não use anos anteriores como padrão (ex: “Trimestre 1 de 2024”) a menos que estejam claramente no contexto do usuário.
         - Essa data deve ser usada como base para interpretar, classificar e nomear ciclos ou períodos.
 
-        1. **Um ciclo**(com nome, data de início, data de fim e tema)
+        1. **Um ciclo**(com Nome, Data de início, Data de fim e Tema)
         
         2. De 3 a 6 objetivos, sendo obrigatoriamente:
           - Pelo menos 1 estratégico

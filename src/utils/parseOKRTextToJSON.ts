@@ -55,16 +55,15 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
   const links: ParsedOKRStructure['links'] = [];
 
   let currentOKR: any = null;
-  let okrCount = 0;
   let currentKR: any = null;
+  let okrCount = 0;
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+  for (const line of lines) {
     const clean = line.replace(/^[-#*\s]+/, '').trim();
 
     // Ciclo
     if (/^Nome do Ciclo:/i.test(clean)) {
-      ciclo.nome = clean.replace(/^Nome do Ciclo:/i, '').trim();
+      ciclo.nome = clean.replace(/^Nome do Ciclo:/i, '').replace(/^\*\*/, '').trim();
     } else if (/^Data de In[ií]cio:/i.test(clean)) {
       ciclo.dataInicio = extrairDatas(clean);
     } else if (/^Data de Fim:/i.test(clean)) {
@@ -74,28 +73,29 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
     }
 
     // Objetivo
-    else if (/^Objetivo (Estratégico|Tático|Operacional) \d+:/i.test(clean)) {
+    else if (/^\*\*?Objetivo (Estratégico|Tático|Operacional) \d+:/i.test(clean)) {
       if (currentOKR) okrs.push(currentOKR);
       okrCount++;
-      const match = clean.match(/^Objetivo (.*?)(?:\s*\d+)?:\s*(.+)/i);
+      const match = clean.match(/^\*\*?Objetivo (.*?)(?: \d+)?:\s*(.+)/i);
       if (!match) continue;
       const tipo = normalizarTipoObjetivo(match[1]);
-      const texto = match[2];
+      const texto = match[2].replace(/^\*\*/, '').trim();
       currentOKR = {
         id: `okr-${okrCount}`,
-        objetivo: texto.trim(),
+        objetivo: texto,
         tipo,
         resultadosChave: []
       };
     }
 
-    // KR principal
-    else if (/^Resultado-Chave \d+:/i.test(clean)) {
-      const match = clean.match(/^Resultado-Chave \d+:\s*(.+)/i);
+    // Resultado-Chave (linha principal)
+    else if (/^(\*\*?)?Resultado-Chave/i.test(clean)) {
+      const match = clean.match(/Resultado-Chave.*?:\s*(.+)/i);
       if (!match) continue;
+      const texto = match[1].replace(/^\*\*/, '').trim();
       currentKR = {
-        texto: match[1].trim(),
-        tipo: 'roofshot', // default
+        texto,
+        tipo: 'roofshot',
         métrica: '',
         valorInicial: 0,
         valorAlvo: 0,
@@ -104,18 +104,32 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
       currentOKR?.resultadosChave.push(currentKR);
     }
 
-    // Subcampos do KR (seguem após o KR principal)
-    else if (/^\*\*?Tipo:\*\*/i.test(line)) {
-      const tipoTexto = line.replace(/^\s*[-*\s]*\*?Tipo:\*?/i, '').trim();
+    // Subcampo: Tipo
+    else if (/^[-*\s]*\*?Tipo:/.test(line)) {
+      const tipoTexto = line.replace(/^[-*\s]*\*?Tipo:\*?/i, '').trim();
       if (currentKR) {
-        currentKR.tipo = tipoTexto.toLowerCase().includes('moon') || tipoTexto.toLowerCase().includes('crescimento') ? 'moonshot' : 'roofshot';
+        const tipoLower = tipoTexto.toLowerCase();
+        currentKR.tipo = tipoLower.includes('crescimento') || tipoLower.includes('moon') ? 'moonshot' : 'roofshot';
       }
     }
 
-    else if (/^\*\*?Métrica:\*\*/i.test(line)) {
-      const metricaTexto = line.replace(/^\s*[-*\s]*\*?Métrica:\*?/i, '').trim();
+    // Subcampo: Métrica
+    else if (/^[-*\s]*\*?Métrica:/.test(line)) {
+      const metricaTexto = line.replace(/^[-*\s]*\*?Métrica:\*?/i, '').trim();
       if (currentKR) {
         currentKR.métrica = metricaTexto;
+      }
+    }
+
+    // Subcampo: valores (de ... para ...)
+    else if (/de\s+([\d.,R$%]+)\s+para\s+([\d.,R$%]+)/i.test(line)) {
+      const valorMatch = line.match(/de\s+([\d.,R$%]+)\s+para\s+([\d.,R$%]+)/i);
+      if (valorMatch && currentKR) {
+        const vi = valorMatch[1].replace(/[R$\s]/g, '').replace(',', '.');
+        const va = valorMatch[2].replace(/[R$\s]/g, '').replace(',', '.');
+        currentKR.valorInicial = parseFloat(vi);
+        currentKR.valorAlvo = parseFloat(va);
+        currentKR.unidade = valorMatch[2].includes('%') ? '%' : valorMatch[2].includes('R$') ? 'R$' : '';
       }
     }
 
@@ -135,3 +149,4 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
   if (currentOKR) okrs.push(currentOKR);
   return { ciclo, okrs, links };
 }
+

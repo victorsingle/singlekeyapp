@@ -80,20 +80,20 @@ export default async function handler(req: NextRequest) {
         Tema Estratégico: Expansão Digital e Otimização de Vendas
 
         Objetivo 1 (estratégico): Ampliar a presença digital da Savai  
-        KR 1.1 (moonshot): Aumentar o tráfego do site em 50%  
+        Resultado-Chave 1.1 (moonshot): Aumentar o tráfego do site em 50%  
         Métrica: Visitas  
         Valor Inicial: 10000  
         Valor Alvo: 15000  
         Unidade: visitas
 
-        KR 1.2 (roofshot): Melhorar a taxa de conversão do site de 2% para 3%  
+        Resultado-Chave 1.2 (roofshot): Melhorar a taxa de conversão do site de 2% para 3%  
         Métrica: Taxa de Conversão  
         Valor Inicial: 2  
         Valor Alvo: 3  
         Unidade: %
 
         Objetivo 2 (tático): Otimizar o e-commerce para aumentar as vendas  
-        KR 2.1 (roofshot): Reduzir o tempo de carregamento do site para menos de 3 segundos  
+        Resultado-Chave 2.1 (roofshot): Reduzir o tempo de carregamento do site para menos de 3 segundos  
         Métrica: Tempo de Carregamento  
         Valor Inicial: 4  
         Valor Alvo: 3  

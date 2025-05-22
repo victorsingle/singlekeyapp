@@ -213,10 +213,13 @@ useEffect(() => {
             className="w-full text-sm pl-10 pr-10 py-3 rounded-xl border border-gray-300 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
             placeholder="Fale comigo..."
           />
-          <button
+         <button
             type="submit"
-            disabled={loading}
-            className="absolute right-3 bottom-3 text-blue-600 hover:text-blue-800"
+            disabled={loading || !input.trim()}
+            className={clsx(
+              'absolute right-3 bottom-3 transition',
+              loading || !input.trim() ? 'text-gray-300 cursor-not-allowed' : 'text-blue-600 hover:text-blue-800'
+            )}
           >
             <ArrowUpCircle className="w-6 h-6" />
           </button>

@@ -87,6 +87,7 @@ export default async function handler(req: NextRequest) {
 📌 - A resposta deve ser feita em linguagem natural, com clareza e estrutura de fácil leitura, mas contendo todos os elementos necessários para que o frontend consiga gerar a estrutura JSON a partir do texto. 
     - Nunca envie JSON visível no chat.
     - Após gerar uma proposta pergunte se está de acordo com o que ele deseja e SEMPRE após a pergunta escreva exatamente 'Basta responder **'sim'** e seguimos com o cadastro do ciclo planejado!' 
+    - Se o usuário pedir alguma alteração SEMPRE reescreva toda a proposta anterior completa com essa alteração solicitada aplicada.
           `.trim()
         },
         ...messages,

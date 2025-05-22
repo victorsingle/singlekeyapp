@@ -30,14 +30,7 @@ function normalizarTipoObjetivo(texto: string): 'strategic' | 'tactical' | 'oper
   if (tipo.includes('estratégico')) return 'strategic';
   if (tipo.includes('tático')) return 'tactical';
   if (tipo.includes('operacional')) return 'operational';
-  throw new Error(`Tipo de objetivo inválido: ${texto}`);
-}
-
-function normalizarTipoKR(texto: string): 'moonshot' | 'roofshot' {
-  const tipo = texto.toLowerCase();
-  if (tipo.includes('moonshot')) return 'moonshot';
-  if (tipo.includes('roofshot')) return 'roofshot';
-  throw new Error(`Tipo de KR inválido: ${texto}`);
+  return 'strategic';
 }
 
 function extrairDatas(dataBr: string): string {
@@ -65,71 +58,76 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
   let okrCount = 0;
 
   for (const line of lines) {
+    const clean = line.replace(/^[-*\s]+/, '').trim();
 
-    if (/\*\*Nome do Ciclo:\*\*/.test(line)) {
-      ciclo.nome = line.replace(/\*\*Nome do Ciclo:\*\*/, '').trim();
-    } else if (/\*\*Período:\*\*/.test(line)) {
-      const datas = line.replace(/\*\*Período:\*\*/, '').split(' a ');
-      if (datas.length === 2) {
-        ciclo.dataInicio = extrairDatas(datas[0].trim());
-        ciclo.dataFim = extrairDatas(datas[1].trim());
-      }
-    } else if (/\*\*Tema Estratégico:\*\*/.test(line)) {
-      ciclo.temaEstratégico = line.replace(/\*\*Tema Estratégico:\*\*/, '').trim();
+    // Ciclo
+    if (/^Nome do Ciclo:/i.test(clean)) {
+      ciclo.nome = clean.replace(/^Nome do Ciclo:/i, '').trim();
+    } else if (/^Data de In[ií]cio:/i.test(clean)) {
+      ciclo.dataInicio = extrairDatas(clean);
+    } else if (/^Data de Fim:/i.test(clean)) {
+      ciclo.dataFim = extrairDatas(clean);
+    } else if (/^Tema:/i.test(clean)) {
+      ciclo.temaEstratégico = clean.replace(/^Tema:/i, '').trim();
     }
 
-    else if (/^\*\*Objetivo \d+:/.test(line)) {
+    // Objetivos
+    else if (/^Objetivo (Estratégico|Tático|Operacional)/i.test(clean)) {
       if (currentOKR) okrs.push(currentOKR);
       okrCount++;
-      const match = line.match(/\*\*Objetivo (\d+): (.*)\*\*/);
-      if (!match) throw new Error(`Objetivo mal formatado: ${line}`);
+      const match = clean.match(/^Objetivo (.*?)(\d+)?:\s*(.+)/i);
+      if (!match) continue;
+      const tipo = normalizarTipoObjetivo(match[1]);
+      const texto = match[3];
       currentOKR = {
-        id: `okr-${match[1]}`,
-        objetivo: match[2].trim(),
-        tipo: 'strategic',
+        id: `okr-${okrCount}`,
+        objetivo: texto.trim(),
+        tipo,
         resultadosChave: []
       };
     }
 
-    else if (/^\- \*\*Resultado-Chave \d+ \((.*?)\):/.test(line)) {
-      const match = line.match(/\*\*Resultado-Chave \d+ \((.*?)\):\*\* (.*)/);
-      if (!match) throw new Error(`KR mal formatado: ${line}`);
-      const tipo = normalizarTipoKR(match[1]);
-      const texto = match[2].trim();
+    // Resultados-chave
+    else if (/^Resultado-Chave/i.test(clean)) {
+      const match = clean.match(/^Resultado-Chave.*?:\s*(.+)/i);
+      if (!match) continue;
+      const texto = match[1].trim();
+      const tipo = texto.toLowerCase().includes('crescimento') ? 'moonshot' : 'roofshot';
 
       let valorInicial = 0;
       let valorAlvo = 0;
       let unidade = '';
-      let metrica = '';
+      let métrica = '';
 
-      const valorMatch = texto.match(/de\s+([\d,.R$%]+)\s+para\s+([\d,.R$%]+)/i);
+      const valorMatch = texto.match(/de\s+([\d.,R$%]+)\s+para\s+([\d.,R$%]+)/i);
       if (valorMatch) {
-        const vi = valorMatch[1].trim().replace(/[R$\s]/g, '').replace(',', '.');
-        const va = valorMatch[2].trim().replace(/[R$\s]/g, '').replace(',', '.');
-        valorInicial = parseFloat(vi);
-        valorAlvo = parseFloat(va);
+        valorInicial = parseFloat(valorMatch[1].replace(/[R$\s]/g, '').replace(',', '.'));
+        valorAlvo = parseFloat(valorMatch[2].replace(/[R$\s]/g, '').replace(',', '.'));
         unidade = valorMatch[2].includes('%') ? '%' : valorMatch[2].includes('R$') ? 'R$' : '';
       }
 
-      const metricaMatch = texto.match(/(aumentar|elevar|reduzir|incrementar|diminuir|conquistar|alcançar)\s+([a-zç\s]+)/i);
-      if (metricaMatch) metrica = metricaMatch[2].trim();
+      const metricaMatch = texto.match(/(aumentar|elevar|reduzir|incrementar|diminuir|melhorar|conquistar|capturar|elevar).*?\s+([a-zç\s]+)/i);
+      if (metricaMatch) {
+        métrica = metricaMatch[2].trim();
+      }
 
       currentOKR?.resultadosChave.push({
         texto,
         tipo,
-        métrica: metrica,
+        métrica,
         valorInicial,
         valorAlvo,
         unidade
       });
     }
 
-    else if (/Objetivo \d+.*(deriva|relacionado|vinculado).*Objetivo \d+/i.test(line)) {
-      const linkMatch = line.match(/Objetivo (\d+).*?(?:deriva|relacionado|vinculado).*Objetivo (\d+)/i);
-      if (linkMatch) {
+    // Vínculos
+    else if (/Objetivo .*?(\d+).*?(->|➝).*?Objetivo .*?(\d+)/i.test(clean)) {
+      const match = clean.match(/Objetivo .*?(\d+).*?(?:->|➝).*?Objetivo .*?(\d+)/i);
+      if (match) {
         links.push({
-          origem: `okr-${linkMatch[1]}`,
-          destino: `okr-${linkMatch[2]}`,
+          origem: `okr-${match[1]}`,
+          destino: `okr-${match[2]}`,
           tipo: 'hierarchy'
         });
       }
@@ -137,6 +135,5 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
   }
 
   if (currentOKR) okrs.push(currentOKR);
-
   return { ciclo, okrs, links };
 }

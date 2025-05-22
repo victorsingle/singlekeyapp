@@ -60,17 +60,17 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    const clean = line.replace(/^[-#*\s]+/, '').trim();
+    const clean = line.replace(/\s+/g, ' ').replace(/^[-#*\s]+/, '').trim();
 
     // Ciclo
-    if (/^Nome do Ciclo:/i.test(clean)) {
-      ciclo.nome = clean.replace(/^Nome do Ciclo:/i, '').trim();
-    } else if (/^Data de In[ií]cio:/i.test(clean)) {
-      ciclo.dataInicio = extrairDatas(clean);
-    } else if (/^Data de Fim:/i.test(clean)) {
-      ciclo.dataFim = extrairDatas(clean);
-    } else if (/^Tema:/i.test(clean)) {
-      ciclo.temaEstratégico = clean.replace(/^Tema:/i, '').replace(/\*\*/g, '').trim();
+    if (/^Nome do Ciclo/i.test(clean)) {
+      ciclo.nome = clean.replace(/^Nome do Ciclo[:\s]*/i, '').trim();
+    } else if (/^Data In[ií]cio/i.test(clean)) {
+      ciclo.dataInicio = extrairDatas(clean.replace(/^Data In[ií]cio[:\s]*/i, ''));
+    } else if (/^Data Fim/i.test(clean)) {
+      ciclo.dataFim = extrairDatas(clean.replace(/^Data Fim[:\s]*/i, ''));
+    } else if (/^Tema/i.test(clean)) {
+      ciclo.temaEstratégico = clean.replace(/^Tema( Estratégico)?[:\s]*/i, '').trim();
     }
 
     // Objetivo

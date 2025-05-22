@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowUpCircle, Target, UserCircle2 } from 'lucide-react';
+import { ArrowUpCircle, Target, UserCircle2, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../../stores/authStore';
 import { useOKRStore } from '../../stores/okrStore';

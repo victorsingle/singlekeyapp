@@ -66,9 +66,8 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
 
   for (const line of lines) {
 
-    const nomeCicloMatch = line.match(/\*\*Nome do Ciclo:\*\*[:\s]*([^\*]+)/i);
-    if (nomeCicloMatch) {
-      ciclo.nome = nomeCicloMatch[1].trim();
+    if (/\*\*Nome do Ciclo:\*\*/.test(line)) {
+      ciclo.nome = line.replace(/\*\*Nome do Ciclo:\*\*/, '').trim();
     } else if (/\*\*Período:\*\*/.test(line)) {
       const datas = line.replace(/\*\*Período:\*\*/, '').split(' a ');
       if (datas.length === 2) {

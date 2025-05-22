@@ -194,11 +194,9 @@ useEffect(() => {
             <div className="flex justify-start mt-2">
               <button
                 onClick={handleGenerateOKRs}
-                disabled={loading}
-                className="bg-blue-600 text-white text-sm font-medium py-2 px-4 rounded hover:bg-blue-700 transition flex items-center gap-2"
+                className="bg-blue-600 text-white text-sm font-medium py-2 px-4 rounded hover:bg-blue-700 transition"
               >
-                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                {loading ? 'Enviando...' : 'Cadastrar Indicadores'}
+                Cadastrar Indicadores
               </button>
             </div>
           )}

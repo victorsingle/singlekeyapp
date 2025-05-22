@@ -14,6 +14,7 @@ export default async function handler(req: NextRequest) {
     const { messages, modo } = await req.json();
     const encoder = new TextEncoder();
 
+    // ===== MODO GERAR =====
     if (modo === 'gerar') {
       const systemPrompt = `
 Você é a Kai, uma IA especialista em OKRs.
@@ -72,6 +73,11 @@ Você receberá abaixo um TEXTO JÁ VALIDADO PELO USUÁRIO contendo a estrutura 
       const raw = await resposta.json();
       const content = raw?.choices?.[0]?.message?.content;
 
+      if (!content) {
+        console.error('[❌ Conteúdo ausente na resposta da IA]', raw);
+        return new Response('Resposta da IA está vazia.', { status: 500 });
+      }
+
       let estruturaJSON;
       try {
         estruturaJSON = JSON.parse(content);
@@ -97,7 +103,7 @@ Você receberá abaixo um TEXTO JÁ VALIDADO PELO USUÁRIO contendo a estrutura 
       });
     }
 
-    // modo conversa (streaming natural)
+    // ===== MODO CONVERSA =====
     const completion = await openai.createChatCompletion({
       model: 'gpt-4o',
       temperature: 0.7,
@@ -144,7 +150,7 @@ Seu papel é entender o que o usuário deseja estruturar, fazer perguntas para e
                 controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`));
               }
             } catch (e) {
-              console.error('[❌ Erro ao parsear streaming da conversa]', e);
+              console.error('[❌ Erro ao parsear streaming da conversa]', e, jsonStr);
             }
           }
         }

@@ -17,7 +17,9 @@ export function OKRPreGenerator() {
     estruturaJson,
     setEstruturaJson,
     propostaConfirmada,
-    setPropostaConfirmada
+    setPropostaConfirmada,
+    propostaGerada,
+    setPropostaGerada
   } = useKaiChatStore();
 
   const chatEndRef = useRef<HTMLDivElement | null>(null);
@@ -154,10 +156,11 @@ export function OKRPreGenerator() {
           if (json) {
             console.log('[✅ JSON FINAL recebido]', json);
             setEstruturaJson(json);
+            setPropostaGerada(true);
             setPropostaConfirmada(true);
           }
         } catch (e) {
-          console.error('[❌ Erro no parse do chunk modo gerar]', e);
+          console.error('[❌ Erro no parse do chunk modo gerar]', e, data);
         }
       }
     }
@@ -209,7 +212,7 @@ export function OKRPreGenerator() {
               {currentResponse}
             </div>
           )}
-          {messages.length > 1 && !estruturaJson && (
+          {propostaGerada && !estruturaJson && (
             <div className="flex justify-start mt-2">
               <button
                 onClick={handleGenerateStructure}

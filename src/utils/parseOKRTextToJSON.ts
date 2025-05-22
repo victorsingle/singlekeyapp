@@ -104,6 +104,21 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
       currentOKR?.resultadosChave.push(currentKR);
     }
 
+    else if (/^Valor Inicial:/i.test(clean)) {
+      const valor = parseFloat(clean.replace(/^Valor Inicial:/i, '').replace(/[R$\s]/g, '').replace(',', '.'));
+      if (currentKR && !isNaN(valor)) currentKR.valorInicial = valor;
+    }
+
+    else if (/^Valor Alvo:/i.test(clean)) {
+      const valor = parseFloat(clean.replace(/^Valor Alvo:/i, '').replace(/[R$\s]/g, '').replace(',', '.'));
+      if (currentKR && !isNaN(valor)) currentKR.valorAlvo = valor;
+    }
+
+    else if (/^Unidade:/i.test(clean)) {
+      const unidadeTexto = clean.replace(/^Unidade:/i, '').trim();
+      if (currentKR) currentKR.unidade = unidadeTexto;
+    }
+
     // Subcampos do KR (seguem após o KR principal)
     else if (/^\*\*?Tipo:\*\*/i.test(line)) {
       const tipoTexto = line.replace(/^\s*[-*\s]*\*?Tipo:\*?/i, '').trim();

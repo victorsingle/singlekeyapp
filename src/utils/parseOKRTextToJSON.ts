@@ -65,32 +65,43 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
   let okrCount = 0;
 
   for (const line of lines) {
-    if (line.startsWith('Nome do Ciclo:')) ciclo.nome = line.replace('Nome do Ciclo:', '').trim();
-    else if (line.startsWith('Data Início:')) ciclo.dataInicio = extrairDatas(line);
-    else if (line.startsWith('Data Fim:')) ciclo.dataFim = extrairDatas(line);
-    else if (line.startsWith('Tema Estratégico:')) ciclo.temaEstratégico = line.replace('Tema Estratégico:', '').trim();
+    if (/\*\*Nome do Ciclo:\*\*/.test(line)) {
+      ciclo.nome = line.replace(/\*\*Nome do Ciclo:\*\*/, '').trim();
+    } else if (/\*\*Período:\*\*/.test(line)) {
+      const datas = line.replace(/\*\*Período:\*\*/, '').split(' a ');
+      if (datas.length === 2) {
+        ciclo.dataInicio = extrairDatas(datas[0].trim());
+        ciclo.dataFim = extrairDatas(datas[1].trim());
+      }
+    } else if (/\*\*Tema Estratégico:\*\*/.test(line)) {
+      ciclo.temaEstratégico = line.replace(/\*\*Tema Estratégico:\*\*/, '').trim();
+    }
 
-    else if (line.startsWith('Objetivo')) {
+    else if (/^\*\*Objetivo \d+:/.test(line)) {
       if (currentOKR) okrs.push(currentOKR);
       okrCount++;
-      const match = line.match(/Objetivo (\d+) \((.*?)\): (.*)/i);
+      const match = line.match(/\*\*Objetivo (\d+): (.*)\*\*/);
       if (!match) throw new Error(`Objetivo mal formatado: ${line}`);
       currentOKR = {
         id: `okr-${match[1]}`,
-        objetivo: match[3].trim(),
-        tipo: normalizarTipoObjetivo(match[2].trim()),
+        objetivo: match[2].trim(),
+        tipo: 'strategic',
         resultadosChave: []
       };
     }
 
-    else if (line.startsWith('KR')) {
-      const match = line.match(/KR (\d+(?:\.\d+)*) \((.*?)\): (.*)/i);
+    else if (/^\- \*\*Resultado-Chave \d+ \((.*?)\):/.test(line)) {
+      const match = line.match(/\*\*Resultado-Chave \d+ \((.*?)\):\*\* (.*)/);
       if (!match) throw new Error(`KR mal formatado: ${line}`);
-      const texto = match[3].trim();
+      const tipo = normalizarTipoKR(match[1]);
+      const texto = match[2].trim();
 
-      let valorInicial = 0, valorAlvo = 0, unidade = '', metrica = '';
+      let valorInicial = 0;
+      let valorAlvo = 0;
+      let unidade = '';
+      let metrica = '';
 
-      const valorMatch = texto.match(/de\s+([\d,.R$% ]+)\s+para\s+([\d,.R$% ]+)/i);
+      const valorMatch = texto.match(/de\s+([\d,.R$%]+)\s+para\s+([\d,.R$%]+)/i);
       if (valorMatch) {
         const vi = valorMatch[1].trim().replace(/[R$\s]/g, '').replace(',', '.');
         const va = valorMatch[2].trim().replace(/[R$\s]/g, '').replace(',', '.');
@@ -104,7 +115,7 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
 
       currentOKR?.resultadosChave.push({
         texto,
-        tipo: normalizarTipoKR(match[2]),
+        tipo,
         métrica: metrica,
         valorInicial,
         valorAlvo,

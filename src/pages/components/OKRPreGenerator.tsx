@@ -44,27 +44,34 @@ export function OKRPreGenerator() {
   }, [messages, currentResponse]);
 
   // Detecta aprovação e gera JSON localmente
-  useEffect(() => {
-    if (messages.length < 2) return;
+useEffect(() => {
+  if (messages.length < 2) return;
 
-    const lastUserMessage = messages[messages.length - 1];
-    const lastKaiMessage = messages.slice().reverse().find(m => m.role === 'assistant');
+  const lastUserMessage = messages[messages.length - 1];
+  const lastKaiMessage = messages.slice().reverse().find(m => m.role === 'assistant');
 
-    if (
-      lastUserMessage.role === 'user' &&
-      /^(ok|pode gerar|está ótimo|confirmado|sim|tudo certo)$/i.test(lastUserMessage.content.trim()) &&
-      lastKaiMessage
-    ) {
-      try {
-        const parsed = parseStructuredTextToJSON(lastKaiMessage.content);
-        setEstruturaJson(parsed);
-        setPropostaConfirmada(true);
-        console.log('[✅ JSON gerado no frontend]', parsed);
-      } catch (e) {
-        console.error('[❌ Erro ao gerar JSON no frontend]', e);
-      }
+  console.log('[🧠 Verificando confirmação]', {
+    lastUserMessage: lastUserMessage.content,
+    lastKaiMessage: lastKaiMessage?.content?.slice(0, 100) + '...',
+  });
+
+  if (
+    lastUserMessage.role === 'user' &&
+    /^(ok|pode gerar|está ótimo|confirmado|sim|tudo certo)$/i.test(lastUserMessage.content.trim()) &&
+    lastKaiMessage
+  ) {
+    console.log('[🚀 Tentando gerar JSON a partir da última resposta da Kai]');
+    try {
+      const parsed = parseStructuredTextToJSON(lastKaiMessage.content);
+      setEstruturaJson(parsed);
+      setPropostaConfirmada(true);
+      console.log('[✅ JSON gerado no frontend]', parsed);
+    } catch (e) {
+      console.error('[❌ Erro ao gerar JSON no frontend]', e);
     }
-  }, [messages]);
+  }
+}, [messages]);
+
 
   const handleSend = async () => {
     if (!input.trim()) return;

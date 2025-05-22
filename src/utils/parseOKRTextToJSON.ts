@@ -38,7 +38,7 @@ function extrairDatas(dataBr: string): string {
     janeiro: '01', fevereiro: '02', março: '03', abril: '04', maio: '05', junho: '06',
     julho: '07', agosto: '08', setembro: '09', outubro: '10', novembro: '11', dezembro: '12'
   };
-  const regex = /\b(\d{1,2}) de ([a-zç]+) de (\d{4})/i;
+  const regex = /\b(\d{1,2})º? de ([a-zç]+) de (\d{4})/i;
   const match = dataBr.match(regex);
   if (!match) throw new Error(`Data inválida: ${dataBr}`);
   const dia = match[1].padStart(2, '0');

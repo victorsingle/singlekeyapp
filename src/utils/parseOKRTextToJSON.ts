@@ -126,11 +126,9 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
       }
     }
 
-    else if (/^\*\*?Métrica:\*\*/i.test(line)) {
-      const metricaTexto = line.replace(/^\s*[-*\s]*\*?Métrica:\*?/i, '').trim();
-      if (currentKR) {
-        currentKR.métrica = metricaTexto;
-      }
+    else if (/^Métrica:/i.test(clean)) {
+      const metricaTexto = clean.replace(/^Métrica:\s*/i, '').trim();
+      if (currentKR) currentKR.métrica = metricaTexto;
     }
 
     // Vínculo

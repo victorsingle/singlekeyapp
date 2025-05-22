@@ -164,13 +164,25 @@ useEffect(() => {
             <div
               key={i}
               className={clsx(
-                'text-sm p-3 rounded-xl whitespace-pre-wrap',
+                'flex items-end gap-2',
+                msg.role === 'assistant' ? 'flex-row' : 'flex-row-reverse'
+              )}
+            >
+              <div className="flex-shrink-0">
+                {msg.role === 'assistant' ? (
+                  <Target className="w-5 h-5 text-blue-500" />
+                ) : (
+                  <UserCircle2 className="w-5 h-5 text-gray-400" />
+                )}
+              </div>
+              <div className={clsx(
+                'text-sm p-3 rounded-xl whitespace-pre-wrap max-w-[80%]',
                 msg.role === 'assistant'
                   ? 'bg-blue-50 text-gray-800'
                   : 'bg-gray-100 text-right ml-auto'
-              )}
-            >
-              {msg.content}
+              )}>
+                {msg.content}
+              </div>
             </div>
           ))}
           {currentResponse && (

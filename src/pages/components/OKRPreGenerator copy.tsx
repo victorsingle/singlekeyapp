@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowUpCircle, Loader2, Target, UserCircle2 } from 'lucide-react';
+import { ArrowUpCircle, Target } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../../stores/authStore';
 import { useOKRStore } from '../../stores/okrStore';
@@ -11,7 +11,6 @@ export function OKRPreGenerator() {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const [currentResponse, setCurrentResponse] = useState('');
 
   const { generateFullOKRStructureFromJson } = useOKRStore();
@@ -44,25 +43,35 @@ export function OKRPreGenerator() {
     scrollToBottom();
   }, [messages, currentResponse]);
 
-  useEffect(() => {
-    if (messages.length < 2) return;
-    const lastUserMessage = messages[messages.length - 1];
-    const lastKaiMessage = messages.slice().reverse().find(m => m.role === 'assistant');
+  // Detecta aprovação e gera JSON localmente
+useEffect(() => {
+  if (messages.length < 2) return;
 
-    if (
-      lastUserMessage.role === 'user' &&
-      /^(ok|pode gerar|está ótimo|confirmado|sim|tudo certo)$/i.test(lastUserMessage.content.trim()) &&
-      lastKaiMessage
-    ) {
-      try {
-        const parsed = parseStructuredTextToJSON(lastKaiMessage.content);
-        setEstruturaJson(parsed);
-        setPropostaConfirmada(true);
-      } catch (e) {
-        console.error('[❌ Erro ao gerar JSON no frontend]', e);
-      }
+  const lastUserMessage = messages[messages.length - 1];
+  const lastKaiMessage = messages.slice().reverse().find(m => m.role === 'assistant');
+
+  console.log('[🧠 Verificando confirmação]', {
+    lastUserMessage: lastUserMessage.content,
+    lastKaiMessage: lastKaiMessage?.content?.slice(0, 100) + '...',
+  });
+
+  if (
+    lastUserMessage.role === 'user' &&
+    /^(ok|pode gerar|está ótimo|confirmado|sim|tudo certo)$/i.test(lastUserMessage.content.trim()) &&
+    lastKaiMessage
+  ) {
+    console.log('[🚀 Tentando gerar JSON a partir da última resposta da Kai]');
+    try {
+      const parsed = parseStructuredTextToJSON(lastKaiMessage.content);
+      setEstruturaJson(parsed);
+      setPropostaConfirmada(true);
+      console.log('[✅ JSON gerado no frontend]', parsed);
+    } catch (e) {
+      console.error('[❌ Erro ao gerar JSON no frontend]', e);
     }
-  }, [messages]);
+  }
+}, [messages]);
+
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -129,7 +138,7 @@ export function OKRPreGenerator() {
 
   const handleGenerateOKRs = async () => {
     try {
-      setSubmitting(true);
+      setLoading(true);
       const cicloId = await generateFullOKRStructureFromJson(estruturaJson);
       setMessages((prev) => [
         ...prev,
@@ -143,7 +152,7 @@ export function OKRPreGenerator() {
         content: '❌ Erro ao cadastrar. Verifique a estrutura e tente novamente.',
       }]);
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
@@ -152,44 +161,30 @@ export function OKRPreGenerator() {
       <div className="bg-white rounded-xl shadow p-4 flex flex-col justify-between h-[500px] border border-gray-100">
         <div className="overflow-y-auto space-y-4 mb-4 pr-2">
           {messages.map((msg, i) => (
-            <div key={i} className={clsx(
-              'flex items-end gap-2',
-              msg.role === 'assistant' ? 'flex-row' : 'flex-row-reverse'
-            )}>
-              <div className="flex-shrink-0">
-                {msg.role === 'assistant' ? (
-                  <Target className="w-6 h-6 text-blue-500" />
-                ) : (
-                  <UserCircle2 className="w-6 h-6 text-gray-400" />
-                )}
-              </div>
-              <div className={clsx(
-                'text-sm p-3 rounded-xl whitespace-pre-wrap max-w-[80%]',
+            <div
+              key={i}
+              className={clsx(
+                'text-sm p-3 rounded-xl whitespace-pre-wrap',
                 msg.role === 'assistant'
                   ? 'bg-blue-50 text-gray-800'
                   : 'bg-gray-100 text-right ml-auto'
-              )}>
-                {msg.content}
-              </div>
+              )}
+            >
+              {msg.content}
             </div>
           ))}
           {currentResponse && (
-            <div className="flex items-start gap-2">
-              <Target className="w-6 h-6 text-blue-500 mt-1" />
-              <div className="bg-blue-50 text-gray-800 text-sm p-3 rounded-xl animate-pulse whitespace-pre-wrap max-w-[80%]">
-                {currentResponse}
-              </div>
+            <div className="bg-blue-50 text-gray-800 text-sm p-3 rounded-sm animate-pulse whitespace-pre-wrap">
+              {currentResponse}
             </div>
           )}
           {estruturaJson && propostaConfirmada && (
-            <div className="flex justify-start mt-4">
+            <div className="flex justify-start mt-2">
               <button
                 onClick={handleGenerateOKRs}
-                disabled={submitting}
-                className="bg-blue-600 text-white text-sm font-medium py-2 px-4 rounded hover:bg-blue-700 transition flex items-center gap-2"
+                className="bg-blue-600 text-white text-sm font-medium py-2 px-4 rounded hover:bg-blue-700 transition"
               >
-                {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                {submitting ? 'Enviando...' : 'Cadastrar Indicadores'}
+                Cadastrar Indicadores
               </button>
             </div>
           )}
@@ -208,11 +203,8 @@ export function OKRPreGenerator() {
           />
           <button
             type="submit"
-            disabled={loading || !input.trim()}
-            className={clsx(
-              'absolute right-3 bottom-3 transition',
-              loading || !input.trim() ? 'text-gray-300 cursor-not-allowed' : 'text-blue-600 hover:text-blue-800'
-            )}
+            disabled={loading}
+            className="absolute right-3 bottom-3 text-blue-600 hover:text-blue-800"
           >
             <ArrowUpCircle className="w-6 h-6" />
           </button>

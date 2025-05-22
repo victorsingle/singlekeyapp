@@ -11,99 +11,18 @@ export const config = { runtime: 'edge' };
 
 export default async function handler(req: NextRequest) {
   try {
-    const { messages, modo } = await req.json();
+    const { messages } = await req.json();
     const encoder = new TextEncoder();
 
-    // ===== MODO GERAR =====
-    if (modo === 'gerar') {
-      const systemPrompt = `
-Você é a Kai, uma IA especialista em OKRs.
+    // Data atual formatada (ISO e legível)
+    const hoje = new Date();
+    const dataISO = hoje.toISOString().split('T')[0];
+    const dataLegivel = hoje.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    });
 
-Você receberá abaixo um TEXTO JÁ VALIDADO PELO USUÁRIO contendo a estrutura final de OKRs aprovada por ele.
-
-⚠️ Sua única tarefa é CONVERTER esse conteúdo em formato JSON, seguindo a estrutura abaixo, sem alterar absolutamente nada.
-
-⚠️ O JSON deve estar no formato a seguir, e deve ser o ÚNICO conteúdo da sua resposta — sem introduções, comentários, ou formatação \`\`\`.
-
-{
-  "ciclo": {
-    "nome": "string",
-    "dataInicio": "YYYY-MM-DD",
-    "dataFim": "YYYY-MM-DD",
-    "temaEstratégico": "string"
-  },
-  "okrs": [
-    {
-      "id": "okr-1",
-      "objetivo": "string",
-      "tipo": "strategic" | "tactical" | "operational",
-      "resultadosChave": [
-        {
-          "texto": "string",
-          "tipo": "moonshot" | "roofshot",
-          "métrica": "string",
-          "valorInicial": number,
-          "valorAlvo": number,
-          "unidade": "string"
-        }
-      ]
-    }
-  ],
-  "links": [
-    {
-      "origem": "okr-1",
-      "destino": "okr-2",
-      "tipo": "hierarchy"
-    }
-  ]
-}
-`.trim();
-
-      const resposta = await openai.createChatCompletion({
-        model: 'gpt-4o',
-        temperature: 0,
-        stream: false,
-        response_format: 'json',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...messages,
-        ],
-      });
-
-      const raw = await resposta.json();
-      const content = raw?.choices?.[0]?.message?.content;
-
-      if (!content) {
-        console.error('[❌ Conteúdo ausente na resposta da IA]', raw);
-        return new Response('Resposta da IA está vazia.', { status: 500 });
-      }
-
-      let estruturaJSON;
-      try {
-        estruturaJSON = JSON.parse(content);
-      } catch (e) {
-        console.error('[❌ Erro ao interpretar JSON puro retornado]', content);
-        return new Response('Erro ao interpretar JSON puro da estrutura', { status: 500 });
-      }
-
-      const stream = new ReadableStream({
-        async start(controller) {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ json: estruturaJSON })}\n\n`));
-          controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-          controller.close();
-        }
-      });
-
-      return new Response(stream, {
-        headers: {
-          'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache',
-          Connection: 'keep-alive',
-        }
-      });
-    }
-
-    // ===== MODO CONVERSA =====
     const completion = await openai.createChatCompletion({
       model: 'gpt-4o',
       temperature: 0.7,
@@ -114,9 +33,19 @@ Você receberá abaixo um TEXTO JÁ VALIDADO PELO USUÁRIO contendo a estrutura 
           content: `
 Você é a Kai, uma agente conversacional especialista em OKRs.
 
-Seu papel é entender o que o usuário deseja estruturar, fazer perguntas para esclarecer o contexto, e só então propor OKRs.
+Hoje é ${dataLegivel} (formato ISO: ${dataISO}).
 
-⚠️ Quando a estrutura estiver pronta e o usuário confirmar, você pode responder com a explicação textual da proposta. O JSON deve ser enviado apenas internamente, nunca visível no chat.
+Seu papel é entender o que o usuário deseja estruturar e, após coletar o contexto necessário, apresentar uma proposta completa de estrutura de OKRs para o próximo ciclo de planejamento.
+
+⚠️ Sua resposta final (quando o usuário já forneceu todas as informações ou pediu explicitamente para gerar) deve conter:
+- Nome do ciclo (ex: "Planejamento ${hoje.getFullYear()} Q${Math.floor((hoje.getMonth()) / 3) + 1}")
+- Período (data de início e fim) a partir da data atual
+- Tema estratégico
+- Lista de Objetivos claros e mensuráveis
+- Para cada Objetivo, 2 a 3 Resultados-Chave com tipo (moonshot ou roofshot), métrica, valor inicial, valor-alvo e unidade
+- Relacionamentos entre OKRs (se houver), como hierarquia entre objetivos
+
+📌 A resposta deve ser feita em linguagem natural, com clareza e estrutura de fácil leitura, mas contendo todos os elementos necessários para que o frontend consiga gerar a estrutura JSON a partir do texto. Nunca envie JSON visível no chat.
           `.trim()
         },
         ...messages,
@@ -125,6 +54,7 @@ Seu papel é entender o que o usuário deseja estruturar, fazer perguntas para e
 
     const stream = completion.body;
     const decoder = new TextDecoder();
+
     const sseStream = new ReadableStream({
       async start(controller) {
         const reader = stream.getReader();

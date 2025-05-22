@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import { useAuthStore } from '../../stores/authStore';
 import { useOKRStore } from '../../stores/okrStore';
 import { useKaiChatStore } from '../../stores/useKaiChatStore';
+import { parseStructuredTextToJSON } from '../../utils/parseOKRTextToJSON';
 
 export function OKRPreGenerator() {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
@@ -17,9 +18,7 @@ export function OKRPreGenerator() {
     estruturaJson,
     setEstruturaJson,
     propostaConfirmada,
-    setPropostaConfirmada,
-    propostaGerada,
-    setPropostaGerada
+    setPropostaConfirmada
   } = useKaiChatStore();
 
   const chatEndRef = useRef<HTMLDivElement | null>(null);
@@ -43,6 +42,29 @@ export function OKRPreGenerator() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, currentResponse]);
+
+  // Detecta aprovação e gera JSON localmente
+  useEffect(() => {
+    if (messages.length < 2) return;
+
+    const lastUserMessage = messages[messages.length - 1];
+    const lastKaiMessage = messages.slice().reverse().find(m => m.role === 'assistant');
+
+    if (
+      lastUserMessage.role === 'user' &&
+      /^(ok|pode gerar|está ótimo|confirmado|sim|tudo certo)$/i.test(lastUserMessage.content.trim()) &&
+      lastKaiMessage
+    ) {
+      try {
+        const parsed = parseStructuredTextToJSON(lastKaiMessage.content);
+        setEstruturaJson(parsed);
+        setPropostaConfirmada(true);
+        console.log('[✅ JSON gerado no frontend]', parsed);
+      } catch (e) {
+        console.error('[❌ Erro ao gerar JSON no frontend]', e);
+      }
+    }
+  }, [messages]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -107,69 +129,6 @@ export function OKRPreGenerator() {
     setLoading(false);
   };
 
-  const handleGenerateStructure = async () => {
-    setLoading(true);
-    setCurrentResponse('');
-
-    const res = await fetch('/.netlify/functions/kai-chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages: messages,
-        userId: useAuthStore.getState().userId,
-        organizationId: useAuthStore.getState().organizationId,
-        modo: 'gerar'
-      }),
-    });
-
-    if (!res.ok || !res.body) {
-      setMessages((prev) => [...prev, { role: 'assistant', content: '❌ Erro ao gerar estrutura. Tente novamente.' }]);
-      setLoading(false);
-      return;
-    }
-
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-    let done = false;
-
-    while (!done) {
-      const { value, done: readerDone } = await reader.read();
-      done = readerDone;
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n').filter((line) => line.startsWith('data:'));
-
-      for (const line of lines) {
-        const data = line.replace(/^data:\s*/, '');
-        if (data === '[DONE]') continue;
-
-        try {
-          const parsed = JSON.parse(data);
-          const content = parsed.content;
-          const json = parsed.json;
-
-          if (content) {
-            buffer += content;
-            setCurrentResponse(buffer);
-          }
-
-          if (json) {
-            console.log('[✅ JSON FINAL recebido]', json);
-            setEstruturaJson(json);
-            setPropostaGerada(true);
-            setPropostaConfirmada(true);
-          }
-        } catch (e) {
-          console.error('[❌ Erro no parse do chunk modo gerar]', e, data);
-        }
-      }
-    }
-
-    setMessages((prev) => [...prev, { role: 'assistant', content: buffer }]);
-    setCurrentResponse('');
-    setLoading(false);
-  };
-
   const handleGenerateOKRs = async () => {
     try {
       setLoading(true);
@@ -208,18 +167,8 @@ export function OKRPreGenerator() {
             </div>
           ))}
           {currentResponse && (
-            <div className="bg-blue-50 text-gray-800 text-sm p-3 rounded-xl animate-pulse whitespace-pre-wrap">
+            <div className="bg-blue-50 text-gray-800 text-sm p-3 rounded-sm animate-pulse whitespace-pre-wrap">
               {currentResponse}
-            </div>
-          )}
-          {propostaGerada && !estruturaJson && (
-            <div className="flex justify-start mt-2">
-              <button
-                onClick={handleGenerateStructure}
-                className="bg-green-600 text-white text-sm font-medium py-2 px-4 rounded hover:bg-green-700 transition"
-              >
-                Gerar estrutura final
-              </button>
             </div>
           )}
           {estruturaJson && propostaConfirmada && (

@@ -57,9 +57,7 @@ function extrairDatas(dataBr: string): string {
 export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
   const lines = input.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
 
-  const ciclo: ParsedOKRStructure['ciclo'] = {
-    nome: '', dataInicio: '', dataFim: '', temaEstratégico: ''
-  };
+  const ciclo = { nome: '', dataInicio: '', dataFim: '', temaEstratégico: '' };
   const okrs: ParsedOKRStructure['okrs'] = [];
   const links: ParsedOKRStructure['links'] = [];
 
@@ -75,26 +73,54 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
     else if (line.startsWith('Objetivo')) {
       if (currentOKR) okrs.push(currentOKR);
       okrCount++;
-      const match = line.match(/Objetivo \d+ \((.*?)\): (.*)/i);
+      const match = line.match(/Objetivo (\d+) \((.*?)\): (.*)/i);
       if (!match) throw new Error(`Objetivo mal formatado: ${line}`);
       currentOKR = {
-        id: `okr-${okrCount}`,
-        objetivo: match[2].trim(),
-        tipo: normalizarTipoObjetivo(match[1].trim()),
+        id: `okr-${match[1]}`,
+        objetivo: match[3].trim(),
+        tipo: normalizarTipoObjetivo(match[2].trim()),
         resultadosChave: []
       };
     }
+
     else if (line.startsWith('KR')) {
-      const match = line.match(/KR \d+ \((.*?)\): (.*)/i);
+      const match = line.match(/KR (\d+(?:\.\d+)*) \((.*?)\): (.*)/i);
       if (!match) throw new Error(`KR mal formatado: ${line}`);
+      const texto = match[3].trim();
+
+      let valorInicial = 0, valorAlvo = 0, unidade = '', metrica = '';
+
+      const valorMatch = texto.match(/de\s+([\d,.R$% ]+)\s+para\s+([\d,.R$% ]+)/i);
+      if (valorMatch) {
+        const vi = valorMatch[1].trim().replace(/[R$\s]/g, '').replace(',', '.');
+        const va = valorMatch[2].trim().replace(/[R$\s]/g, '').replace(',', '.');
+        valorInicial = parseFloat(vi);
+        valorAlvo = parseFloat(va);
+        unidade = valorMatch[2].includes('%') ? '%' : valorMatch[2].includes('R$') ? 'R$' : '';
+      }
+
+      const metricaMatch = texto.match(/(aumentar|elevar|reduzir|incrementar|diminuir|conquistar|alcançar)\s+([a-zç\s]+)/i);
+      if (metricaMatch) metrica = metricaMatch[2].trim();
+
       currentOKR?.resultadosChave.push({
-        texto: match[2].trim(),
-        tipo: normalizarTipoKR(match[1].trim()),
-        métrica: '',
-        valorInicial: 0,
-        valorAlvo: 0,
-        unidade: ''
+        texto,
+        tipo: normalizarTipoKR(match[2]),
+        métrica: metrica,
+        valorInicial,
+        valorAlvo,
+        unidade
       });
+    }
+
+    else if (/Objetivo \d+.*(deriva|relacionado|vinculado).*Objetivo \d+/i.test(line)) {
+      const linkMatch = line.match(/Objetivo (\d+).*?(?:deriva|relacionado|vinculado).*Objetivo (\d+)/i);
+      if (linkMatch) {
+        links.push({
+          origem: `okr-${linkMatch[1]}`,
+          destino: `okr-${linkMatch[2]}`,
+          tipo: 'hierarchy'
+        });
+      }
     }
   }
 

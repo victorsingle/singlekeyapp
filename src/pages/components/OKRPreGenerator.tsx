@@ -12,6 +12,7 @@ export function OKRPreGenerator() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState('');
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   const { generateFullOKRStructureFromJson } = useOKRStore();
   const {
@@ -191,14 +192,24 @@ useEffect(() => {
             </div>
           )}
           {estruturaJson && propostaConfirmada && (
-            <div className="flex justify-start mt-2">
-              <button
-                onClick={handleGenerateOKRs}
-                className="bg-blue-600 text-white text-sm font-medium py-2 px-4 rounded hover:bg-blue-700 transition"
-              >
-                Cadastrar Indicadores
-              </button>
-            </div>
+            <button
+            ref={buttonRef}
+            onClick={async () => {
+              if (buttonRef.current) {
+                buttonRef.current.innerHTML = `
+                  <svg class="w-4 h-4 mr-2 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="white" strokeWidth="4"></circle>
+                    <path class="opacity-75" fill="white" d="M4 12a8 8 0 018-8v8H4z"></path>
+                  </svg>
+                  Enviando...
+                `;
+              }
+              await handleGenerateOKRs();
+            }}
+            className="bg-blue-600 text-white text-sm font-medium py-2 px-4 rounded hover:bg-blue-700 transition flex items-center gap-2"
+          >
+            Cadastrar Indicadores
+          </button>
           )}
           <div ref={chatEndRef} />
         </div>

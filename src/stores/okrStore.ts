@@ -357,6 +357,11 @@ generateFullOKRStructureFromJson: async (estrutura: ParsedOKRStructure) => {
   const { userId, organizationId } = useAuthStore.getState();
   const { ciclo, okrs, links } = estrutura;
 
+  // ✅ Passo extra: cadastrar times criados durante o onboarding
+  if (fromOnboarding && teamsToCreate?.length > 0) {
+    await createTeamsBulk(teamsToCreate);
+  }
+
   if (!ciclo?.nome || !ciclo.dataInicio || !ciclo.dataFim || !ciclo.temaEstratégico) {
     throw new Error('Dados do ciclo incompletos.');
   }

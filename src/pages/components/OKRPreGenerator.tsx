@@ -8,6 +8,7 @@ import { useKaiChatStore } from '../../stores/useKaiChatStore';
 import { parseStructuredTextToJSON } from '../../utils/parseOKRTextToJSON';
 import { useOnboardingGuide } from '../../stores/useOnboardingGuide';
 import { supabase } from '../../lib/supabase';
+import { createTeamsBulk } from '../lib/supabaseFunctions';
 
 
 interface OKRPreGeneratorProps {

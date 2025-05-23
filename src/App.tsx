@@ -246,13 +246,13 @@ useEffect(() => {
     if (!session) return;
 
     await useAuthStore.getState().fetchUserData(); // garante dados prontos
+    fetchNotifications(session.user.id);
+
     const { onboardingCompleted, userId } = useAuthStore.getState();
 
-    // Só dispara se ainda não tiver completado
     if (!onboardingCompleted) {
       useOnboardingGuide.getState().startGuide();
 
-      // E já atualiza no banco para não repetir
       await supabase
         .from('users')
         .update({ onboarding_completed: true })

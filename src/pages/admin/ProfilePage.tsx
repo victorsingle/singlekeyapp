@@ -33,8 +33,8 @@ export function ProfilePage() {
 
   useEffect(() => {
     async function fetchData() {
-      console.log('[🔍 Debug ProfilePage] userId:', userId);
-      console.log('[🔍 Debug ProfilePage] organizationId:', organizationId);
+      //console.log('[🔍 Debug ProfilePage] userId:', userId);
+      //console.log('[🔍 Debug ProfilePage] organizationId:', organizationId);
 
       if (!userId || !organizationId) {
         console.warn('[⚠️] userId ou organizationId ausentes — aguardando...');
@@ -48,7 +48,7 @@ export function ProfilePage() {
           supabase.auth.getUser(),
         ]);
 
-        console.log('[✅ Dados carregados]', { user, org, auth });
+        //console.log('[✅ Dados carregados]', { user, org, auth });
 
         if (user && auth?.user) {
           setUserData({

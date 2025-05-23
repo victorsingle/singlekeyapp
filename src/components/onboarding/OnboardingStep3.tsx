@@ -15,7 +15,7 @@ export function OnboardingStep3({ onBack, onFinish, prompt, setPrompt }: Props) 
 
   return (
     <div className="w-full flex flex-col items-center space-y-3 text-center">
-      <div className="w-full max-w-xl space-y-2 mt-2 text-justify">
+      <div className="w-full max-w-xl space-y-2 mt-2 text-left">
        <OKRPreGenerator />
       </div>
     </div>

@@ -8,7 +8,7 @@ import { useKaiChatStore } from '../../stores/useKaiChatStore';
 import { parseStructuredTextToJSON } from '../../utils/parseOKRTextToJSON';
 import { useOnboardingGuide } from '../../stores/useOnboardingGuide';
 import { supabase } from '../../lib/supabase';
-import { createTeamsBulk } from '../lib/supabaseFunctions';
+
 
 
 interface OKRPreGeneratorProps {
@@ -18,6 +18,7 @@ interface OKRPreGeneratorProps {
 export function OKRPreGenerator({ fromOnboarding }: OKRPreGeneratorProps) {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
   const [input, setInput] = useState('');
+  const { teamsToCreate } = useKaiChatStore(); 
 
   useEffect(() => {
     const draft = localStorage.getItem('kai-chat-draft');
@@ -207,7 +208,8 @@ useEffect(() => {
   const handleGenerateOKRs = async () => {
     try {
       setLoading(true);
-      const cicloId = await generateFullOKRStructureFromJson(estruturaJson);
+      const cicloId = await generateFullOKRStructureFromJson(estruturaJson, fromOnboarding, teamsToCreate);
+
 
       if (fromOnboarding) {
         await supabase

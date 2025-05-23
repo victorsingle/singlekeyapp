@@ -353,7 +353,11 @@ getCycleAverageProgress: (cycleId) => {
 
 
 //KAI Generator
-generateFullOKRStructureFromJson: async (estrutura: ParsedOKRStructure) => {
+generateFullOKRStructureFromJson: async (
+  estrutura: ParsedOKRStructure,
+  fromOnboarding?: boolean,
+  teamsToCreate?: TeamInput[]
+) => {
   const { userId, organizationId } = useAuthStore.getState();
   const { ciclo, okrs, links } = estrutura;
 

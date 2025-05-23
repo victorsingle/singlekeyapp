@@ -424,6 +424,9 @@ export async function createTeamsBulk(teams: TeamInput[]) {
     .insert(teams);
 
   if (error) {
+    console.error('[❌ Erro ao inserir times]', error); // 👈 obrigatório
     throw new Error(`Erro ao cadastrar times: ${error.message}`);
   }
+
+  console.log('[✅] Inserção de times bem-sucedida');
 }

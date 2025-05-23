@@ -362,8 +362,11 @@ generateFullOKRStructureFromJson: async (
   const { ciclo, okrs, links } = estrutura;
 
   // ✅ Passo extra: cadastrar times criados durante o onboarding
+  console.log('[DEBUG] Criando times:', { fromOnboarding, teamsToCreate });
+
   if (fromOnboarding && teamsToCreate?.length > 0) {
     await createTeamsBulk(teamsToCreate);
+    console.log('[✅] Times cadastrados com sucesso');
   }
 
   if (!ciclo?.nome || !ciclo.dataInicio || !ciclo.dataFim || !ciclo.temaEstratégico) {

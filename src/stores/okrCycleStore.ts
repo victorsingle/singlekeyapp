@@ -20,10 +20,10 @@ export const useCycleStore = create((set, get) => ({
   // Carregar ciclos da organização
   loadCycles: async (organizationId) => {
 
-    console.group('[🧩 loadCycles]');
+    //console.group('[🧩 loadCycles]');
     //console.log('organizationId recebido:', organizationId);
-    console.trace();
-    console.groupEnd();
+    //console.trace();
+    //console.groupEnd();
 
     if (!organizationId) {
       console.warn('[⚠️] loadCycles: organizationId ausente, não buscar ciclos.');

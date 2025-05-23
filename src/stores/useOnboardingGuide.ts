@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { steps } from '../constants/onboardingSteps';
 
 interface OnboardingGuideState {
   step: number;
@@ -9,11 +10,16 @@ interface OnboardingGuideState {
 }
 
 export const useOnboardingGuide = create<OnboardingGuideState>((set) => {
-  const savedStep = Number(localStorage.getItem('onboarding-step') || '1');
+  let savedStep = Number(localStorage.getItem('onboarding-step'));
   const savedVisible = localStorage.getItem('onboarding-visible') === 'true';
 
+  // Se não existe step salvo, considere visibilidade falsa
+  if (!savedStep || isNaN(savedStep)) {
+    savedStep = 0;
+  }
+
   return {
-    step: savedStep,
+    step: savedVisible ? savedStep : 0,
     visible: savedVisible,
     startGuide: () => {
       localStorage.setItem('onboarding-step', '1');
@@ -22,6 +28,13 @@ export const useOnboardingGuide = create<OnboardingGuideState>((set) => {
     },
     nextStep: () => set((state) => {
       const next = state.step + 1;
+
+      if (next > steps.length) {
+        localStorage.removeItem('onboarding-step');
+        localStorage.removeItem('onboarding-visible');
+        return { step: 0, visible: false };
+      }
+
       localStorage.setItem('onboarding-step', String(next));
       return { step: next };
     }),

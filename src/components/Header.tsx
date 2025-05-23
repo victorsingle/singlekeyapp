@@ -76,7 +76,7 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
 
   useEffect(() => {
     if (company) {
-      console.log('[Updated Company]', company);
+//      console.log('[Updated Company]', company);
     }
   }, [company]);
 
@@ -89,12 +89,6 @@ export function Header({ session, onLogout, onMobileMenuOpen, checkinNotificatio
   return () => window.removeEventListener('kai:tokens:updated', handleKaiTokenUpdate);
 }, []);
 
-  console.log('[🔔 HEADER CHECKIN]', {
-    cycleIdToCheck,
-    orgHasCheckedInToday,
-    hasValidCheckinReminderToday,
-    reminderMessage
-  });
 
   return (
     <header className="w-full fixed z-[10] backdrop-blur-md bg-white/30bg-white shadow-sm">

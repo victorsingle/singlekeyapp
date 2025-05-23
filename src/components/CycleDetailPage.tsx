@@ -62,7 +62,7 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
       console.warn('[⏳] Aguardando authStore.userId... tentando fallback via Supabase');
       supabase.auth.getUser().then(({ data }) => {
         if (data?.user?.id) {
-          console.log('[✅] Fallback userId recuperado do Supabase:', data.user.id);
+          //console.log('[✅] Fallback userId recuperado do Supabase:', data.user.id);
           setFallbackUserId(data.user.id);
         }
       });
@@ -91,7 +91,7 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
     setSelectedCycleId(cycleId);
 
     const loadEverything = async () => {
-      console.log('[🛠️] Disparando loadEverything');
+      //console.log('[🛠️] Disparando loadEverything');
     
       await useOKRStore.getState().loadCycles(organizationId);
       await useOKRStore.getState().loadOKRs(organizationId, cycleId);

@@ -47,15 +47,15 @@ export function CycleDashboard() {
   };
   
   const handleManualStart = () => {
-    console.log('handleManualStart chamado');
+    //console.log('handleManualStart chamado');
     setShouldOpenForm(true);
     setIsGeneratorOpen(false);
   };
   
   useEffect(() => {
-    console.log('useEffect monitorando isGeneratorOpen e shouldOpenForm');
+    //console.log('useEffect monitorando isGeneratorOpen e shouldOpenForm');
     if (!isGeneratorOpen && shouldOpenForm) {
-      console.log('Condições atendidas para abrir o formulário');
+      //console.log('Condições atendidas para abrir o formulário');
       setShouldOpenForm(false);
       setIsFormOpen(true);
       setSelectedCycle(null);
@@ -63,7 +63,7 @@ export function CycleDashboard() {
   }, [isGeneratorOpen, shouldOpenForm]);
 
   useEffect(() => {
-    console.log('[🛠️] CycleDashboard montado, buscando dados do usuário...');
+    //console.log('[🛠️] CycleDashboard montado, buscando dados do usuário...');
     fetchUserData();
   }, []);
   
@@ -72,11 +72,11 @@ export function CycleDashboard() {
 
   useEffect(() => {
     if (!sessionOrganizationId) {
-      console.log('[🟡] OrganizationId ainda não carregado. Aguardando...');
+      //console.log('[🟡] OrganizationId ainda não carregado. Aguardando...');
       return;
     }
   
-    console.log('[🟢] OrganizationId carregado, buscando ciclos...', sessionOrganizationId);
+    //console.log('[🟢] OrganizationId carregado, buscando ciclos...', sessionOrganizationId);
     loadCycles(sessionOrganizationId);
   }, [sessionOrganizationId]);
 

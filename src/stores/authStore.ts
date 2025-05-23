@@ -57,7 +57,7 @@ export const useAuthStore = create<AuthState>()(
     
         if (invitedUserRaw) {
           const invitedUser = keysToCamel(invitedUserRaw); // 🛠️ Converte aqui!
-          console.log('[🐛 userProfile camelCase]', userProfile);
+          
           // busca nome da organização na view já existente
           const { data: invitedOrg } = await supabase
           .from('invited_users_with_org')

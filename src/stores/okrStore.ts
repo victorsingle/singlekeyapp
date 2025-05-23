@@ -97,7 +97,7 @@ export const useOKRStore = create((set, get) => ({
 
   loadCycles: async (organizationId: string) => {
     set({ loading: true });
-    console.log('[🛠️] Carregando ciclos para organizationId:', organizationId);
+    //console.log('[🛠️] Carregando ciclos para organizationId:', organizationId);
     try {
       const { data, error } = await supabase
         .from('okr_cycles')
@@ -105,7 +105,7 @@ export const useOKRStore = create((set, get) => ({
         .eq('organization_id', organizationId)
         .order('start_date', { ascending: true });
 
-      console.log('[📦] Retorno do Supabase ciclos:', data, error);
+      //console.log('[📦] Retorno do Supabase ciclos:', data, error);
 
       if (error) {
         throw new Error(`Erro ao buscar ciclos: ${error.message}`);
@@ -142,7 +142,7 @@ export const useOKRStore = create((set, get) => ({
       }));
   
       set({ okrs: okrsWithKRs, loading: false });
-      console.log('[🧠 set okrs]', okrsWithKRs);
+      //console.log('[🧠 set okrs]', okrsWithKRs);
     } catch (error) {
       console.error('[❌] Erro ao carregar OKRs e seus KRs:', error);
       set({ error: error.message, loading: false });
@@ -182,7 +182,7 @@ export const useOKRStore = create((set, get) => ({
       keyResults: keyResults?.filter(kr => kr.okr_id === okr.id) ?? [],
     }));
   
-    console.log('[✅ allOkrs com KRs]', okrsWithKRs);
+    //console.log('[✅ allOkrs com KRs]', okrsWithKRs);
     set({ allOkrs: okrsWithKRs });
   },  
 

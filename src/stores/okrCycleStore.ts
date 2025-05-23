@@ -21,7 +21,7 @@ export const useCycleStore = create((set, get) => ({
   loadCycles: async (organizationId) => {
 
     console.group('[🧩 loadCycles]');
-    console.log('organizationId recebido:', organizationId);
+    //console.log('organizationId recebido:', organizationId);
     console.trace();
     console.groupEnd();
 
@@ -35,7 +35,7 @@ export const useCycleStore = create((set, get) => ({
     try {
       const cycles = await fetchCycles(organizationId);
       
-      console.log('[✅ loadCycles] Ciclos carregados:', cycles);
+      //console.log('[✅ loadCycles] Ciclos carregados:', cycles);
       
       set({ cycles, loadingCycles: false });
 
@@ -54,7 +54,7 @@ export const useCycleStore = create((set, get) => ({
   createCycle: async (cycleData) => {
     set({ loading: true });
     try {
-      console.log('[📦] user_id no createCycle:', cycleData.user_id);
+      //console.log('[📦] user_id no createCycle:', cycleData.user_id);
       const newCycle = await createCycleService(cycleData);
       set((state) => ({
         cycles: [...state.cycles, newCycle],

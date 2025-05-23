@@ -19,7 +19,7 @@ interface KRCheckin {
     allDates: [],
   
     loadPlacarData: async (organizationId, cycleId) => {
-      console.log('[🔁] Carregando dados de placar...');
+      //console.log('[🔁] Carregando dados de placar...');
     
       // 1. Buscar as datas de check-in do ciclo
       const { data: checkinDatesRaw, error: checkinDatesError } = await supabase
@@ -97,8 +97,8 @@ interface KRCheckin {
         };
       });
     
-      console.log('[✅ FINAL] placarData:', placarData);
-      console.log('[✅ FINAL] allDates:', allDates);
+      //console.log('[✅ FINAL] placarData:', placarData);
+      //console.log('[✅ FINAL] allDates:', allDates);
     
       set({ placarData, allDates });
     }

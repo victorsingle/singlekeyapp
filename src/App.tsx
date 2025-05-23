@@ -247,23 +247,24 @@ useEffect(() => {
 }, []);
 
   // --- 2. Carregar dados do usuário e notificações ---
-  useEffect(() => {
-    if (session) {
-      useAuthStore.getState().fetchUserData();
-      fetchNotifications(session.user.id);
+ useEffect(() => {
+  const loadUserData = async () => {
+    if (!session) return;
 
+    await useAuthStore.getState().fetchUserData();
+    fetchNotifications(session.user.id);
 
-      //Feature Guide
-      const { onboardingCompleted } = useAuthStore.getState();
-      const hasSeen = localStorage.getItem('has_seen_feature_guide');
+    const { onboardingCompleted } = useAuthStore.getState();
+    const hasSeen = localStorage.getItem('has_seen_feature_guide');
 
-      if (!hasSeen && onboardingCompleted) {
-        useOnboardingGuide.getState().startGuide();
-        localStorage.setItem('has_seen_feature_guide', 'true');
-      }
-
+    if (!hasSeen && onboardingCompleted) {
+      useOnboardingGuide.getState().startGuide();
+      localStorage.setItem('has_seen_feature_guide', 'true');
     }
-  }, [session]);
+  };
+
+  loadUserData();
+}, [session]);
 
   // --- 5. Dropdown fora do menu ---
   useEffect(() => {

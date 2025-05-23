@@ -127,11 +127,6 @@ export function parseStructuredTextToJSON(input: string): ParsedOKRStructure {
     }
 
     else if (/^Métrica:/i.test(clean)) {
-    console.log('[KR CONTEXTO]', {
-      linha: clean,
-      temCurrentKR: !!currentKR,
-      currentKR
-    });
       const metricaTexto = clean.replace(/^Métrica:\s*/i, '').trim();
       if (currentKR) currentKR.métrica = metricaTexto;
     }

@@ -109,7 +109,7 @@ export function CheckinButton({ cycleId, userId, checkinNotification }: CheckinB
   const disabled = !reminderMessage || loading || checkLoading;
   const alreadyCheckedIn = orgHasCheckedInToday && !loading;
 
-  console.log('[💡 Props recebidas no botão]', { userId, cycleId });
+  //console.log('[💡 Props recebidas no botão]', { userId, cycleId });
 
   return (
     <button

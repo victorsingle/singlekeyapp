@@ -1,7 +1,7 @@
 import React from 'react';
 import { Target } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
-import { OKRPreGenerator } from './OKRPreGenerator';
+import { OKRPreGenerator } from '../pages/components/OKRPreGenerator';
 
 interface OKRGeneratorProps {
   onFinish: (cycleId: string) => void;

@@ -6,8 +6,14 @@ import { useAuthStore } from '../../stores/authStore';
 import { useOKRStore } from '../../stores/okrStore';
 import { useKaiChatStore } from '../../stores/useKaiChatStore';
 import { parseStructuredTextToJSON } from '../../utils/parseOKRTextToJSON';
+import { useOnboardingGuide } from '../../stores/useOnboardingGuide';
 
-export function OKRPreGenerator() {
+
+interface OKRPreGeneratorProps {
+  fromOnboarding?: boolean;
+}
+
+export function OKRPreGenerator({ fromOnboarding }: OKRPreGeneratorProps) {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,6 +30,7 @@ export function OKRPreGenerator() {
 
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
+  const { startGuide } = useOnboardingGuide();
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -145,7 +152,14 @@ useEffect(() => {
         ...prev,
         { role: 'assistant', content: '✅ OKRs cadastrados com sucesso! Redirecionando...' },
       ]);
-      setTimeout(() => navigate(`/cycle/${cicloId}?open=krs`), 1500);
+
+      setTimeout(() => {
+        navigate(`/cycle/${cicloId}?open=krs`);
+        if (fromOnboarding) {
+          setTimeout(() => startGuide(), 300); // ativa o guia após navegação
+        }
+      }, 1500);
+      
     } catch (err) {
       console.error('[❌ Erro ao cadastrar OKRs]', err);
       setMessages((prev) => [...prev, {

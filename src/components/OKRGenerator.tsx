@@ -32,13 +32,13 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false }: OKRGe
 
   return isModal ? (
     <div className="p-4">
-      <OKRPreGenerator onFinish={onFinish} />
+      <OKRPreGenerator onFinish={onFinish} fromOnboarding />
     </div>
   ) : (
     <div className="fixed inset-0 bg-gradient-to-br from-white to-indigo-200 flex flex-col items-center justify-center px-6 py-12 z-1 text-center">
       <div className="relative max-w-2xl w-full space-y-10 text-left">
         
-        <OKRPreGenerator onFinish={onFinish} />
+        <OKRPreGenerator onFinish={onFinish} fromOnboarding />
 
         <div className="absolute right-6 bottom-0">
           <button

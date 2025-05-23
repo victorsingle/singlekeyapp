@@ -37,21 +37,10 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false }: OKRGe
   ) : (
     <div className="fixed inset-0 bg-gradient-to-b from-white via-[#f5f8ff] to-[#e7effc] flex flex-col items-center justify-center px-6 py-12 z-1 text-center">
       <div className="relative max-w-2xl w-full space-y-10">
-        <div className="space-y-2">
-          <span className="inline-flex items-center justify-center w-16 h-16 bg-blue-50 rounded-full animate-pulse">
-            <Target className="w-16 h-16 text-blue-600" />
-          </span>
-          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
-            Eu sou a <span className="text-blue-600">KAI</span>, sua copiloto de OKRs
-          </h1>
-          <p className="text-sm text-gray-500">
-            Me diga qual é o desafio do próximo ciclo e eu cuido do resto.
-          </p>
-        </div>
-
+        
         <OKRPreGenerator onFinish={onFinish} />
 
-        <div className="absolute right-2 bottom-2">
+        <div className="absolute right-2 bottom-0">
           <button
             type="button"
             onClick={onManualStart}

@@ -44,7 +44,7 @@ export function Dashboard() {
 
   const { isAdmin, isChampion } = usePermissions();
 
-  console.log('Permissões:', { isAdmin, isChampion });
+  //console.log('Permissões:', { isAdmin, isChampion });
 
   const { organizationId } = useAuthStore();
 
@@ -89,12 +89,12 @@ useEffect(() => {
 
 // [2] Carrega todos os OKRs (usado no gráfico comparativo)
 useEffect(() => {
-  console.log('[🧪 useEffect - tentando carregar todos os OKRs]', { organizationId });
+  //console.log('[🧪 useEffect - tentando carregar todos os OKRs]', { organizationId });
 
   if (!organizationId) return;
 
   const run = async () => {
-    console.log('[🧪 Chamando loadAllOKRs...]');
+   // console.log('[🧪 Chamando loadAllOKRs...]');
     await loadAllOKRs(organizationId);
   };
 
@@ -162,16 +162,6 @@ keyResults.forEach((kr) => {
   });
 });
 
-console.log('[DEBUG] keyResults sample', keyResults.map(kr => ({
-  id: kr.id,
-  text: kr.text,
-  team_ids: kr.team_ids
-})));
-
-console.log('[DEBUG] Comparando times e team_ids dos KRs:', {
-  timesNaStore: teams.map(t => t.id),
-  timesNosKRs: keyResults.flatMap(k => k.team_ids)
-});
 
 // Mapeia os times válidos com nome
 teams.forEach((team) => {
@@ -186,7 +176,7 @@ const teamScoreboardData = Array.from(teamKRMap.entries()).map(([teamId, keyResu
   keyResults,
 }));
 
-console.log('[🧪 DEBUG] Dados do placar por time (teamScoreboardData):', teamScoreboardData);
+//console.log('[🧪 DEBUG] Dados do placar por time (teamScoreboardData):', teamScoreboardData);
   return (
     <>
       {selectedCycle && (

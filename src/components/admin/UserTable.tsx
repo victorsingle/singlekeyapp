@@ -81,7 +81,7 @@ export function UserTable({ users, loading, onInviteClick, onUserUpdated, setUse
   };
   
   const handleDelete = async (user: AppUser) => {
-    console.log('[DEBUG] User recebido para exclusão:', user);
+   // console.log('[DEBUG] User recebido para exclusão:', user);
   
     const inviteId = user.id;
     const userId = user.user_id; // pode ser null, não tem problema agora!

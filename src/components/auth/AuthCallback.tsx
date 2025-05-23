@@ -13,16 +13,16 @@ export function AuthCallback() {
       const type = params.get('type');
       const next = params.get('next') || '/';
 
-      console.log('[AuthCallback 🔐]', { code, type, next });
+    //  console.log('[AuthCallback 🔐]', { code, type, next });
 
       if (code) {
-        console.log('[➡️ Tentando exchangeCodeForSession()]', { code });
+      //  console.log('[➡️ Tentando exchangeCodeForSession()]', { code });
         const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
         if (error) {
           console.error('❌ Erro ao trocar código por sessão:', error);
         } else {
-          console.log('✅ Sessão restaurada:', data.session);
+      //    console.log('✅ Sessão restaurada:', data.session);
           navigate(next);
         }
       } else {

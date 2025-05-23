@@ -16,8 +16,8 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 export function CycleComparison() {
   const { cycles = [], allOkrs = [] } = useOKRStore();
-  console.log('[🧪 allOkrs]', allOkrs);
-  console.log('[🧪 cycles]', cycles);
+  //console.log('[🧪 allOkrs]', allOkrs);
+ // console.log('[🧪 cycles]', cycles);
   if (!cycles.length) {
     return null;
   }
@@ -116,7 +116,7 @@ export function CycleComparison() {
       }
     },
   };
-  console.log('[📊 chartData]', chartData);
+  //console.log('[📊 chartData]', chartData);
 
   return (
     <div className="bg-white rounded-2xl shadow-md p-6">

@@ -18,7 +18,7 @@ interface MatrizPlacarProps {
 }
 
 export function MatrizPlacar({ data, dates }: MatrizPlacarProps) {
-  console.log('[📦 MatrizPlacar recebendo]', { data, dates });
+ // console.log('[📦 MatrizPlacar recebendo]', { data, dates });
   const getFlagColor = (flag: string | null) => {
     return clsx(
       'w-4 h-4 rounded-full mx-auto',

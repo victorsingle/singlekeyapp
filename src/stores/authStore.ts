@@ -46,7 +46,7 @@ export const useAuthStore = create<AuthState>()(
     
         const userId = sessionData.session.user.id;
     
-        console.log('[📦] user_id obtido da sessão:', userId);
+       // console.log('[📦] user_id obtido da sessão:', userId);
     
         // Primeiro tenta buscar no invited_users
         const { data: invitedUserRaw } = await supabase
@@ -104,10 +104,10 @@ export const useAuthStore = create<AuthState>()(
               onboardingCompleted: userProfile.onboardingCompleted ?? false,
             });
 
-            console.log('[✅ fetchUserData] organizationId salvo:', userProfile.organizationId);
+           // console.log('[✅ fetchUserData] organizationId salvo:', userProfile.organizationId);
 
             setTimeout(() => {
-              console.log('[🧪 organizationId no store após 2s]', useAuthStore.getState().organizationId);
+            //  console.log('[🧪 organizationId no store após 2s]', useAuthStore.getState().organizationId);
             }, 2000);
 
             

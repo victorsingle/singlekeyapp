@@ -252,11 +252,12 @@ useEffect(() => {
       useAuthStore.getState().fetchUserData();
       fetchNotifications(session.user.id);
 
+
+      //Feature Guide
       const { onboardingCompleted } = useAuthStore.getState();
       const hasSeen = localStorage.getItem('has_seen_feature_guide');
 
-      // Mostra o guia se o onboarding estiver concluído e o usuário nunca viu o guia
-      if (!hasSeen && onboardingCompleted === true) {
+      if (!hasSeen && onboardingCompleted) {
         useOnboardingGuide.getState().startGuide();
         localStorage.setItem('has_seen_feature_guide', 'true');
       }

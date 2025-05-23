@@ -159,7 +159,7 @@ useEffect(() => {
 
   return (
     <div className="w-full max-w-4xl mx-auto px-6 py-10">
-      <div className="bg-white rounded-xl shadow p-4 flex flex-col justify-between h-[500px] border border-gray-100">
+      <div className="bg-white rounded-xl shadow-lg p-4 flex flex-col justify-between h-[500px] border border-gray-100">
         <div className="overflow-y-auto space-y-4 mb-4 pr-2">
           {messages.map((msg, i) => (
             <div

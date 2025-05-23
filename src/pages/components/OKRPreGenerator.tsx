@@ -148,6 +148,14 @@ useEffect(() => {
     try {
       setLoading(true);
       const cicloId = await generateFullOKRStructureFromJson(estruturaJson);
+
+      if (fromOnboarding) {
+        await supabase
+          .from('users')
+          .update({ onboarding_completed: true })
+          .eq('user_id', useAuthStore.getState().userId);
+      }
+
       setMessages((prev) => [
         ...prev,
         { role: 'assistant', content: '✅ OKRs cadastrados com sucesso! Redirecionando...' },
@@ -159,7 +167,7 @@ useEffect(() => {
           setTimeout(() => startGuide(), 300); // ativa o guia após navegação
         }
       }, 1500);
-      
+
     } catch (err) {
       console.error('[❌ Erro ao cadastrar OKRs]', err);
       setMessages((prev) => [...prev, {

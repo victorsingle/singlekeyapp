@@ -1,6 +1,3 @@
-import { create } from 'zustand';
-import { steps } from '../constants/onboardingSteps';
-
 interface OnboardingGuideState {
   step: number;
   visible: boolean;
@@ -9,15 +6,32 @@ interface OnboardingGuideState {
   skipGuide: () => void;
 }
 
-export const useOnboardingGuide = create<OnboardingGuideState>((set) => ({
-  step: 1,
-  visible: false,
-  startGuide: () => set({ visible: true, step: 1 }),
-  nextStep: () => set((state) => {
-    if (state.step >= steps.length) {
-      return { visible: false, step: 0 };
-    }
-    return { step: state.step + 1 };
-  }),
-  skipGuide: () => set({ visible: false, step: 0 }),
-}));
+export const useOnboardingGuide = create<OnboardingGuideState>((set) => {
+  const savedStep = Number(localStorage.getItem('onboarding-step') || '1');
+  const savedVisible = localStorage.getItem('onboarding-visible') === 'true';
+
+  return {
+    step: savedStep,
+    visible: savedVisible,
+    startGuide: () => {
+      localStorage.setItem('onboarding-step', '1');
+      localStorage.setItem('onboarding-visible', 'true');
+      set({ step: 1, visible: true });
+    },
+    nextStep: () => set((state) => {
+      const next = state.step + 1;
+      if (next > steps.length) {
+        localStorage.removeItem('onboarding-step');
+        localStorage.removeItem('onboarding-visible');
+        return { step: 0, visible: false };
+      }
+      localStorage.setItem('onboarding-step', String(next));
+      return { step: next };
+    }),
+    skipGuide: () => {
+      localStorage.removeItem('onboarding-step');
+      localStorage.removeItem('onboarding-visible');
+      set({ step: 0, visible: false });
+    },
+  };
+});

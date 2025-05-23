@@ -7,10 +7,10 @@ interface AuthState {
   userId: string | null;
   role: 'admin' | 'champion' | 'collaborator' | null;
   firstName: string | null;
-  lastName: string | null;
+  lastName: string | null; // ✅ Adicione isso
   adminId: string | null;
   companyName: string | null;
-  organizationId: string | null;
+  organizationId: string | null; // <<< ADICIONAR AQUI!
   loading: boolean;
   error: string | null;
   roleInOrg: string | null;
@@ -43,37 +43,41 @@ export const useAuthStore = create<AuthState>()(
         if (sessionError || !sessionData?.session?.user?.id) {
           throw sessionError || new Error('Usuário não autenticado.');
         }
-
+    
         const userId = sessionData.session.user.id;
-
+    
+       // console.log('[📦] user_id obtido da sessão:', userId);
+    
+        // Primeiro tenta buscar no invited_users
         const { data: invitedUserRaw } = await supabase
           .from('invited_users')
           .select('*')
           .eq('user_id', userId)
           .maybeSingle();
-
+    
         if (invitedUserRaw) {
-          const invitedUser = keysToCamel(invitedUserRaw);
-
+          const invitedUser = keysToCamel(invitedUserRaw); // 🛠️ Converte aqui!
+          console.log('[🐛 userProfile camelCase]', userProfile);
+          // busca nome da organização na view já existente
+          
           const { data: invitedOrg } = await supabase
-            .from('invited_users_with_org')
-            .select('organization_name')
-            .eq('user_id', userId)
-            .maybeSingle();
+          .from('invited_users_with_org')
+          .select('organization_name')
+          .eq('user_id', userId)
+          .maybeSingle();
 
           set({
-            userId,
-            firstName: invitedUser.firstName,
-            lastName: invitedUser.lastName,
-            role: invitedUser.role,
-            adminId: invitedUser.invitedBy,
-            companyName: invitedOrg?.organization_name ?? null,
-            organizationId: invitedUser.organizationId,
-            loading: false,
-            error: null,
-            roleInOrg: invitedUser.roleInOrg ?? null,
-            wantsUpdates: invitedUser.wantsUpdates ?? false,
-            onboardingCompleted: false, // convidados não usam onboarding
+          userId,
+          firstName: invitedUser.firstName,
+          lastName: invitedUser.lastName,
+          role: invitedUser.role,
+          adminId: invitedUser.invitedBy,
+          companyName: invitedOrg?.organization_name ?? null,
+          organizationId: invitedUser.organizationId,
+          loading: false,
+          error: null,
+          roleInOrg: invitedUser.roleInOrg ?? null,
+          wantsUpdates: invitedUser.wantsUpdates ?? false,
           });
 
         } else {
@@ -82,13 +86,10 @@ export const useAuthStore = create<AuthState>()(
             .select('*')
             .eq('user_id', userId)
             .maybeSingle();
-
+    
           if (userProfileRaw) {
-            const userProfile = {
-              ...keysToCamel(userProfileRaw),
-              onboardingCompleted: userProfileRaw.onboarding_completed, // 👈 força corretamente
-            };
-
+            const userProfile = keysToCamel(userProfileRaw); // 🛠️ Converte aqui também!
+    
             set({
               userId,
               firstName: userProfile.firstName,
@@ -99,14 +100,18 @@ export const useAuthStore = create<AuthState>()(
               organizationId: userProfile.organizationId,
               loading: false,
               error: null,
-              roleInOrg: null,
+              roleInOrg: null, // se não tiver vindo da tabela, pode setar como null
               wantsUpdates: userProfile.wantsUpdates ?? false,
               onboardingCompleted: userProfile.onboardingCompleted ?? false,
             });
 
+           // console.log('[✅ fetchUserData] organizationId salvo:', userProfile.organizationId);
+
             setTimeout(() => {
-              // console.log('[🧪 organizationId no store após 2s]', useAuthStore.getState().organizationId);
+            //  console.log('[🧪 organizationId no store após 2s]', useAuthStore.getState().organizationId);
             }, 2000);
+
+            
           } else {
             throw new Error('Usuário não encontrado nas tabelas de perfil.');
           }

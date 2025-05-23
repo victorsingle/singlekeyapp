@@ -251,20 +251,20 @@ useEffect(() => {
   const loadUserData = async () => {
     if (!session) return;
 
-    await useAuthStore.getState().fetchUserData();
+    await useAuthStore.getState().fetchUserData(); // ✅ aguarda final
     fetchNotifications(session.user.id);
 
     const { onboardingCompleted } = useAuthStore.getState();
-    const stepStorage = Number(localStorage.getItem('onboarding-step') || '0');
-    const visibleStorage = localStorage.getItem('onboarding-visible') === 'true';
+    const hasSeen = localStorage.getItem('has_seen_feature_guide');
 
-    // Ativa guia apenas se o onboarding estiver completo e a flag de visibilidade estiver presente
-    if (onboardingCompleted && visibleStorage && stepStorage > 0) {
-      useOnboardingGuide.setState({ visible: true, step: stepStorage });
+    // ✅ Lógica correta
+    if (!hasSeen && onboardingCompleted === false) {
+      useOnboardingGuide.getState().startGuide();
+      localStorage.setItem('has_seen_feature_guide', 'true');
     }
   };
 
-  loadUserData();
+  loadUserData(); // <- aqui estava faltando chamar
 }, [session]);
 
   // --- 5. Dropdown fora do menu ---

@@ -9,15 +9,15 @@ export function useTeamScoreboardData(organizationId: string | null) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    console.log('[DEBUG] Entrou no useEffect com:', { organizationId, cycleId });
+   // console.log('[DEBUG] Entrou no useEffect com:', { organizationId, cycleId });
 
     if (!organizationId || !cycleId) {
-      console.log('[DEBUG] 🚫 Abortando por falta de dados');
+    //  console.log('[DEBUG] 🚫 Abortando por falta de dados');
       return;
     }
 
     (async () => {
-      console.log('[DEBUG] ⏳ Buscando dados do placar por time...');
+     // console.log('[DEBUG] ⏳ Buscando dados do placar por time...');
       setLoading(true);
       setError(null);
 
@@ -27,11 +27,11 @@ export function useTeamScoreboardData(organizationId: string | null) {
           .select('*');
 
         if (linksError) throw linksError;
-        console.log('[DEBUG] 🔄 links:', links);
+       // console.log('[DEBUG] 🔄 links:', links);
 
         const krIds = links.map(l => l.key_result_id);
         const teamIds = [...new Set(links.map(l => l.team_id))];
-        console.log('[DEBUG] keyResultIds esperados:', krIds);
+       // console.log('[DEBUG] keyResultIds esperados:', krIds);
 
         if (krIds.length === 0) {
           setData([]);
@@ -47,7 +47,7 @@ export function useTeamScoreboardData(organizationId: string | null) {
           .in('id', krIds);
 
         if (krError) throw krError;
-        console.log('[DEBUG] 🔄 keyResults:', keyResults);
+       // console.log('[DEBUG] 🔄 keyResults:', keyResults);
 
         const { data: teams, error: teamsError } = await supabase
           .from('teams')
@@ -55,19 +55,19 @@ export function useTeamScoreboardData(organizationId: string | null) {
           .in('id', teamIds);
 
         if (teamsError) throw teamsError;
-        console.log('[DEBUG] 🔄 teams:', teams);
+       // console.log('[DEBUG] 🔄 teams:', teams);
 
         const grouped = new Map();
 
         for (const row of links) {
           const kr = keyResults.find(k => k.id === row.key_result_id);
           if (!kr) {
-            console.log('[❌] KR não encontrado para:', row.key_result_id);
+          //  console.log('[❌] KR não encontrado para:', row.key_result_id);
             continue;
           }
 
           const teamName = teams.find(t => t.id === row.team_id)?.name ?? 'Sem time';
-          console.log('[🔁] Associando KR:', kr.text, '→', teamName);
+        //  console.log('[🔁] Associando KR:', kr.text, '→', teamName);
 
           if (!grouped.has(teamName)) grouped.set(teamName, []);
           grouped.get(teamName).push({
@@ -85,7 +85,7 @@ export function useTeamScoreboardData(organizationId: string | null) {
           keyResults,
         }));
 
-        console.log('[✅] Resultado final agrupado:', result);
+       // console.log('[✅] Resultado final agrupado:', result);
         setData(result);
       } catch (err) {
         console.error('[❌ useTeamScoreboardData]', err);

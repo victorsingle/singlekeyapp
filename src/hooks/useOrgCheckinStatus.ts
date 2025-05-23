@@ -12,7 +12,7 @@ export function useOrgCheckinStatus(cycleId?: string, version: number = 0) {
 
   useEffect(() => {
     const checkStatus = async () => {
-      console.log('[🔁 checkStatus called]', { cycleId, version });
+     // console.log('[🔁 checkStatus called]', { cycleId, version });
 
       if (!cycleId || !organizationId) return;
 

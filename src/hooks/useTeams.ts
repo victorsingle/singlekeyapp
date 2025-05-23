@@ -80,7 +80,7 @@ export function useTeams() {
     }
   
     const { name, description, leader } = data;
-    console.log('[INSERT] Enviando organização:', organizationId, 'usuário:', userId);
+   // console.log('[INSERT] Enviando organização:', organizationId, 'usuário:', userId);
     const { error } = await supabase.from('teams').insert({
       name,
       description,

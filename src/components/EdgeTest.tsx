@@ -148,18 +148,12 @@ export function OKRRelationMap() {
       const sourceNode = nodes.find((n) => n.id === connection.source);
       const targetNode = nodes.find((n) => n.id === connection.target);
 
-      console.log('[⚡ Conexão]', { source: sourceNode, target: targetNode });
+     // console.log('[⚡ Conexão]', { source: sourceNode, target: targetNode });
 
       if (sourceNode && targetNode) {
         const sourceType = sourceNode.data.type;
         const targetType = targetNode.data.type;
 
-        console.log('[🎯 CONECTANDO]', {
-          source: sourceNode.id,
-          target: targetNode.id,
-          sourceType,
-          targetType,
-        });
 
         let linkType: 'tactical_to_strategic' | 'operational_to_tactical' | null = null;
 

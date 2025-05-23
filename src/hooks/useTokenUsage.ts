@@ -12,7 +12,7 @@ export function useTokenUsage() {
 
   useEffect(() => {
     const fetchUsage = async () => {
-      console.log('[🔄 useTokenUsage] iniciado');
+      //console.log('[🔄 useTokenUsage] iniciado');
       setIsLoading(true);
 
       const today = new Date();
@@ -53,7 +53,7 @@ export function useTokenUsage() {
       }
 
       if (!usageRow) {
-        console.log('[🧠 useTokenUsage] linha não encontrada — executando renovar_creditos_tokens');
+       // console.log('[🧠 useTokenUsage] linha não encontrada — executando renovar_creditos_tokens');
       
         const { error: rpcError } = await supabase.rpc('renovar_creditos_tokens');
         if (rpcError) {

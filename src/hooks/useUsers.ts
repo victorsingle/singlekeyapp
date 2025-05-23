@@ -57,9 +57,9 @@ export function useUsers() {
     .select('id, name, leader_id') // ✅ string única
     .in('id', teamIds);
 
-    console.log('[usersData]', usersData);
-    console.log('[memberData]', memberData);
-    console.log('[teamsData]', teamsData);
+   // console.log('[usersData]', usersData);
+  //  console.log('[memberData]', memberData);
+   // console.log('[teamsData]', teamsData);
 
     if (teamsError) {
     console.error('[❌ useUsers] Erro ao carregar teams:', teamsError);

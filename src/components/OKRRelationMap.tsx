@@ -48,7 +48,7 @@ const getTypeStyles = (type: string) => {
 };
 
 function OKRNode({ data, id }: { data: any; id: string }) {
-  console.log('ENTROU NO OKR NODE')
+//  console.log('ENTROU NO OKR NODE')
   const [isExpanded, setIsExpanded] = useState(false);
   
   const isStrategic = data.nodeType === 'strategic';
@@ -203,7 +203,7 @@ export function OKRRelationMap({ okrs, links }: { okrs: any[], links: any[] }) {
 
 
   const onConnect = useCallback(async (connection: Connection) => {
-    console.log('[⚡ onConnect disparado]', connection);
+   // console.log('[⚡ onConnect disparado]', connection);
 
     
     if (!connection.source || !connection.target) return;

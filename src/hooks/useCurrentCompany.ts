@@ -42,6 +42,6 @@ export function useCurrentCompany() {
   fetchCompany();
 }, []);
 
-  console.log('[🔑 useCurrentCompany] company state:', company);
+  //console.log('[🔑 useCurrentCompany] company state:', company);
   return company;
 }

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { X, Target } from 'lucide-react';
+import { useKaiChatStore } from '../../stores/useKaiChatStore';
+import { useAuthStore } from '../../stores/authStore';
 
 interface Props {
   onNext: () => void;
@@ -89,7 +91,20 @@ export function OnboardingStep2({ onNext, onBack, teams, setTeams }: Props) {
           ← Voltar
         </button>
         <button
-          onClick={onNext}
+            onClick={() => {
+              const { setTeamsToCreate } = useKaiChatStore.getState();
+              const { organizationId } = useAuthStore.getState();
+
+              setTeamsToCreate(
+                teams.map(team => ({
+                  name: team.name,
+                  description: team.description,
+                  organization_id: organizationId,
+                }))
+              );
+
+              onNext(); // segue para o próximo passo
+            }}
           className="bg-blue-600 text-white px-5 py-2 text-sm rounded-md hover:bg-blue-700  "
         >
           {teams.length === 0 ? 'Pular etapa' : 'Próximo'}

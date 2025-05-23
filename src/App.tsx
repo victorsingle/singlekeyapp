@@ -93,11 +93,6 @@ function App() {
 
   // --- Notificação de check-in ---
 
-  console.log('[🛠️ Debug CheckinStatus]', {
-    cyclesReady,
-    selectedCycleId,
-    organizationId,
-  });
 
   const checkinNotification = notifications.find(n => n.type === 'checkin_reminder' && !n.read);
 

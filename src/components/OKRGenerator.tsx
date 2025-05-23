@@ -35,7 +35,7 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false }: OKRGe
       <OKRPreGenerator onFinish={onFinish} />
     </div>
   ) : (
-    <div className="fixed inset-0 bg-gradient-to-b from-white via-[#f5f8ff] to-[#e7effc] flex flex-col items-center justify-center px-6 py-12 z-1 text-center">
+    <div className="fixed inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 flex flex-col items-center justify-center px-6 py-12 z-1 text-center">
       <div className="relative max-w-2xl w-full space-y-10 text-left">
         
         <OKRPreGenerator onFinish={onFinish} />

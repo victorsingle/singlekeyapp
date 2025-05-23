@@ -204,14 +204,13 @@ useEffect(() => {
       const cicloId = await generateFullOKRStructureFromJson(estruturaJson);
 
       if (fromOnboarding) {
-        const userId = useAuthStore.getState().userId;
         await supabase
           .from('users')
           .update({ onboarding_completed: true })
-          .eq('user_id', userId);
+          .eq('user_id', useAuthStore.getState().userId);
 
-        // 🧠 Atualiza o estado local também
-        useAuthStore.setState({ onboardingCompleted: true });
+        // ⚠️ Alternativa mais pesada
+        await useAuthStore.getState().fetchUserData();
       }
 
       setMessages((prev) => [

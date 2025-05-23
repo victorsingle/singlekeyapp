@@ -13,6 +13,7 @@ interface OKRGeneratorProps {
 
 export function OKRGenerator({ onFinish, onManualStart, isModal = false }: OKRGeneratorProps) {
   const { isAdmin, isChampion } = usePermissions();
+  const cycles = useCycleStore((state) => state.cycles);
 
   if (!isAdmin && !isChampion) {
     return (

@@ -246,26 +246,42 @@ useEffect(() => {
   return () => window.removeEventListener('kai:checkin:updated', handler);
 }, []);
 
- // --- 2. Carregar dados do usuário e notificações ---
+// --- 2. Carregar dados do usuário e notificações ---
 useEffect(() => {
-  const loadUserData = async () => {
+  const loadUserDataAndCheckGuide = async () => {
     if (!session) return;
 
-    await useAuthStore.getState().fetchUserData(); // ✅ aguarda final
+    // 1. Carrega dados do usuário na store
+    await useAuthStore.getState().fetchUserData();
+
+    // 2. Busca notificações
     fetchNotifications(session.user.id);
 
-    const { onboardingCompleted } = useAuthStore.getState();
+    // 3. Verifica valor direto do banco
+    const { data, error } = await supabase
+      .from('users')
+      .select('onboarding_completed')
+      .eq('user_id', session.user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('[❌ Erro ao buscar onboarding diretamente do banco]', error);
+      return;
+    }
+
+    const onboardingCompleted = data?.onboarding_completed ?? false;
     const hasSeen = localStorage.getItem('has_seen_feature_guide');
 
-    // ✅ Lógica correta
+    // 4. Lógica final de exibição do FeatureGuide
     if (!hasSeen && onboardingCompleted === false) {
       useOnboardingGuide.getState().startGuide();
       localStorage.setItem('has_seen_feature_guide', 'true');
     }
   };
 
-  loadUserData(); // <- aqui estava faltando chamar
+  loadUserDataAndCheckGuide();
 }, [session]);
+
 
   // --- 5. Dropdown fora do menu ---
   useEffect(() => {

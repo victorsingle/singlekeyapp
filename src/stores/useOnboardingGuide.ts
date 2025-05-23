@@ -22,11 +22,6 @@ export const useOnboardingGuide = create<OnboardingGuideState>((set) => {
     },
     nextStep: () => set((state) => {
       const next = state.step + 1;
-      if (next > steps.length) {
-        localStorage.removeItem('onboarding-step');
-        localStorage.removeItem('onboarding-visible');
-        return { step: 0, visible: false };
-      }
       localStorage.setItem('onboarding-step', String(next));
       return { step: next };
     }),

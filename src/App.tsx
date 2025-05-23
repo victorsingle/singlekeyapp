@@ -253,8 +253,10 @@ useEffect(() => {
       fetchNotifications(session.user.id);
 
       //Onboading Tooltip
+      const { onboardingCompleted } = useAuthStore.getState();
       const hasSeen = localStorage.getItem('has_seen_feature_guide');
-      if (!hasSeen) {
+
+      if (!hasSeen && onboardingCompleted === false) {
         useOnboardingGuide.getState().startGuide();
         localStorage.setItem('has_seen_feature_guide', 'true');
       }

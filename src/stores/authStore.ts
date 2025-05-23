@@ -15,6 +15,7 @@ interface AuthState {
   error: string | null;
   roleInOrg: string | null;
   wantsUpdates: boolean;
+  onboardingCompleted: boolean;
 
   fetchUserData: () => Promise<void>;
 }
@@ -32,6 +33,7 @@ export const useAuthStore = create<AuthState>()(
     error: null,
     roleInOrg: null,
     wantsUpdates: false,
+    onboardingCompleted: false,
 
     fetchUserData: async () => {
       set({ loading: true });
@@ -97,6 +99,7 @@ export const useAuthStore = create<AuthState>()(
               organizationId: userProfile.organizationId, // camelCase funcionando!
               loading: false,
               error: null,
+              onboardingCompleted: data.onboarding_completed,
             });
 
             console.log('[✅ fetchUserData] organizationId salvo:', userProfile.organizationId);

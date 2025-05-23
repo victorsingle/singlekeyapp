@@ -250,13 +250,8 @@ useEffect(() => {
 
     const { onboardingCompleted, userId } = useAuthStore.getState();
 
-    if (!onboardingCompleted) {
+   if (!onboardingCompleted) {
       useOnboardingGuide.getState().startGuide();
-
-      await supabase
-        .from('users')
-        .update({ onboarding_completed: true })
-        .eq('user_id', userId);
     }
   };
 

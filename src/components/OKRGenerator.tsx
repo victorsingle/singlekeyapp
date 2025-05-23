@@ -40,7 +40,7 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false }: OKRGe
         
         <OKRPreGenerator onFinish={onFinish} />
 
-        <div className="absolute right-3 bottom-0">
+        <div className="absolute right-6 bottom-0">
           <button
             type="button"
             onClick={() => {

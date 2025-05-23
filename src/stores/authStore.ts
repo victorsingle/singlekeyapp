@@ -96,10 +96,12 @@ export const useAuthStore = create<AuthState>()(
               role: 'admin',
               adminId: null,
               companyName: userProfile.companyName,
-              organizationId: userProfile.organizationId, // camelCase funcionando!
+              organizationId: userProfile.organizationId,
               loading: false,
               error: null,
-              onboardingCompleted: data.onboarding_completed,
+              roleInOrg: null, // se não tiver vindo da tabela, pode setar como null
+              wantsUpdates: userProfile.wantsUpdates ?? false,
+              onboardingCompleted: userProfile.onboardingCompleted ?? false,
             });
 
             console.log('[✅ fetchUserData] organizationId salvo:', userProfile.organizationId);

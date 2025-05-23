@@ -7,6 +7,7 @@ interface KaiChatState {
   propostaConfirmada: boolean;
   setEstruturaJson: (json: ParsedOKRStructure) => void;
   setPropostaConfirmada: (valor: boolean) => void;
+  resetKai: () => void;
 }
 
 export const useKaiChatStore = create<KaiChatState>()(
@@ -16,17 +17,6 @@ export const useKaiChatStore = create<KaiChatState>()(
 
     setEstruturaJson: (json) => set({ estruturaJson: json }),
     setPropostaConfirmada: (valor) => set({ propostaConfirmada: valor }),
-  }))
-);
-
-export const useKaiChatStore = create<KaiChatState>()(
-  devtools((set) => ({
-    estruturaJson: null,
-    propostaConfirmada: false,
-
-    setEstruturaJson: (json) => set({ estruturaJson: json }),
-    setPropostaConfirmada: (valor) => set({ propostaConfirmada: valor }),
-
     resetKai: () => set({ estruturaJson: null, propostaConfirmada: false }),
   }))
 );

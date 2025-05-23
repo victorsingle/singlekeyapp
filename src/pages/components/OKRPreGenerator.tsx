@@ -69,22 +69,18 @@ useEffect(() => {
   const lastUserMessage = messages[messages.length - 1];
   const lastKaiMessage = messages.slice().reverse().find(m => m.role === 'assistant');
 
-  console.log('[🧠 Verificando confirmação]', {
-    lastUserMessage: lastUserMessage.content,
-    lastKaiMessage: lastKaiMessage?.content?.slice(0, 100) + '...',
-  });
 
   if (
     lastUserMessage.role === 'user' &&
     /^(ok|pode gerar|está ótimo|confirmado|sim|tudo certo)$/i.test(lastUserMessage.content.trim()) &&
     lastKaiMessage
   ) {
-    console.log('[🚀 Tentando gerar JSON a partir da última resposta da Kai]');
+   // console.log('[🚀 Tentando gerar JSON a partir da última resposta da Kai]');
     try {
       const parsed = parseStructuredTextToJSON(lastKaiMessage.content);
       setEstruturaJson(parsed);
       setPropostaConfirmada(true);
-      console.log('[✅ JSON gerado no frontend]', parsed);
+   //   console.log('[✅ JSON gerado no frontend]', parsed);
     } catch (e) {
       console.error('[❌ Erro ao gerar JSON no frontend]', e);
     }
@@ -190,7 +186,7 @@ useEffect(() => {
           });
         }
 
-        console.log('[🔢 Tokens estimados registrados]', { totalTokensEstimado });
+       // console.log('[🔢 Tokens estimados registrados]', { totalTokensEstimado });
         window.dispatchEvent(new CustomEvent('kai:tokens:updated'));
       } catch (e) {
         console.error('[❌ Erro ao registrar tokens]', e);

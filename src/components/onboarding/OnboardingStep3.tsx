@@ -1,7 +1,7 @@
 import React from 'react';
 import { Target } from 'lucide-react';
 import { useOKRStore } from '../stores/okrStore';
-import { OKRPreGenerator } from './components/OKRPreGenerator';
+import { OKRPreGenerator } from '../../pages/components/OKRPreGenerator';
 
 interface Props {
   onBack: () => void;

@@ -242,19 +242,25 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
-  const loadUserDataAndCheckGuide = async () => {
+  const checkFeatureGuide = async () => {
     if (!session) return;
 
-    await useAuthStore.getState().fetchUserData();
-    fetchNotifications(session.user.id);
+    await useAuthStore.getState().fetchUserData(); // garante dados prontos
+    const { onboardingCompleted, userId } = useAuthStore.getState();
 
-    const onboardingCompleted = useAuthStore.getState().onboardingCompleted;
-    if (onboardingCompleted === false) {
+    // Só dispara se ainda não tiver completado
+    if (!onboardingCompleted) {
       useOnboardingGuide.getState().startGuide();
+
+      // E já atualiza no banco para não repetir
+      await supabase
+        .from('users')
+        .update({ onboarding_completed: true })
+        .eq('user_id', userId);
     }
   };
-  console.log('[🧪 onboardingCompleted]', useAuthStore.getState().onboardingCompleted);
-  loadUserDataAndCheckGuide();
+
+  checkFeatureGuide();
 }, [session]);
 
 

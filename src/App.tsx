@@ -270,13 +270,9 @@ useEffect(() => {
     }
 
     const onboardingCompleted = data?.onboarding_completed ?? false;
-    const hasSeen = localStorage.getItem('has_seen_feature_guide');
-
-    // 4. Lógica final de exibição do FeatureGuide
-    if (!hasSeen && onboardingCompleted === false) {
-      useOnboardingGuide.getState().startGuide();
-      localStorage.setItem('has_seen_feature_guide', 'true');
-    }
+   if (onboardingCompleted === false) {
+    useOnboardingGuide.getState().startGuide();
+  }
   };
 
   loadUserDataAndCheckGuide();

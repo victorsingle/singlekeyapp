@@ -209,7 +209,11 @@ useEffect(() => {
           .update({ onboarding_completed: true })
           .eq('user_id', useAuthStore.getState().userId);
 
-        // ⚠️ Alternativa mais pesada
+        // Atualiza localStorage e Zustand para impedir nova exibição
+        localStorage.setItem('has_seen_feature_guide', 'true');
+        useOnboardingGuide.getState().skipGuide();
+
+        // Atualiza o authStore com a nova flag
         await useAuthStore.getState().fetchUserData();
       }
 

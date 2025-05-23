@@ -247,23 +247,33 @@ useEffect(() => {
 }, []);
 
   // --- 2. Carregar dados do usuário e notificações ---
- useEffect(() => {
-  const loadUserData = async () => {
+useEffect(() => {
+  const loadUserDataAndCheckOnboarding = async () => {
     if (!session) return;
 
     await useAuthStore.getState().fetchUserData();
     fetchNotifications(session.user.id);
 
-    const { onboardingCompleted } = useAuthStore.getState();
-    const hasSeen = localStorage.getItem('has_seen_feature_guide');
+    // 🔍 Verifica direto no banco, sem depender do store
+    const { data, error } = await supabase
+      .from('users')
+      .select('onboarding_completed')
+      .eq('user_id', session.user.id)
+      .maybeSingle();
 
-    if (!hasSeen && onboardingCompleted) {
+    if (error) {
+      console.error('[❌ Erro ao verificar onboarding_completed]', error);
+      return;
+    }
+
+    const hasSeen = localStorage.getItem('has_seen_feature_guide');
+    if (!hasSeen && data?.onboarding_completed === false) {
       useOnboardingGuide.getState().startGuide();
       localStorage.setItem('has_seen_feature_guide', 'true');
     }
   };
 
-  loadUserData();
+  loadUserDataAndCheckOnboarding();
 }, [session]);
 
   // --- 5. Dropdown fora do menu ---

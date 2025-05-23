@@ -2,6 +2,7 @@ import React from 'react';
 import { Target } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
 import { OKRPreGenerator } from '../pages/components/OKRPreGenerator';
+import { useCycleStore } from '../stores/okrCycleStore';
 
 interface OKRGeneratorProps {
   onFinish: (cycleId: string) => void;
@@ -41,15 +42,17 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false }: OKRGe
         <OKRPreGenerator onFinish={onFinish} fromOnboarding />
 
         <div className="absolute right-6 bottom-0">
-          <button
-            type="button"
-            onClick={() => {
-              window.dispatchEvent(new CustomEvent('closeGenerator'));
-            }}
-            className="text-xs text-gray-500 hover:text-blue-600 transition"
-          >
-            Voltar →
-          </button>
+          {cycles.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('closeGenerator'));
+              }}
+              className="text-xs text-gray-500 hover:text-blue-600 transition"
+            >
+              Voltar →
+            </button>
+          )}
         </div>
       </div>
     </div>

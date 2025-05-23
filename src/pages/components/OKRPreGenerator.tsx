@@ -203,6 +203,8 @@ useEffect(() => {
                   </svg>
                   Enviando...
                 `;
+                buttonRef.current.style.opacity = '0.6';
+                buttonRef.current.style.pointerEvents = 'none';
               }
               await handleGenerateOKRs();
             }}

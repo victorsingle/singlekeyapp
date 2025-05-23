@@ -145,7 +145,7 @@ useEffect(() => {
         ...prev,
         { role: 'assistant', content: '✅ OKRs cadastrados com sucesso! Redirecionando...' },
       ]);
-      setTimeout(() => navigate(`/ciclos/${cicloId}`), 1500);
+      setTimeout(() => navigate(`/cycle/${cicloId}?open=krs`), 1500);
     } catch (err) {
       console.error('[❌ Erro ao cadastrar OKRs]', err);
       setMessages((prev) => [...prev, {

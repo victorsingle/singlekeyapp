@@ -35,7 +35,7 @@ export function OKRPreGenerator() {
     if (messages.length === 0) {
       setMessages([{
         role: 'assistant',
-        content: 'Vamos bater um papo? Me conte sobre os próximos desafios me dando o contexto e eu cuido dos indicadores.'
+        content: 'Ei! Quer uma ajudinha com o planejamento? Me conta o que vem pela frente e eu te ajudo a construir os indicadores.'
       }]);
     }
   }, []);

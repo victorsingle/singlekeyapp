@@ -17,6 +17,12 @@ interface OKRPreGeneratorProps {
 export function OKRPreGenerator({ fromOnboarding }: OKRPreGeneratorProps) {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
   const [input, setInput] = useState('');
+
+  useEffect(() => {
+    const draft = localStorage.getItem('kai-chat-draft');
+    if (draft) setInput(draft);
+  }, []);
+
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState('');
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -51,6 +57,10 @@ export function OKRPreGenerator({ fromOnboarding }: OKRPreGeneratorProps) {
   useEffect(() => {
     scrollToBottom();
   }, [messages, currentResponse]);
+
+  useEffect(() => {
+    localStorage.setItem('kai-chat-draft', input);
+  }, [input]);
 
   // Detecta aprovação e gera JSON localmente
 useEffect(() => {
@@ -88,6 +98,7 @@ useEffect(() => {
     const newMessage = { role: 'user' as const, content: input };
     setMessages((prev) => [...prev, newMessage]);
     setInput('');
+    localStorage.removeItem('kai-chat-draft');
     setLoading(true);
     setCurrentResponse('');
 

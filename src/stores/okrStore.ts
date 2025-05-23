@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
 import { updateOKR as updateOKRService } from '../services/okrService'; 
 import { deleteOKR as deleteOKRService } from '../services/okrService';
+import { createTeamsBulk } from '../services/okrService'; 
 import { useAuthStore } from './authStore'; 
 import OpenAI from 'openai';
 import { toast } from 'react-hot-toast';

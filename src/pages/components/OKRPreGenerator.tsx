@@ -26,6 +26,8 @@ export function OKRPreGenerator({ fromOnboarding }: OKRPreGeneratorProps) {
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState('');
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const resetKai = useKaiChatStore((s) => s.resetKai);
+
 
   const { generateFullOKRStructureFromJson } = useOKRStore();
   const {
@@ -61,6 +63,13 @@ export function OKRPreGenerator({ fromOnboarding }: OKRPreGeneratorProps) {
   useEffect(() => {
     localStorage.setItem('kai-chat-draft', input);
   }, [input]);
+
+  // Limpa quando o componente é desmontado
+  useEffect(() => {
+    return () => {
+      resetKai(); 
+    };
+  }, []);
 
   // Detecta aprovação e gera JSON localmente
 useEffect(() => {

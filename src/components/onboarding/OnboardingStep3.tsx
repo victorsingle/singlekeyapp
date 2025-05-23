@@ -19,7 +19,7 @@ export function OnboardingStep3({ onBack, onFinish, prompt, setPrompt }: Props) 
         <Target className="w-14 h-14 text-blue-600" />
       </div>
       <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Me diga o que precisamos alcançar</h1>
-      <p className="text-sm text-gray-500 max-w-md pb-4">
+      <p className="text-sm text-gray-500 max-w-md pb-1">
         Use suas palavras. Quanto mais contexto, mais consigo te ajudar!
       </p>
 

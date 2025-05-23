@@ -23,7 +23,7 @@ export function OnboardingStep3({ onBack, onFinish, prompt, setPrompt }: Props) 
         Use suas palavras. Quanto mais contexto, mais consigo te ajudar!
       </p>
 
-      <div className="w-full max-w-xl space-y-2 mt-2">
+      <div className="w-full max-w-xl space-y-2 mt-2 text-justify">
        <OKRPreGenerator />
       </div>
     </div>

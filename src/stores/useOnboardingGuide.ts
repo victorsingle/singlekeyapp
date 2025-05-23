@@ -9,39 +9,32 @@ interface OnboardingGuideState {
   skipGuide: () => void;
 }
 
-export const useOnboardingGuide = create<OnboardingGuideState>((set) => {
-  let savedStep = Number(localStorage.getItem('onboarding-step'));
-  const savedVisible = localStorage.getItem('onboarding-visible') === 'true';
+export const useOnboardingGuide = create<OnboardingGuideState>((set, get) => ({
+  step: 0,
+  visible: false,
 
-  // Se não existe step salvo, considere visibilidade falsa
-  if (!savedStep || isNaN(savedStep)) {
-    savedStep = 0;
-  }
+  startGuide: () => {
+    localStorage.setItem('onboarding-step', '1');
+    localStorage.setItem('onboarding-visible', 'true');
+    set({ step: 1, visible: true });
+  },
 
-  return {
-    step: savedVisible ? savedStep : 0,
-    visible: savedVisible,
-    startGuide: () => {
-      localStorage.setItem('onboarding-step', '1');
-      localStorage.setItem('onboarding-visible', 'true');
-      set({ step: 1, visible: true });
-    },
-    nextStep: () => set((state) => {
-      const next = state.step + 1;
-
-      if (next > steps.length) {
-        localStorage.removeItem('onboarding-step');
-        localStorage.removeItem('onboarding-visible');
-        return { step: 0, visible: false };
-      }
-
-      localStorage.setItem('onboarding-step', String(next));
-      return { step: next };
-    }),
-    skipGuide: () => {
+  nextStep: () => {
+    const next = get().step + 1;
+    const totalSteps = 7; // ajuste conforme seu array real de steps
+    if (next > totalSteps) {
       localStorage.removeItem('onboarding-step');
       localStorage.removeItem('onboarding-visible');
-      set({ step: 0, visible: false });
-    },
-  };
-});
+      return set({ step: 0, visible: false });
+    }
+    localStorage.setItem('onboarding-step', String(next));
+    set({ step: next });
+  },
+
+  skipGuide: () => {
+    localStorage.removeItem('onboarding-step');
+    localStorage.removeItem('onboarding-visible');
+    set({ step: 0, visible: false });
+  },
+}));
+

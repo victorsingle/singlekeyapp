@@ -246,8 +246,8 @@ useEffect(() => {
   return () => window.removeEventListener('kai:checkin:updated', handler);
 }, []);
 
-  // --- 2. Carregar dados do usuário e notificações ---
- useEffect(() => {
+ // --- 2. Carregar dados do usuário e notificações ---
+useEffect(() => {
   const loadUserData = async () => {
     if (!session) return;
 
@@ -255,11 +255,12 @@ useEffect(() => {
     fetchNotifications(session.user.id);
 
     const { onboardingCompleted } = useAuthStore.getState();
-    const hasSeen = localStorage.getItem('has_seen_feature_guide');
+    const stepStorage = Number(localStorage.getItem('onboarding-step') || '0');
+    const visibleStorage = localStorage.getItem('onboarding-visible') === 'true';
 
-    if (!hasSeen && onboardingCompleted) {
-      useOnboardingGuide.getState().startGuide();
-      localStorage.setItem('has_seen_feature_guide', 'true');
+    // Ativa guia apenas se o onboarding estiver completo e a flag de visibilidade estiver presente
+    if (onboardingCompleted && visibleStorage && stepStorage > 0) {
+      useOnboardingGuide.setState({ visible: true, step: stepStorage });
     }
   };
 

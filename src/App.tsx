@@ -246,35 +246,19 @@ useEffect(() => {
   return () => window.removeEventListener('kai:checkin:updated', handler);
 }, []);
 
-// --- 2. Carregar dados do usuário e notificações ---
 useEffect(() => {
   const loadUserDataAndCheckGuide = async () => {
     if (!session) return;
 
-    // 1. Carrega dados do usuário na store
     await useAuthStore.getState().fetchUserData();
-
-    // 2. Busca notificações
     fetchNotifications(session.user.id);
 
-    // 3. Verifica valor direto do banco
-    const { data, error } = await supabase
-      .from('users')
-      .select('onboarding_completed')
-      .eq('user_id', session.user.id)
-      .maybeSingle();
-
-    if (error) {
-      console.error('[❌ Erro ao buscar onboarding diretamente do banco]', error);
-      return;
+    const onboardingCompleted = useAuthStore.getState().onboardingCompleted;
+    if (onboardingCompleted === false) {
+      useOnboardingGuide.getState().startGuide();
     }
-
-    const onboardingCompleted = data?.onboarding_completed ?? false;
-   if (onboardingCompleted === false) {
-    useOnboardingGuide.getState().startGuide();
-  }
   };
-
+  console.log('[🧪 onboardingCompleted]', useAuthStore.getState().onboardingCompleted);
   loadUserDataAndCheckGuide();
 }, [session]);
 

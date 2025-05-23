@@ -224,9 +224,6 @@ useEffect(() => {
 
       setTimeout(() => {
         navigate(`/cycle/${cicloId}?open=krs`);
-        if (fromOnboarding) {
-          setTimeout(() => startGuide(), 300); // ativa o guia após navegação
-        }
       }, 1500);
 
     } catch (err) {

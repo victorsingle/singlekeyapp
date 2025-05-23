@@ -92,7 +92,7 @@ export function OnboardingStep2({ onNext, onBack, teams, setTeams }: Props) {
           onClick={onNext}
           className="bg-blue-600 text-white px-5 py-2 text-sm rounded-md hover:bg-blue-700  "
         >
-          {teams.length === 0 ? 'Pular etapa' : 'Avançar'}
+          {teams.length === 0 ? 'Pular etapa' : 'Próximo'}
         </button>
       </div>
     </div>

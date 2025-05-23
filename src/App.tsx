@@ -253,11 +253,13 @@ useEffect(() => {
       fetchNotifications(session.user.id);
 
       //Onboading Tooltip
-      const hasSeen = localStorage.getItem('has_seen_feature_guide');
-      if (!hasSeen) {
-        useOnboardingGuide.getState().startGuide();
-        localStorage.setItem('has_seen_feature_guide', 'true');
-      }
+      const { onboardingCompleted } = useAuthStore.getState();
+        const hasSeen = localStorage.getItem('has_seen_feature_guide');
+
+        if (!hasSeen && onboardingCompleted === false) {
+          useOnboardingGuide.getState().startGuide();
+          localStorage.setItem('has_seen_feature_guide', 'true');
+        }
 
     }
   }, [session]);

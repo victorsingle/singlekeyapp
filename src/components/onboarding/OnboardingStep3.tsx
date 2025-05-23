@@ -1,7 +1,7 @@
 import React from 'react';
 import { Target } from 'lucide-react';
 import { useOKRStore } from '../stores/okrStore';
-import { GenerateOKRButton } from '../../components/GenerateOKRButton';
+import { OKRPreGenerator } from './components/OKRPreGenerator';
 
 interface Props {
   onBack: () => void;
@@ -24,32 +24,7 @@ export function OnboardingStep3({ onBack, onFinish, prompt, setPrompt }: Props) 
       </p>
 
       <div className="w-full max-w-xl space-y-2 mt-2">
-        <textarea
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Ex: Queremos estruturar melhor nossas metas para o próximo quarter. O foco é aumentar a conversão no funil B2B, reduzir churn de clientes atuais e lançar uma nova frente de produtos digitais ainda este ano..."
-          className="w-full text-xs h-36 text-sm p-4 rounded-xl bg-white resize-none shadow-[0_20px_50px_rgba(0,0,0,0.07)] focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-        />
-        <div className="text-right text-xs text-gray-500">
-          {prompt.length} / {minChars} caracteres
-          {prompt.length < minChars && (
-            <span className="text-red-500 ml-2">Mínimo de 250</span>
-          )}
-        </div>
-      </div>
-
-      <div className="w-full max-w-xl flex justify-between items-center pt-4">
-        <button
-          onClick={onBack}
-          className="text-sm text-gray-500 hover:text-blue-600 transition"
-        >
-          ← Voltar
-        </button>
-
-        <GenerateOKRButton
-          disabled={prompt.length < minChars}
-          onGenerate={onFinish}
-        />
+       <OKRPreGenerator />
       </div>
     </div>
   );

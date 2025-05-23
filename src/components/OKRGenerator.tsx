@@ -43,10 +43,12 @@ export function OKRGenerator({ onFinish, onManualStart, isModal = false }: OKRGe
         <div className="absolute right-2 bottom-0">
           <button
             type="button"
-            onClick={onManualStart}
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('closeGenerator'));
+            }}
             className="text-xs text-gray-500 hover:text-blue-600 transition"
           >
-            Criar Sem Ajuda →
+            Voltar →
           </button>
         </div>
       </div>

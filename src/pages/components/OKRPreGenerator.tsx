@@ -154,6 +154,48 @@ useEffect(() => {
     setMessages((prev) => [...prev, { role: 'assistant', content: buffer }]);
     setCurrentResponse('');
     setLoading(false);
+
+    // --- Registro leve e seguro de tokens estimados ---
+    const promptTexto = messages.map(m => m.content).join(' ') + input;
+    const respostaTexto = buffer;
+    const totalTokensEstimado = Math.ceil((promptTexto.length + respostaTexto.length) / 4);
+
+    const organizationId = useAuthStore.getState().organizationId;
+    const hoje = new Date();
+    const mesReferencia = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-01`;
+
+    if (organizationId && totalTokensEstimado > 0) {
+      try {
+        const { data: existente, error: erroExistente } = await supabase
+          .from('usage_tokens')
+          .select('id, tokens_utilizados')
+          .eq('account_id', organizationId)
+          .eq('mes_referencia', mesReferencia)
+          .maybeSingle();
+
+        if (erroExistente) {
+          console.warn('[❌ Erro ao buscar usage_tokens]', erroExistente);
+        }
+
+        if (existente) {
+          await supabase
+            .from('usage_tokens')
+            .update({ tokens_utilizados: existente.tokens_utilizados + totalTokensEstimado })
+            .eq('id', existente.id);
+        } else {
+          await supabase.rpc('criar_usage_tokens', {
+            p_account_id: organizationId,
+            p_mes: mesReferencia,
+            p_tokens: totalTokensEstimado
+          });
+        }
+
+        console.log('[🔢 Tokens estimados registrados]', { totalTokensEstimado });
+        window.dispatchEvent(new CustomEvent('kai:tokens:updated'));
+      } catch (e) {
+        console.error('[❌ Erro ao registrar tokens]', e);
+      }
+    }
   };
 
   const handleGenerateOKRs = async () => {

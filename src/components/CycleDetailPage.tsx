@@ -6,6 +6,7 @@ import { ReactFlowProvider } from 'reactflow';
 import { format, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar, List, Network } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 // 2. Stores
 import { useAuthStore } from '../stores/authStore';
@@ -56,6 +57,7 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
 
   const { userId: storeUserId, organizationId } = useAuthStore();
   const [fallbackUserId, setFallbackUserId] = useState<string | null>(null);
+  const location = useLocation();
   
   useEffect(() => {
     if (!storeUserId) {
@@ -107,6 +109,23 @@ export function CycleDetailPage({ cycleId }: CycleDetailPageProps) {
 
     loadEverything();
   }, [organizationId, cycleId]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const shouldShowGuide = params.get('guia') === '1';
+    const alreadySeen = localStorage.getItem('has_seen_feature_guide') === 'true';
+
+    console.log('[🧪 Guia?]', { shouldShowGuide, alreadySeen });
+
+    if (shouldShowGuide && !alreadySeen) {
+      console.log('[🟣 Ativando Feature Guide via query param]');
+      useOnboardingGuide.getState().startGuide();
+      params.delete('guia');
+      const newSearch = params.toString();
+      window.history.replaceState({}, '', `${location.pathname}${newSearch ? '?' + newSearch : ''}`);
+    }
+  }, [location.search]);
+
 
   const selectedCycle = cycles.find((c) => c.id === selectedCycleId);
   const isReadOnly = selectedCycle?.status === 'completed';

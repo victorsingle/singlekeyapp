@@ -272,6 +272,20 @@ useEffect(() => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+// --- 6. captura o parametro de onboarding na url ---
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const shouldShowGuide = params.get('guia') === '1';
+    const alreadySeen = localStorage.getItem('has_seen_feature_guide') === 'true';
+
+    if (shouldShowGuide && !alreadySeen) {
+      console.log('[🟣 Ativando Feature Guide via query param]');
+      useOnboardingGuide.getState().startGuide();
+      params.delete('guia');
+      window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
+    }
+  }, []);
+
   // --- Redirecionamento para login se necessário ---
 if (!isAuthChecked || !onboardingChecked) {
   return (

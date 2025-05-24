@@ -231,7 +231,7 @@ useEffect(() => {
       ]);
 
       setTimeout(() => {
-        navigate(`/cycle/${cicloId}?open=krs`);
+        navigate(`/cycle/${cicloId}?open=krs&guia=1`);
       }, 1500);
 
     } catch (err) {

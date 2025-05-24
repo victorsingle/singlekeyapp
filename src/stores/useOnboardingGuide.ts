@@ -14,27 +14,20 @@ export const useOnboardingGuide = create<OnboardingGuideState>((set, get) => ({
   visible: false,
 
   startGuide: () => {
-    localStorage.setItem('onboarding-step', '1');
-    localStorage.setItem('onboarding-visible', 'true');
     set({ step: 1, visible: true });
   },
 
   nextStep: () => {
     const next = get().step + 1;
-    const totalSteps = 7; // ajuste conforme seu array real de steps
+    const totalSteps = steps.length; // ← usa direto a fonte
     if (next > totalSteps) {
-      localStorage.removeItem('onboarding-step');
-      localStorage.removeItem('onboarding-visible');
-      return set({ step: 0, visible: false });
+      set({ step: 0, visible: false });
+    } else {
+      set({ step: next });
     }
-    localStorage.setItem('onboarding-step', String(next));
-    set({ step: next });
   },
 
   skipGuide: () => {
-    localStorage.removeItem('onboarding-step');
-    localStorage.removeItem('onboarding-visible');
     set({ step: 0, visible: false });
   },
 }));
-

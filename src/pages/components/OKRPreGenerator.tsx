@@ -92,6 +92,7 @@ useEffect(() => {
       setEstruturaJson(parsed);
       setTimeout(() => {
         setPropostaConfirmada(true);
+        scrollToBottom();
       }, 2000); 
    //   console.log('[✅ JSON gerado no frontend]', parsed);
     } catch (e) {

@@ -90,7 +90,9 @@ useEffect(() => {
     try {
       const parsed = parseStructuredTextToJSON(lastKaiMessage.content);
       setEstruturaJson(parsed);
-      setPropostaConfirmada(true);
+      setTimeout(() => {
+        setPropostaConfirmada(true);
+      }, 2000); 
    //   console.log('[✅ JSON gerado no frontend]', parsed);
     } catch (e) {
       console.error('[❌ Erro ao gerar JSON no frontend]', e);

@@ -274,6 +274,7 @@ useEffect(() => {
 
 // --- 6. captura o parametro de onboarding na url ---
   useEffect(() => {
+    console.log('DEBUG Guia Effect');
     const params = new URLSearchParams(window.location.search);
     const shouldShowGuide = params.get('guia') === '1';
     const alreadySeen = localStorage.getItem('has_seen_feature_guide') === 'true';

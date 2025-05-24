@@ -83,7 +83,7 @@ useEffect(() => {
 
   if (
     lastUserMessage.role === 'user' &&
-    /^(ok|pode gerar|está ótimo|confirmado|sim|tudo certo)$/i.test(lastUserMessage.content.trim()) &&
+    /^(ok|pode gerar|está ótimo|confirmado|sim|tudo certo|agora sim|top|ficou top|massa|perfeito|muito bom|ficou muito bom)$/i.test(lastUserMessage.content.trim()) &&
     lastKaiMessage
   ) {
    // console.log('[🚀 Tentando gerar JSON a partir da última resposta da Kai]');

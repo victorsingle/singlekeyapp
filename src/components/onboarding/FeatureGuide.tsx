@@ -65,9 +65,14 @@ export function FeatureGuide() {
     return () => observer.disconnect();
   }, [step, current, visible]);
 
-  const handleNext = () => {
+const handleNext = () => {
+  if (isLastStep) {
+    skipGuide(); // desativa o guia
+    localStorage.setItem('has_seen_feature_guide', 'true'); // evita reexibição
+  } else {
     nextStep();
-  };
+  }
+};
 
   const arrowClass = current && {
     top: 'absolute bottom-[-8px] left-1/2 -translate-x-1/2 border-x-8 border-x-transparent border-t-8 border-t-purple-600',
@@ -95,7 +100,10 @@ export function FeatureGuide() {
         <button onClick={handleNext} className="bg-white text-xs text-purple-600 px-3 py-1 rounded">
           {isLastStep ? 'Finalizar' : 'Próximo'}
         </button>
-        <button onClick={skipGuide} className="text-white text-xs underline text-sm">Pular</button>
+        <button onClick={() => {
+          skipGuide();
+          localStorage.setItem('has_seen_feature_guide', 'true');
+        }} className="text-white text-xs underline text-sm">Pular</button>
       </div>
     </div>
   );

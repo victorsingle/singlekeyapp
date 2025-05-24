@@ -248,9 +248,11 @@ useEffect(() => {
     await useAuthStore.getState().fetchUserData(); // garante dados prontos
     fetchNotifications(session.user.id);
 
-    const { onboardingCompleted, userId } = useAuthStore.getState();
+    const { onboardingCompleted } = useAuthStore.getState();
 
-   if (!onboardingCompleted) {
+    const localSkip = localStorage.getItem('has_seen_feature_guide') === 'true';
+
+    if (!onboardingCompleted && !localSkip) {
       useOnboardingGuide.getState().startGuide();
     }
   };

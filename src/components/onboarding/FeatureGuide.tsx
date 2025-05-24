@@ -67,10 +67,10 @@ export function FeatureGuide() {
 
 const handleNext = () => {
   if (isLastStep) {
-    skipGuide(); // desativa o guia
-    localStorage.setItem('has_seen_feature_guide', 'true'); // evita reexibição
+    skipGuide();
+    localStorage.setItem('has_seen_feature_guide', 'true'); // ✅ só aqui
   } else {
-    nextStep();
+    nextStep(); 
   }
 };
 

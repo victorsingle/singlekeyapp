@@ -222,7 +222,7 @@ useEffect(() => {
 
         // ✅ Impede qualquer reexibição
         useOnboardingGuide.getState().skipGuide();
-        localStorage.setItem('has_seen_feature_guide', 'true');
+        //localStorage.setItem('has_seen_feature_guide', 'true');
       }
 
       setMessages((prev) => [

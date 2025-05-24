@@ -324,7 +324,7 @@ export function LandingPage() {
 
       <footer className="bg-gray-50 text-center text-sm text-gray-500 py-6">
      <p>
-       © {new Date().getFullYear()} SingleKey. Todos os direitos reservados.
+       © {new Date().getFullYear()} SingleJob. Todos os direitos reservados.
      </p>
    </footer>
     </div>

@@ -6,6 +6,7 @@ import { ReactFlowProvider } from 'reactflow';
 import { format, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar, List, Network } from 'lucide-react';
+import { useOnboardingGuide } from '../stores/useOnboardingGuide'; 
 import { useLocation } from 'react-router-dom';
 
 // 2. Stores
